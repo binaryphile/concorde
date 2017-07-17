@@ -1,0 +1,8 @@
+language: sh
+dist:     trusty
+sudo:     false
+install:
+  - export PATH=$HOME/shpec/bin:$TRAVIS_BUILD_DIR/lib:$PATH
+script:   ./all-shpecs
+git:
+  depth:  1
