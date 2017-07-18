@@ -23,5 +23,5 @@ Latest Changes
 
   [Keep a Changelog]: http://keepachangelog.com/
   [Semantic Versioning]: http://semver.org/
-  [v0.0.1]: https://github.com/binaryphile/concorde
+  [v0.0.1]: https://github.com/binaryphile/concorde/compare/v0.0.0...v0.0
   [v0.0.0]: https://github.com/binaryphile/concorde/tree/v0.0.0

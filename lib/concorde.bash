@@ -137,12 +137,14 @@ local_str () {
 log () { put "$@" ;}
 
 parse_options () {
-  [[ $1 == '('*')' ]] && local -a inputs=$1 || local -a inputs=${!1}
-  declare -p __instanceh >/dev/null 2>&1    || declare -Ag __instanceh=( [next_id]=0 )
+  [[ $1 == '('*')' ]] && local -a inputs=$1 || local -a inputs=${!1}; shift
   local -A optionh=()
+  local -A resulth=()
+  local args=()
   local input
   local name
-  local next_id
+  local option
+  local statement
 
   for input in "${inputs[@]}"; do
     $(assign input to '( short long argument help )')
@@ -154,20 +156,6 @@ parse_options () {
     [[ -n $short  ]] && optionh[$short]=$__
     [[ -n $long   ]] && optionh[$long]=$__
   done
-
-  next_id=${__instanceh[next_id]}
-  [[ -z ${__instanceh[$next_id]:-} ]] || return
-  repr optionh
-  __instanceh[$next_id]=$__
-  __=__instanceh["$next_id"]
-  __instanceh[next_id]=$(( next_id++ ))
-}
-
-options_parse () {
-  local -A optionh=${!1}; shift
-  local -A resulth=()
-  local args=()
-  local option
 
   while (( $# )); do
     case $1 in
@@ -195,9 +183,10 @@ options_parse () {
     esac
     shift
   done
-  repr args
-  resulth[arg]=$__
+  statement="set -- ${args[@]}"
   repr resulth
+  printf -v statement '%s\n__=%s' "$statement" "$__"
+  emit "$statement"
 }
 
 part () {
