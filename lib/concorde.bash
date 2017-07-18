@@ -93,8 +93,8 @@ grab () {
 
 instantiate () { printf -v "$1" %s "$(eval "echo ${!1}")" ;}
 
-module () {
-  local module_name=$1
+library () {
+  local library_name=$1
   local depth=${2:-1}
   local i
   local path
@@ -109,7 +109,7 @@ module () {
   statement=$__
   path=''
   (( depth )) && for (( i = 0; i < depth; i++ )); do path+=/..; done
-  printf -v statement "$statement" "$module_name" "$module_name" "$module_name" "${module_name^^}" "$path"
+  printf -v statement "$statement" "$library_name" "$library_name" "$library_name" "${library_name^^}" "$path"
   expose "$statement"
 }
 
