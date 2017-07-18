@@ -53,6 +53,7 @@ Reserved Variables
 Concorde reserves the following global variables for its own use:
 
 -   `CONCO_ROOT`
+-   `CONCO_SRCE`
 -   `__` (double-underscore)
 -   `__conco`
 -   `__dependencies`

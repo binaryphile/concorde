@@ -4,13 +4,24 @@ Change Log
 The format is based on [Keep a Changelog] and this project adheres to
 [Semantic Versioning].
 
-[] - 2017-0
+Latest Changes
+==============
+
+[v0.0.1] - 2017-07
 ---------------------
 
 ### Changed
 
--   reverted to normal versioning
+-   refactored option parsing
+
+[v0.0.0] - 2017-07-18
+---------------------
+
+### Added
+
+-   tons of stuff
 
   [Keep a Changelog]: http://keepachangelog.com/
   [Semantic Versioning]: http://semver.org/
-  [v0.0.0]: https://github.com/binaryphile/basic
+  [v0.0.1]: https://github.com/binaryphile/concorde
+  [v0.0.0]: https://github.com/binaryphile/concorde/tree/v0.0.0

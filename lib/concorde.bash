@@ -136,7 +136,7 @@ local_str () {
 
 log () { put "$@" ;}
 
-options_new () {
+parse_options () {
   [[ $1 == '('*')' ]] && local -a inputs=$1 || local -a inputs=${!1}
   declare -p __instanceh >/dev/null 2>&1    || declare -Ag __instanceh=( [next_id]=0 )
   local -A optionh=()
