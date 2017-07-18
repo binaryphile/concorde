@@ -51,13 +51,6 @@ _echo_functions () {
 
 expose () { printf 'eval eval %q\n' "$1" ;}
 
-get_ary () { IFS=$'\n' read -rd '' -a "$1" ||: ;}
-
-get_here_ary () {
-  get_here_str
-  get_ary "$1" <<<"$__"
-}
-
 inspect () {
   __=$(declare -p "$1" 2>/dev/null) || return
   [[ ${__:9:1} == [aA] ]] && {
@@ -72,11 +65,25 @@ inspect () {
   __=${__%\"}
 }
 
+get_ary () {
+  local results=()
+
+  IFS=$'\n' read -rd '' -a results ||:
+  inspect results
+}
+
+get_here_ary () {
+  get_here_str
+  get_ary <<<"$__"
+}
+
 get_here_str () {
+  local space
+
   get_str
-  set -- "$__" "${!__%%[^[:space:]]*}"
-  printf -v __ '%s' "${!1:${#2}}"
-  printf -v __ '%s' "${!1//$'\n'$2/$'\n'}"
+  space=${__%%[^[:space:]]*}
+  printf -v __ %s "${__:${#space}}"
+  printf -v __ %s "${__//$'\n'$space/$'\n'}"
 }
 
 get_str () { IFS=$'\n' read -rd '' __ ||: ;}
@@ -232,7 +239,7 @@ strict_mode () {
   local option
   local statement
 
-  get_here_str statement <<'  EOS'
+  get_here_str <<'  EOS'
     set %so errexit
     set %so errtrace
     set %so nounset
@@ -240,6 +247,7 @@ strict_mode () {
 
     trap %s ERR
   EOS
+  statement=$__
   case $status in
     'on'  ) option=-; callback=traceback  ;;
     'off' ) option=+; callback=-          ;;
