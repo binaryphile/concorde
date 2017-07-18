@@ -1,36 +1,10 @@
-get_here_str () {
-  get_str "$1"
-  set -- "$1" "${!1%%[^[:space:]]*}"
-  printf -v "$1" '%s' "${!1:${#2}}"
-  printf -v "$1" '%s' "${!1//$'\n'$2/$'\n'}"
-}
-
-get_str () { IFS=$'\n' read -rd '' "$1" ||: ;}
-
-package () {
-  local package_name=$1
-  local depth=${2:-1}
-  local i
-  local path
-  local statement
-
-  get_here_str statement <<'  EOS'
-    [[ -n ${_%s:-} && -z ${reload:-}  ]] && return
-    [[ -n ${reload:-}                 ]] && { unset -v reload && echo reloaded || return ;}
-    [[ -z ${_%s:-}                    ]] && readonly _%s=loaded
-
-    %s_ROOT=$(readlink -f "$(dirname "$(readlink -f "$BASH_SOURCE")")"%s)
-  EOS
-  path=''
-  (( depth )) && for (( i = 0; i < depth; i++ )); do path+=/..; done
-  printf -v statement "$statement" "$package_name" "$package_name" "$package_name" "${package_name^^}" "$path"
-  echo "eval $statement"
-}
-
-$(package basic)
+[[ -n ${__idiom:-} && -z ${reload:-}  ]] && return
+[[ -n ${reload:-}                 ]] && { unset -v reload && echo reloaded || return ;}
+[[ -z ${_%s:-}                    ]] && readonly _%s=loaded
+%s_ROOT=$(readlink -f "$(dirname "$(readlink -f "$BASH_SOURCE")")"%s)
 
 assign () {
-  [[ $2 == 'to'   ]] || return
+  [[ $2 == 'to'     ]] || return
   [[ $1 == '('*')'  ]] && local -a args=$1 || local -a args=${!1}
   [[ $3 == '('*')'  ]] && local -a vars=$3 || local -a vars=( "$3" )
   local var
@@ -38,10 +12,10 @@ assign () {
 
   set -- "${args[@]}"
   for var in "${vars[@]}"; do
-    printf -v statement '%slocal %s=%q\n' "$statement" "$var" "$1"
+    printf -v statement '%sdeclare %s=%q\n' "$statement" "$var" "$1"
     shift
   done
-  echo "eval $statement"
+  expose "$statement"
 }
 
 bring () { (
@@ -75,6 +49,38 @@ _echo_functions () {
   done
 }
 
+expose () { printf 'eval eval %q\n' "$1" ;}
+
+get_ary () { IFS=$'\n' read -rd '' -a "$1" ||: ;}
+
+get_here_ary () {
+  get_here_str
+  get_ary "$1" <<<"$__"
+}
+
+inspect () {
+  __=$(declare -p "$1" 2>/dev/null) || return
+  [[ ${__:9:1} == [aA] ]] && {
+    __=${__#*=}
+    __=${__#\'}
+    __=${__%\'}
+    __=${__//\'\\\'\'/\'}
+    return
+  }
+  __=${__#*=}
+  __=${__#\"}
+  __=${__%\"}
+}
+
+get_here_str () {
+  get_str
+  set -- "$__" "${!__%%[^[:space:]]*}"
+  printf -v __ '%s' "${!1:${#2}}"
+  printf -v __ '%s' "${!1//$'\n'$2/$'\n'}"
+}
+
+get_str () { IFS=$'\n' read -rd '' __ ||: ;}
+
 grab () {
   [[ $2 == 'from'   ]] || return
   [[ $3 == '('*')'  ]] && local -A argh=$3 || local -A argh=${!3}
@@ -87,12 +93,32 @@ grab () {
   local statement
 
   for var in "${vars[@]}"; do
-    printf -v statement '%slocal %s=%q\n' "$statement" "$var" "${argh[$var]}"
+    printf -v statement '%sdeclare %s=%q\n' "$statement" "$var" "${argh[$var]}"
   done
-  echo "eval $statement"
+  expose "$statement"
 }
 
-instantiate () { printf -v "$1" '%s' "$(eval "echo ${!1}")" ;}
+instantiate () { printf -v "$1" %s "$(eval "echo ${!1}")" ;}
+
+module () {
+  local module_name=$1
+  local depth=${2:-1}
+  local i
+  local path
+  local statement
+
+  get_here_str <<'  EOS'
+    [[ -n ${__%s:-} && -z ${reload:-} ]] && return
+    [[ -n ${reload:-}                 ]] && { unset -v reload && echo reloaded || return ;}
+    [[ -z ${__%s:-}                   ]] && readonly __%s=loaded
+    %s_ROOT=$(readlink -f "$(dirname "$(readlink -f "$BASH_SOURCE")")"%s)
+  EOS
+  statement=$__
+  path=''
+  (( depth )) && for (( i = 0; i < depth; i++ )); do path+=/..; done
+  printf -v statement "$statement" "$module_name" "$module_name" "$module_name" "${module_name^^}" "$path"
+  expose "$statement"
+}
 
 options_new () {
   [[ $1 == '('*')' ]] && local -a inputs=$1 || local -a inputs=${!1}
@@ -169,28 +195,7 @@ part () {
 
 put     () { printf '%s\n' "$@"   ;}
 puterr  () { put "Error: $1" >&2  ;}
-get_ary () { IFS=$'\n' read -rd '' -a "$1" ||: ;}
-
-get_here_ary () {
-  get_here_str  "$1"
-  get_ary       "$1" <<<"${!1}"
-}
-
-inspect () {
-  __=$(declare -p "$1" 2>/dev/null) || return
-  [[ ${__:9:1} == [aA] ]] && {
-    __=${__#*=}
-    __=${__#\'}
-    __=${__%\'}
-    __=${__//\'\\\'\'/\'}
-    return
-  }
-  __=${__#*=}
-  __=${__#\"}
-  __=${__%\"}
-}
-
-return_if_sourced () { echo 'eval return 0 2>/dev/null ||:' ;}
+return_if_sourced () { expose 'return 0 2>/dev/null ||:' ;}
 
 require () {
   local library=$1
@@ -260,7 +265,7 @@ traceback () {
   local frame
   local val
 
-  $(strict_mode off)
+  strict_mode off
   printf '\nTraceback:  '
   frame=0
   while val=$(caller "$frame"); do

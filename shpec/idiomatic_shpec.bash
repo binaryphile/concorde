@@ -1,31 +1,27 @@
-library=../lib/basic.bash
+library=../lib/idiomatic.bash
 source "$library" 2>/dev/null || source "${BASH_SOURCE%/*}/$library"
 unset -v library
 
 describe die
   it "exits without an error message"; (
-    # stop_on_error off
     result=$(die 2>&1)
     assert equal '' "$result"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
   it "exits with a default error code of 1"; (
-    # stop_on_error off
     (die 2>&1)
     assert equal 1 $?
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
   it "exits with an error message"; (
-    # stop_on_error off
     result=$(die 'aaaaagh' 2>&1)
     assert equal 'Error: aaaaagh' "$result"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
   it "exits with an error code"; (
-    # stop_on_error off
     (die '' 2 2>&1)
     assert equal 2 $?
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
@@ -73,7 +69,6 @@ describe grab
   end
 
   it "errors if \$3 isn't 'from'"; (
-    # stop_on_error off
     grab one two
     assert unequal 0 $?
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
