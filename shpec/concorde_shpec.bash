@@ -1,4 +1,4 @@
-library=../lib/idiomatic.bash
+library=../lib/concorde.bash
 source "$library" 2>/dev/null || source "${BASH_SOURCE%/*}/$library"
 unset -v library
 

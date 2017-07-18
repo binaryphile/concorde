@@ -1,18 +1,25 @@
-idiomatic bash
-==============
+Message For You, Sir
+====================
 
-Ways of taming my bash scripts.
+Bash scripting in my own particular...[sigh]...
 
-Idiomatic bash is a small-ish library for handling a few core features
-that virtually any bash script needs, along with some tools for making
-bash library-friendly.  As sweet Concorde would say, these are functions
-written in my own particular...[sigh]..."Idiom, sir?".  Idiom!
+Concorde: "Idiom, sir?"
+
+Idiom!
+
+Concorde is a small-ish library for virtually all of my bash scripting.
+It relies heavily on my own particular stylized way of writing bash, so
+be prepared for some of my eccentricities.  They all have good reason.
+
+Concorde provides some basic data structure and namespace manipulation
+functions, along with tools for making bash into a friendly environment
+for writing reusable code (libraries).
 
 Libraries need to be written idiomatically (i.e. my way) in order to
-work in this system, but idiomatic bash solves most of the issues which
-normally prevent arbitrary bash libraries from working well with each
-other (which is perhaps why there aren't a lot of canonical bash
-libraries?)
+work in this system, but concorde solves most of the issues which
+normally prevent bash libraries from working well with each other (a
+misfeature of bash which is perhaps why there aren't a lot of canonical
+bash libraries?)
 
 Features
 ========
@@ -21,7 +28,7 @@ Features
 
 -   namespace manipulation using hashes and arrays
 
--   module packaging functions
+-   library packaging functions
 
 -   utilitarian string and array manipulations
 
@@ -29,20 +36,26 @@ Features
 
 -   strict mode
 
+Prerequisites
+=============
+
+GNU readlink in your PATH, as `readlink`.
+
 Installation
 ============
 
-Clone this repo (or copy idiomatic.bash) and make it avaiable in your
-$PATH.  Then use "source idiomatic.bash" in your scripts.
+Clone this repo (or copy concorde.bash) and make it avaiable in your
+$PATH.  Then use `source concorde.bash` in your scripts.
 
 Reserved Variables
 ==================
 
-Idiomatic bash reserves the following global variables for its own use:
+Concorde reserves the following global variables for its own use:
 
+-   `CONCO_ROOT`
 -   `__` (double-underscore)
+-   `__conco`
 -   `__dependencies`
--   `__idiom`
 -   `__instanceh`
 
 API
@@ -51,43 +64,50 @@ API
 Internal-use functions, of which there are but a couple, start with an
 underscore.  The rest form the public API.
 
-Names which appear a little esoteric are likely that way to avoid
-conflicts with similarly-named programs that you might find on a system.
-For example, `wed` instead of the more standard `join` for arrays.
+Names which appear to be a little esoteric were typically chosen that
+way in order to avoid conflicts with similarly-named programs that you
+might find on a system.  For example, `wed` instead of the more standard
+`join` for arrays.
 
 Some functions incorporate data types in their names when they deal with
 such types, such as:
 
--   arrays: `ary`
--   strings: `str`
--   hashes (associative arrays): `hsh`
+-   `ary`: arrays
+-   `str`: strings
+-   `hsh`: hashes (associative arrays)
 
-Functions which return string values do so in the global variable `__`
-(double-underscore).
+Functions which return string values (which are almost all of them) do
+so in the global variable `__` (double-underscore).  This is very
+important to understand since it is used everywhere.  Additionally, this
+means that, like `$?`, you can't rely on its value remaining the same
+after you call another function.  Hence you need to save `__` off to
+another variable if you intend to make more use of its value.
 
-"References" may appear, usually as a return value from a `_new`
-function.  A reference is simply a string variable which happens to hold
-either the name of another string variable or the name and index of an
-item in an array or hash (e.g.  `my_hash[key]`).
+A reference is simply a string variable which happens to hold either the
+name of another string variable or the name and index of an item in an
+array or hash (e.g.  `my_hash[key]`).  Only references to the variable
+`__instanceh` or the names of array or hash variables may be passed to
+functions written in concorde's idiom.  Other uses of references may
+result in namespace clashes.
 
 All parameters designated as "_array" or "_hash" in function signatures
-actually require the literal representation of the array or hash as a
-string, e.g. "(three item list)" or "([key]=value [pairs]="")", since
-bash can't pass actual arrays or hashes.  If you already have such a
-literal stored in a variable, the API usually allows you to pass the
-un-expanded variable name (no dollar sign) instead and the value will be
-automatically extrapolated.
+described below actually require the literal representation of the array
+or hash as a string, e.g. "(three item list)" or "([key]=value
+[pairs]="")", since bash can't pass actual arrays or hashes.  If you
+already have such a literal stored in a variable, the API usually allows
+you to pass the un-expanded variable name (no dollar sign) instead and
+the value will be automatically extrapolated.
 
 The usual way to obtain such a literal from an active array or hash is
-via `inspect`:
+via `repr` (short for "representation", a la Python):
 
 ```
-inspect my_array
+repr my_array
 function_requiring_an_array_literal "$__"
 ```
 
-Usually the above function would take `__` as a valid alternative for
-`$__`.
+Usually the above function would take the reference `__` as a valid
+alternative for `$__`.
 
 Option Parsing
 --------------
@@ -120,7 +140,7 @@ Option Parsing
 
         get_here_str <<'EOS'
           ( -o --option1            ''      'a flag'  )
-          ( -p --option2 argument_name 'an argument'  )
+          ( '' --option2 argument_name 'an argument'  )
         EOS
 
         options_new __

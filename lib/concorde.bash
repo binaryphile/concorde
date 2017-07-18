@@ -1,7 +1,7 @@
-[[ -n ${__idiom:-} && -z ${reload:-}  ]] && return
-[[ -n ${reload:-}                 ]] && { unset -v reload && echo reloaded || return ;}
-[[ -z ${_%s:-}                    ]] && readonly _%s=loaded
-%s_ROOT=$(readlink -f "$(dirname "$(readlink -f "$BASH_SOURCE")")"%s)
+[[ -n ${__conco:-} && -z ${reload:-}  ]] && return
+[[ -n ${reload:-}                     ]] && { unset -v reload && echo reloaded || return ;}
+[[ -z ${__conco:-}                    ]] && readonly __conco=loaded
+CONCO_ROOT=$(readlink -f "$(dirname "$(readlink -f "$BASH_SOURCE")")"%s)
 
 assign () {
   [[ $2 == 'to'     ]] || return
@@ -25,7 +25,7 @@ bring () { (
 
   require library
   [[ -n ${required_imports[@]:-} ]] && functions+=( "${_required_imports[@]}" )
-  inspect functions
+  repr functions
   _echo_functions __
 ) }
 
@@ -51,25 +51,11 @@ _echo_functions () {
 
 expose () { printf 'eval eval %q\n' "$1" ;}
 
-inspect () {
-  __=$(declare -p "$1" 2>/dev/null) || return
-  [[ ${__:9:1} == [aA] ]] && {
-    __=${__#*=}
-    __=${__#\'}
-    __=${__%\'}
-    __=${__//\'\\\'\'/\'}
-    return
-  }
-  __=${__#*=}
-  __=${__#\"}
-  __=${__%\"}
-}
-
 get_ary () {
   local results=()
 
   IFS=$'\n' read -rd '' -a results ||:
-  inspect results
+  repr results
 }
 
 get_here_ary () {
@@ -148,7 +134,7 @@ options_new () {
 
   next_id=${__instanceh[next_id]}
   [[ -z ${__instanceh[$next_id]:-} ]] || return
-  inspect optionh
+  repr optionh
   __instanceh[$next_id]=$__
   __=__instanceh["$next_id"]
   __instanceh[next_id]=$(( next_id++ ))
@@ -186,9 +172,9 @@ options_parse () {
     esac
     shift
   done
-  inspect args
+  repr args
   resulth[arg]=$__
-  inspect resulth
+  repr resulth
 }
 
 part () {
@@ -197,12 +183,25 @@ part () {
   local results=()
 
   results=( $1 )
-  inspect results
+  repr results
 }
 
 put     () { printf '%s\n' "$@"   ;}
 puterr  () { put "Error: $1" >&2  ;}
-return_if_sourced () { expose 'return 0 2>/dev/null ||:' ;}
+
+repr () {
+  __=$(declare -p "$1" 2>/dev/null) || return
+  [[ ${__:9:1} == [aA] ]] && {
+    __=${__#*=}
+    __=${__#\'}
+    __=${__%\'}
+    __=${__//\'\\\'\'/\'}
+    return
+  }
+  __=${__#*=}
+  __=${__#\"}
+  __=${__%\"}
+}
 
 require () {
   local library=$1
@@ -211,26 +210,27 @@ require () {
   local extensions=()
   local file
   local path
+  local spec
 
-  extensions=( .bash .sh '' )
-  if [[ $library == */* ]]; then
+  extensions=(
+    .bash
+    .sh
+    ''
+  )
+  [[ $library == */*  ]] && path=${library%%*/} || path=$PATH
+  library=${library#/*}
+  IFS=:
+  for spec in $path; do
     for extension in "${extensions[@]}"; do
-      [[ -e $library$extension ]] && break
+      [[ -e $spec/$library$extension ]] && break 2
     done
-    file=$library$extension
-  else
-    [[ -n ${PATH:-} ]] || return
-    IFS=:
-    for path in $PATH; do
-      for extension in "${extensions[@]}"; do
-        [[ -e $path/$library$extension ]] && break 2
-      done
-    done
-    file=$path/$library$extension
-  fi
+  done
+  file=$spec/$library$extension
   [[ -e $file ]] || return
   source "$file"
 }
+
+return_if_sourced () { expose 'return 0 2>/dev/null ||:' ;}
 
 strict_mode () {
   local status=$1
@@ -239,7 +239,12 @@ strict_mode () {
   local option
   local statement
 
-  get_here_str <<'  EOS'
+  case $status in
+    'on'  ) option=-; callback=traceback  ;;
+    'off' ) option=+; callback=-          ;;
+    *     ) return 1                      ;;
+  esac
+  get_str <<'  EOS'
     set %so errexit
     set %so errtrace
     set %so nounset
@@ -247,13 +252,7 @@ strict_mode () {
 
     trap %s ERR
   EOS
-  statement=$__
-  case $status in
-    'on'  ) option=-; callback=traceback  ;;
-    'off' ) option=+; callback=-          ;;
-    *     ) return 1                      ;;
-  esac
-  printf -v statement "$statement" "$option" "$option" "$option" "$option" "$callback"
+  printf -v statement "$__" "$option" "$option" "$option" "$option" "$callback"
   eval "$statement"
 }
 
@@ -266,7 +265,7 @@ stuff () {
   for ref in "${refs[@]}"; do
     resulth[$ref]=${!ref}
   done
-  inspect resulth
+  repr resulth
 }
 
 traceback () {
@@ -295,7 +294,7 @@ update () {
   for key in "${!updateh[@]}"; do
     hash[$key]=${updateh[$key]}
   done
-  inspect hash
+  repr hash
 }
 
 wed () {
@@ -306,4 +305,4 @@ wed () {
   __=${ary[*]}
 }
 
-with () { inspect "$1"; grab '*' from "$__" ;}
+with () { repr "$1"; grab '*' from "$__" ;}
