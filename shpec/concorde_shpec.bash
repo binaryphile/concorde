@@ -87,7 +87,7 @@ describe options_new
     get_here_ary samples <<'    EOS'
       ( -o '' '' 'a flag' )
     EOS
-    inspect samples
+    repr samples
     options_new __
     $(grab o from "${!__}")
     $(grab '( help name )' from o)
@@ -99,7 +99,7 @@ describe options_new
     get_here_ary samples <<'    EOS'
       ( -o '' argument 'an argument' )
     EOS
-    inspect samples
+    repr samples
     options_new __
     $(grab o from "${!__}")
     $(grab '( argument name help )' from o)
@@ -111,7 +111,7 @@ describe options_new
     get_here_ary samples <<'    EOS'
       ( '' --option '' 'a flag' )
     EOS
-    inspect samples
+    repr samples
     options_new __
     $(grab option from "${!__}")
     $(grab '( argument name help )' from option)
@@ -123,7 +123,7 @@ describe options_new
     get_here_ary samples <<'    EOS'
       ( '' --option argument 'an argument' )
     EOS
-    inspect samples
+    repr samples
     options_new __
     $(grab option from "${!__}")
     $(grab '( argument name help )' from option)
@@ -135,7 +135,7 @@ describe options_new
     get_here_ary samples <<'    EOS'
       ( '' --option '' 'a flag' )
     EOS
-    inspect samples
+    repr samples
     options_new __
     $(grab option from "${!__}")
     $(grab '( argument name help )' from option)
@@ -147,7 +147,7 @@ describe options_new
     get_here_ary samples <<'    EOS'
       ( '' --option argument 'an argument' )
     EOS
-    inspect samples
+    repr samples
     options_new __
     $(grab option from "${!__}")
     $(grab '( argument name help )' from option)
@@ -159,7 +159,7 @@ describe options_new
     get_here_ary samples <<'    EOS'
       ( -o --option '' 'a flag' )
     EOS
-    inspect samples
+    repr samples
     options_new __
     result=$__
     get_here_str format <<'    EOS'
@@ -184,7 +184,7 @@ describe options_new
     get_here_ary samples <<'    EOS'
       ( -o --option argument 'an argument' )
     EOS
-    inspect samples
+    repr samples
     options_new __
     result=$__
     get_here_str format <<'    EOS'
@@ -211,7 +211,7 @@ describe options_parse
     get_here_ary samples <<'    EOS'
       ( -o '' '' 'a flag' )
     EOS
-    inspect samples
+    repr samples
     options_new __
     options_parse "$__" -o
     $(grab flag_o from __)
@@ -223,7 +223,7 @@ describe options_parse
     get_here_ary samples <<'    EOS'
       ( '' --option '' 'a flag' )
     EOS
-    inspect samples
+    repr samples
     options_new __
     options_parse "$__" --option
     $(grab flag_option from __)
@@ -235,7 +235,7 @@ describe options_parse
     get_here_ary samples <<'    EOS'
       ( -o '' argument 'an argument' )
     EOS
-    inspect samples
+    repr samples
     options_new __
     options_parse "$__" -o value
     $(grab argument from __)
@@ -247,7 +247,7 @@ describe options_parse
     get_here_ary samples <<'    EOS'
       ( '' --option argument 'an argument' )
     EOS
-    inspect samples
+    repr samples
     options_new __
     options_parse "$__" --option value
     $(grab argument from __)
@@ -259,7 +259,7 @@ describe options_parse
     get_here_ary samples <<'    EOS'
       ( '' --option argument 'an argument' )
     EOS
-    inspect samples
+    repr samples
     options_new __
     options_parse "$__" --option=value
     $(grab argument from __)
@@ -272,7 +272,7 @@ describe options_parse
       ( -o '' '' 'a flag' )
       ( -p '' '' 'a flag' )
     EOS
-    inspect samples
+    repr samples
     options_new __
     options_parse "$__" -op
     $(grab '( flag_o flag_p )' from __)
@@ -285,7 +285,7 @@ describe options_parse
       ( -o '' '' 'a flag' )
       ( -p '' argument 'an argument' )
     EOS
-    inspect samples
+    repr samples
     options_new __
     options_parse "$__" -op value
     $(grab '( flag_o argument )' from __)
@@ -302,7 +302,7 @@ describe options_parse
       ( -q  --option5 ''        'flag 5'      )
       ( -r  --option6 argument6 'argument 6'  )
     EOS
-    inspect samples
+    repr samples
     options_new __
     options_parse "$__" --option1 -o --option3=value3 -p value4 --option5 -r value6
     $(grab '( flag_option1 flag_o argument3 argument4 flag_option5 argument6 )' from __)
@@ -314,7 +314,7 @@ describe options_parse
     get_here_ary samples <<'    EOS'
       ( -o  '' '' 'flag 2' )
     EOS
-    inspect samples
+    repr samples
     options_new __
     options_parse "$__" -o arg1 arg2
     $(grab arg from __)

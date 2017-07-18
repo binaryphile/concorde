@@ -1,7 +1,10 @@
 [[ -n ${__conco:-} && -z ${reload:-}  ]] && return
 [[ -n ${reload:-}                     ]] && { unset -v reload && echo reloaded || return ;}
 [[ -z ${__conco:-}                    ]] && readonly __conco=loaded
-CONCO_ROOT=$(readlink -f "$(dirname "$(readlink -f "$BASH_SOURCE")")"%s)
+CONCO_ROOT=$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"/..)
+CONCO_SRCE=$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[1]}")")")
+
+unset -v CDPATH
 
 assign () {
   [[ $2 == 'to'     ]] || return
@@ -12,10 +15,10 @@ assign () {
 
   set -- "${args[@]}"
   for var in "${vars[@]}"; do
-    printf -v statement '%sdeclare %s=%q\n' "$statement" "$var" "$1"
+    printf -v statement '%sdeclare %s=%q\n' "${statement:-}" "$var" "$1"
     shift
   done
-  expose "$statement"
+  emit "$statement"
 }
 
 bring () { (
@@ -49,7 +52,7 @@ _echo_functions () {
   done
 }
 
-expose () { printf 'eval eval %q\n' "$1" ;}
+emit () { printf 'eval eval %q\n' "$1" ;}
 
 get_ary () {
   local results=()
@@ -86,9 +89,9 @@ grab () {
   local statement
 
   for var in "${vars[@]}"; do
-    printf -v statement '%sdeclare %s=%q\n' "$statement" "$var" "${argh[$var]}"
+    printf -v statement '%sdeclare %s=%q\n' "${statement:-}" "$var" "${argh[$var]:-}"
   done
-  expose "$statement"
+  emit "$statement"
 }
 
 instantiate () { printf -v "$1" %s "$(eval "echo ${!1}")" ;}
@@ -110,8 +113,28 @@ library () {
   path=''
   (( depth )) && for (( i = 0; i < depth; i++ )); do path+=/..; done
   printf -v statement "$statement" "$library_name" "$library_name" "$library_name" "${library_name^^}" "$path"
-  expose "$statement"
+  emit "$statement"
 }
+
+local_ary () {
+  local name=${1%%=*}
+  local value=${1#*=}
+  [[ $value == '('*')' ]] && emit "declare -A $name=$value" || emit 'declare -A '"$name"'=${!'"$value"'}'
+}
+
+local_hsh () {
+  local name=${1%%=*}
+  local value=${1#*=}
+  [[ $value == '('*')' ]] && emit "declare -a $name=$value" || emit 'declare -a '"$name"'=${!'"$value"'}'
+}
+
+local_str () {
+  local name=${1%%=*}
+  local value=${1#*=}
+  [[ $value == '('*')' ]] && emit "declare -- $name=$value" || emit 'declare -- '"$name"'=${!'"$value"'}'
+}
+
+log () { put "$@" ;}
 
 options_new () {
   [[ $1 == '('*')' ]] && local -a inputs=$1 || local -a inputs=${!1}
@@ -217,8 +240,8 @@ require () {
     .sh
     ''
   )
-  [[ $library == */*  ]] && path=${library%%*/} || path=$PATH
-  library=${library#/*}
+  [[ $library == */*  ]] && path=${library%/*} || path=$PATH
+  library=${library##*/}
   IFS=:
   for spec in $path; do
     for extension in "${extensions[@]}"; do
@@ -227,10 +250,32 @@ require () {
   done
   file=$spec/$library$extension
   [[ -e $file ]] || return
-  source "$file"
+  emit "source $file"
 }
 
-return_if_sourced () { expose 'return 0 2>/dev/null ||:' ;}
+require_relative () {
+  local library=$1
+  local extension
+  local extensions=()
+  local file
+  local spec
+
+  extensions=(
+    .bash
+    .sh
+    ''
+  )
+  [[ $library == */*  ]] || return
+  file=$CONCO_SRCE/$library
+  for extension in "${extensions[@]}"; do
+    [[ -e $file$extension ]] && break
+  done
+  file=$file$extension
+  [[ -e $file ]] || return
+  emit "source $file"
+}
+
+return_if_sourced () { emit 'return 0 2>/dev/null ||:' ;}
 
 strict_mode () {
   local status=$1
