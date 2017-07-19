@@ -205,9 +205,10 @@ parse_options () {
     esac
     shift
   done
-  statement="set -- ${args[@]}"
+  printf -v statement '%q ' "${args[@]}"
+  printf -v statement 'set -- %s' "$statement"
   repr resulth
-  printf -v statement '%s\n__=%s' "$statement" "$__"
+  printf -v statement '%s\n__=%q' "$statement" "$__"
   emit "$statement"
 }
 

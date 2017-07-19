@@ -269,125 +269,105 @@ end
 #     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
 #   end
 # end
-#
-# describe options_parse
-#   it "accepts a short flag option"; (
-#     get_here_ary samples <<'    EOS'
-#       ( -o '' '' 'a flag' )
-#     EOS
-#     repr samples
-#     options_new __
-#     options_parse "$__" -o
-#     $(grab flag_o from __)
-#     assert equal 1 "$flag_o"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "accepts a long flag option"; (
-#     get_here_ary samples <<'    EOS'
-#       ( '' --option '' 'a flag' )
-#     EOS
-#     repr samples
-#     options_new __
-#     options_parse "$__" --option
-#     $(grab flag_option from __)
-#     assert equal 1 "$flag_option"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "accepts a short argument option"; (
-#     get_here_ary samples <<'    EOS'
-#       ( -o '' argument 'an argument' )
-#     EOS
-#     repr samples
-#     options_new __
-#     options_parse "$__" -o value
-#     $(grab argument from __)
-#     assert equal value "$argument"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "accepts a long argument option without an equals sign"; (
-#     get_here_ary samples <<'    EOS'
-#       ( '' --option argument 'an argument' )
-#     EOS
-#     repr samples
-#     options_new __
-#     options_parse "$__" --option value
-#     $(grab argument from __)
-#     assert equal value "$argument"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "accepts a long argument option with an equals sign"; (
-#     get_here_ary samples <<'    EOS'
-#       ( '' --option argument 'an argument' )
-#     EOS
-#     repr samples
-#     options_new __
-#     options_parse "$__" --option=value
-#     $(grab argument from __)
-#     assert equal value "$argument"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "accepts multiple short options in one"; (
-#     get_here_ary samples <<'    EOS'
-#       ( -o '' '' 'a flag' )
-#       ( -p '' '' 'a flag' )
-#     EOS
-#     repr samples
-#     options_new __
-#     options_parse "$__" -op
-#     $(grab '( flag_o flag_p )' from __)
-#     assert equal '1 1' "$flag_o $flag_p"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "accepts multiple short options with the last an argument"; (
-#     get_here_ary samples <<'    EOS'
-#       ( -o '' '' 'a flag' )
-#       ( -p '' argument 'an argument' )
-#     EOS
-#     repr samples
-#     options_new __
-#     options_parse "$__" -op value
-#     $(grab '( flag_o argument )' from __)
-#     assert equal '1 value' "$flag_o $argument"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "accepts a combination of option types"; (
-#     get_here_ary samples <<'    EOS'
-#       ( ''  --option1 ''        'flag 1'      )
-#       ( -o  ''        ''        'flag 2'      )
-#       ( ''  --option3 argument3 'argument 3'  )
-#       ( -p  ''        argument4 'argument 4'  )
-#       ( -q  --option5 ''        'flag 5'      )
-#       ( -r  --option6 argument6 'argument 6'  )
-#     EOS
-#     repr samples
-#     options_new __
-#     options_parse "$__" --option1 -o --option3=value3 -p value4 --option5 -r value6
-#     $(grab '( flag_option1 flag_o argument3 argument4 flag_option5 argument6 )' from __)
-#     assert equal '1 1 value3 value4 1 value6' "$flag_option1 $flag_o $argument3 $argument4 $flag_option5 $argument6"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "outputs arguments"; (
-#     get_here_ary samples <<'    EOS'
-#       ( -o  '' '' 'flag 2' )
-#     EOS
-#     repr samples
-#     options_new __
-#     options_parse "$__" -o arg1 arg2
-#     $(grab arg from __)
-#     $(assign arg to '( one two )' )
-#     assert equal 'arg1 arg2' "$one $two"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-# end
-#
+
+describe options_parse
+  it "accepts a short flag option"; (
+    get_here_ary <<'    EOS'
+      ( -o '' '' 'a flag' )
+    EOS
+    $(parse_options __ -o)
+    $(grab flag_o from __)
+    assert equal 1 "$flag_o"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "accepts a long flag option"; (
+    get_here_ary <<'    EOS'
+      ( '' --option '' 'a flag' )
+    EOS
+    $(parse_options __ --option)
+    $(grab flag_option from __ )
+    assert equal 1 "$flag_option"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "accepts a short argument option"; (
+    get_here_ary <<'    EOS'
+      ( -o '' argument 'an argument' )
+    EOS
+    $(parse_options __ -o value )
+    $(grab argument from __     )
+    assert equal value "$argument"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "accepts a long argument option without an equals sign"; (
+    get_here_ary <<'    EOS'
+      ( '' --option argument 'an argument' )
+    EOS
+    $(parse_options __ --option value )
+    $(grab argument from __           )
+    assert equal value "$argument"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "accepts a long argument option with an equals sign"; (
+    get_here_ary <<'    EOS'
+      ( '' --option argument 'an argument' )
+    EOS
+    $(parse_options __ --option=value )
+    $(grab argument from __           )
+    assert equal value "$argument"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "accepts multiple short options in one"; (
+    get_here_ary  <<'    EOS'
+      ( -o '' '' 'a flag' )
+      ( -p '' '' 'a flag' )
+    EOS
+    $(parse_options __ -op            )
+    $(grab '( flag_o flag_p )' from __)
+    assert equal '1 1' "$flag_o $flag_p"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "accepts multiple short options with the last an argument"; (
+    get_here_ary <<'    EOS'
+      ( -o '' '' 'a flag' )
+      ( -p '' argument 'an argument' )
+    EOS
+    $(parse_options __ -op value        )
+    $(grab '( flag_o argument )' from __)
+    assert equal '1 value' "$flag_o $argument"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "accepts a combination of option types"; (
+    get_here_ary <<'    EOS'
+      ( ''  --option1 ''        'flag 1'      )
+      ( -o  ''        ''        'flag 2'      )
+      ( ''  --option3 argument3 'argument 3'  )
+      ( -p  ''        argument4 'argument 4'  )
+      ( -q  --option5 ''        'flag 5'      )
+      ( -r  --option6 argument6 'argument 6'  )
+    EOS
+    $(parse_options __ --option1 -o --option3=value3 -p value4 --option5 -r value6      )
+    $(grab '( flag_option1 flag_o argument3 argument4 flag_option5 argument6 )' from __ )
+    assert equal '1 1 value3 value4 1 value6' "$flag_option1 $flag_o $argument3 $argument4 $flag_option5 $argument6"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "outputs arguments"; (
+    get_here_ary <<'    EOS'
+      ( -o  '' '' 'flag 2' )
+    EOS
+    $(parse_options __ -o arg1 arg2 )
+    assert equal 'arg1 arg2' "$1 $2"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+end
+
 # describe part
 #   it "splits a string on a delimiter"
 #     part one@two on @
