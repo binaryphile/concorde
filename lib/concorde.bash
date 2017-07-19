@@ -8,8 +8,8 @@ unset -v CDPATH
 
 assign () {
   [[ $2 == 'to'     ]] || return
-  [[ $1 == '('*')'  ]] && local -a args=$1 || local -a args=${!1}
   [[ $3 == '('*')'  ]] && local -a vars=$3 || local -a vars=( "$3" )
+  $(local_ary args="$1")
   local var
   local statement
 
@@ -123,19 +123,19 @@ library () {
 local_ary () {
   local name=${1%%=*}
   local value=${1#*=}
-  [[ $value == '('*')' ]] && emit "declare -A $name=$value" || emit 'declare -A '"$name"'=${!'"$value"'}'
+  [[ $value == '('*')' ]] && emit "declare -a $name=$value" || emit 'declare -a '"$name"'=$'"$value"
 }
 
 local_hsh () {
   local name=${1%%=*}
   local value=${1#*=}
-  [[ $value == '('*')' ]] && emit "declare -a $name=$value" || emit 'declare -a '"$name"'=${!'"$value"'}'
+  [[ $value == '('*')' ]] && emit "declare -A $name=$value" || emit 'declare -A '"$name"'=$'"$value"
 }
 
 local_str () {
   local name=${1%%=*}
   local value=${1#*=}
-  [[ $value == '('*')' ]] && emit "declare -- $name=$value" || emit 'declare -- '"$name"'=${!'"$value"'}'
+  [[ $value == '('*')' ]] && emit "declare -- $name=$value" || emit 'declare -- '"$name"'=$'"$value"
 }
 
 log () { put "$@" ;}
