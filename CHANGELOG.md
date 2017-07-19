@@ -7,7 +7,7 @@ The format is based on [Keep a Changelog] and this project adheres to
 Latest Changes
 ==============
 
-[v0.0.1] - 2017-07
+[v0.0.1] - 2017-07-19
 ---------------------
 
 ### Changed
@@ -21,7 +21,12 @@ Latest Changes
 
 -   tons of stuff
 
+Older Changes
+=============
+
+Nothing to see here
+
   [Keep a Changelog]: http://keepachangelog.com/
   [Semantic Versioning]: http://semver.org/
-  [v0.0.1]: https://github.com/binaryphile/concorde/compare/v0.0.0...v0.0
+  [v0.0.1]: https://github.com/binaryphile/concorde/compare/v0.0.0...v0.0.1
   [v0.0.0]: https://github.com/binaryphile/concorde/tree/v0.0.0
