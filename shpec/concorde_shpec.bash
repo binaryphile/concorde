@@ -66,32 +66,32 @@ describe bring
   end
 end
 
-# describe die
-#   it "exits without an error message"; (
-#     result=$(die 2>&1)
-#     assert equal '' "$result"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "exits with a default error code of 1"; (
-#     (die 2>&1)
-#     assert equal 1 $?
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "exits with an error message"; (
-#     result=$(die 'aaaaagh' 2>&1)
-#     assert equal 'Error: aaaaagh' "$result"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "exits with an error code"; (
-#     (die '' 2 2>&1)
-#     assert equal 2 $?
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-# end
-#
+describe die
+  it "exits without an error message"; (
+    result=$(die 2>&1)
+    assert equal '' "$result"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "exits with a default error code of 1"; (
+    (die 2>&1)
+    assert equal 1 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "exits with an error message"; (
+    result=$(die 'aaaaagh' 2>&1)
+    assert equal 'Error: aaaaagh' "$result"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "exits with an error code"; (
+    (die '' 2 2>&1)
+    assert equal 2 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+end
+
 # describe grab
 #   it "instantiates a key/value pair from a hash literal as a local"; (
 #     $(grab one from '([one]=1)')
