@@ -23,36 +23,40 @@ assign () {
 
 bring () { (
   [[ $2 == 'from'   ]] || return
-  [[ $1 == '('*')'  ]] && local -a functions=$1 || local -a functions=${!1}
+  [[ $1 == '('*')'  ]] && local -a functions=$1 || local -a functions=( "$1" )
   local library=$3
 
-  require library
-  [[ -n ${required_imports[@]:-} ]] && functions+=( "${_required_imports[@]}" )
+  $(require "$library")
+  (( ${#__dependencies[@]:-} )) && functions+=( "${__dependencies[@]}" )
   repr functions
-  _echo_functions __
+  _extract_functions __
+  emit "$__"
 ) }
 
 die () { [[ -n $1 ]] && puterr "$1"; exit "${2:-1}" ;}
 
-_echo_function () {
+emit () { printf 'eval eval %q\n' "$1" ;}
+
+_extract_function () {
   local function=$1
   local IFS=$'\n'
 
-  set -- $(type function)
+  set -- $(type "$function")
   shift
-  printf '%s\n' "$*"
+  printf -v __ '%s\n' "$@"
 }
 
-_echo_functions () {
+_extract_functions () {
   [[ $1 == '('*')' ]] && local -a functions=$1 || local -a functions=${!1}
   local function
+  local result
 
   for function in "${functions[@]}"; do
-    _echo_function "$function"
+    _extract_function "$function"
+    result+=$__
   done
+  repr result
 }
-
-emit () { printf 'eval eval %q\n' "$1" ;}
 
 get_ary () {
   local results=()
@@ -229,7 +233,7 @@ require () {
     .sh
     ''
   )
-  [[ $library == */*  ]] && path=${library%/*} || path=$PATH
+  [[ $library == */*  ]] && path=${library%/*} || path=.:$PATH
   library=${library##*/}
   IFS=:
   for spec in $path; do

@@ -4,7 +4,7 @@ unset -v library
 
 describe assign
   it "errors if \$2 isn't 'to'"
-  $(assign one two three)
+    $(assign one two three)
     assert unequal $? 0
   end
 
@@ -24,6 +24,37 @@ describe assign
   it "accepts a single variable name for the destination variable"; (
     $(assign '( 1 2 )' to one)
     assert equal 1 "$one"
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
+end
+
+describe bring
+  it "errors if \$2 isn't 'from'"
+    $(bring one two three)
+    assert unequal $? 0
+  end
+
+  it "accepts a literal list of functions"; (
+    echo $'one () { :;}\ntwo () { :;}' >temp.bash
+    $(bring '( one two )' from temp)
+    assert equal $'one\ntwo' "$(declare -F one two)"
+    rm temp.bash
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
+
+  it "accepts a single function argument"; (
+    echo $'one () { :;}' >temp.bash
+    $(bring one from temp)
+    assert equal one "$(declare -F one)"
+    rm temp.bash
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
+
+  it "brings a function with dependencies"; (
+    echo $'__dependencies=( two )\none () { :;}\ntwo () { :;}' >temp.bash
+    $(bring one from temp)
+    assert equal $'one\ntwo' "$(declare -F one two)"
+    rm temp.bash
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
   end
 end
