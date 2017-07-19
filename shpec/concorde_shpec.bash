@@ -146,130 +146,6 @@ end
   # end
 # end
 
-# describe options_new
-#   it "creates an entry for a short flag option"; (
-#     get_here_ary samples <<'    EOS'
-#       ( -o '' '' 'a flag' )
-#     EOS
-#     repr samples
-#     options_new __
-#     $(grab o from "${!__}")
-#     $(grab '( help name )' from o)
-#     assert equal "a flag o" "$help $name"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "creates an entry for a short argument option"; (
-#     get_here_ary samples <<'    EOS'
-#       ( -o '' argument 'an argument' )
-#     EOS
-#     repr samples
-#     options_new __
-#     $(grab o from "${!__}")
-#     $(grab '( argument name help )' from o)
-#     assert equal "argument o an argument" "$argument $name $help"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "creates an entry for a long flag option"; (
-#     get_here_ary samples <<'    EOS'
-#       ( '' --option '' 'a flag' )
-#     EOS
-#     repr samples
-#     options_new __
-#     $(grab option from "${!__}")
-#     $(grab '( argument name help )' from option)
-#     assert equal " option a flag" "$argument $name $help"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "creates an entry for a long argument option"; (
-#     get_here_ary samples <<'    EOS'
-#       ( '' --option argument 'an argument' )
-#     EOS
-#     repr samples
-#     options_new __
-#     $(grab option from "${!__}")
-#     $(grab '( argument name help )' from option)
-#     assert equal "argument option an argument" "$argument $name $help"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "creates an entry for a long flag option"; (
-#     get_here_ary samples <<'    EOS'
-#       ( '' --option '' 'a flag' )
-#     EOS
-#     repr samples
-#     options_new __
-#     $(grab option from "${!__}")
-#     $(grab '( argument name help )' from option)
-#     assert equal " option a flag" "$argument $name $help"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "creates an entry for a long argument option"; (
-#     get_here_ary samples <<'    EOS'
-#       ( '' --option argument 'an argument' )
-#     EOS
-#     repr samples
-#     options_new __
-#     $(grab option from "${!__}")
-#     $(grab '( argument name help )' from option)
-#     assert equal "argument option an argument" "$argument $name $help"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "creates entries for a flag option with long and short"; (
-#     get_here_ary samples <<'    EOS'
-#       ( -o --option '' 'a flag' )
-#     EOS
-#     repr samples
-#     options_new __
-#     result=$__
-#     get_here_str format <<'    EOS'
-#       %s %s
-#       %%s %%s
-#     EOS
-#     $(grab option from "${!result}")
-#     $(grab '( help name )' from option)
-#     printf -v format "$format" "$help" "$name"
-#     $(grab o from "${!result}")
-#     $(grab '( help name )' from o)
-#     printf -v result "$format" "$help" "$name"
-#     get_here_str expected <<'    EOS'
-#       a flag option
-#       a flag option
-#     EOS
-#     assert equal "$expected" "$result"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "creates entries for an argument option with long and short"; (
-#     get_here_ary samples <<'    EOS'
-#       ( -o --option argument 'an argument' )
-#     EOS
-#     repr samples
-#     options_new __
-#     result=$__
-#     get_here_str format <<'    EOS'
-#       %s %s %s
-#       %%s %%s %%s
-#     EOS
-#     $(grab option from "${!result}")
-#     $(grab '( argument help name )' from option)
-#     printf -v format "$format" "$argument" "$help" "$name"
-#     $(grab o from "${!result}")
-#     $(grab '( argument help name )' from o)
-#     printf -v result "$format" "$argument" "$help" "$name"
-#     get_here_str expected <<'    EOS'
-#       argument an argument option
-#       argument an argument option
-#     EOS
-#     assert equal "$expected" "$result"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-# end
-
 describe options_parse
   it "accepts a short flag option"; (
     get_here_ary <<'    EOS'
@@ -352,8 +228,15 @@ describe options_parse
       ( -q  --option5 ''        'flag 5'      )
       ( -r  --option6 argument6 'argument 6'  )
     EOS
-    $(parse_options __ --option1 -o --option3=value3 -p value4 --option5 -r value6      )
-    $(grab '( flag_option1 flag_o argument3 argument4 flag_option5 argument6 )' from __ )
+    $(parse_options __ --option1 -o --option3=value3 -p value4 --option5 -r value6)
+    $(grab '(
+      flag_option1
+      flag_o
+      argument3
+      argument4
+      flag_option5
+      argument6
+    )' from __ )
     assert equal '1 1 value3 value4 1 value6' "$flag_option1 $flag_o $argument3 $argument4 $flag_option5 $argument6"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end

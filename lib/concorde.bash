@@ -2,7 +2,7 @@
 [[ -n ${reload:-}                     ]] && { unset -v reload && echo reloaded || return ;}
 [[ -z ${__conco:-}                    ]] && readonly __conco=loaded
 CONCO_ROOT=$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"/..)
-CONCO_SRCE=$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[1]}")")")
+CONCO_CALR=$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[1]}")")")
 
 unset -v CDPATH
 
@@ -278,7 +278,7 @@ require_relative () {
     ''
   )
   [[ $library == */*  ]] || return
-  file=$CONCO_SRCE/$library
+  file=$CONCO_CALR/$library
   for extension in "${extensions[@]}"; do
     [[ -e $file$extension ]] && break
   done
