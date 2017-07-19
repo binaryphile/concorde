@@ -7,17 +7,23 @@ CONCO_SRCE=$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[1]}")")")
 unset -v CDPATH
 
 assign () {
-  [[ $2 == 'to'     ]] || return
-  [[ $3 == '('*')'  ]] && local -a vars=$3 || local -a vars=( "$3" )
-  $(local_ary args="$1")
-  local var
+  [[ $2 == 'to' ]] || return
+  $(local_ary args=$1)
+  $(local_ary vars=$3)
+  local count
   local statement
+  local var
 
   set -- "${args[@]}"
-  for var in "${vars[@]}"; do
-    printf -v statement '%sdeclare %s=%q\n' "${statement:-}" "$var" "$1"
+  count=${#vars[@]}
+  (( $# > count )) && : $(( count-- ))
+  for (( i = 0; i < count; i++ )); do
+    printf -v statement '%sdeclare %s=%q\n' "${statement:-}" "${vars[i]}" "$1"
     shift
   done
+  (( count == ${#vars[@]} )) && { emit "$statement"; return ;}
+  printf -v __ '%q ' "$@"
+  printf -v statement '%sdeclare -a %s=( %s )\n' "$statement" "${vars[count]}" "$__"
   emit "$statement"
 }
 
@@ -121,20 +127,32 @@ library () {
 }
 
 local_ary () {
-  local name=${1%%=*}
-  local value=${1#*=}
+  local first=$1; shift
+  local name
+  local value
+
+  name=${first%%=*}
+  (( $# )) && value="${first#*=} $*" || value=${first#*=}
   [[ $value == '('*')' ]] && emit "declare -a $name=$value" || emit 'declare -a '"$name"'=$'"$value"
 }
 
 local_hsh () {
-  local name=${1%%=*}
-  local value=${1#*=}
+  local first=$1; shift
+  local name
+  local value
+
+  name=${first%%=*}
+  (( $# )) && value="${first#*=} $*" || value=${first#*=}
   [[ $value == '('*')' ]] && emit "declare -A $name=$value" || emit 'declare -A '"$name"'=$'"$value"
 }
 
 local_str () {
-  local name=${1%%=*}
-  local value=${1#*=}
+  local first=$1; shift
+  local name
+  local value
+
+  name=${1%%=*}
+  (( $# )) && value="${first#*=} $*" || value=${first#*=}
   [[ $value == '('*')' ]] && emit "declare -- $name=$value" || emit 'declare -- '"$name"'=$'"$value"
 }
 

@@ -21,9 +21,16 @@ describe assign
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
   end
 
-  it "accepts a single variable name for the destination variable"; (
-    $(assign '( 1 2 )' to one)
-    assert equal 1 "$one"
+  it "accepts a reference for the destination variable"; (
+    sample='( one two )'
+    $(assign '( 1 2 )' to sample)
+    assert equal '1 2' "$one $two"
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
+
+  it "makes the last named target an array if there are too many values"; (
+    $(assign '( 1 2 3 )' to '( one two )')
+    assert equal '1 2 3' "$one ${two[*]}"
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
   end
 end
