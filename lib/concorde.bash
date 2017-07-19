@@ -2,57 +2,67 @@
 [[ -n ${reload:-}                     ]] && { unset -v reload && echo reloaded || return ;}
 [[ -z ${__conco:-}                    ]] && readonly __conco=loaded
 CONCO_ROOT=$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"/..)
-CONCO_SRCE=$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[1]}")")")
+CONCO_CALR=$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[1]}")")")
 
 unset -v CDPATH
 
 assign () {
-  [[ $2 == 'to'     ]] || return
-  [[ $1 == '('*')'  ]] && local -a args=$1 || local -a args=${!1}
-  [[ $3 == '('*')'  ]] && local -a vars=$3 || local -a vars=( "$3" )
-  local var
+  [[ $2 == 'to' ]] || return
+  $(local_ary args=$1)
+  $(local_ary vars=$3)
+  local count
   local statement
+  local var
 
   set -- "${args[@]}"
-  for var in "${vars[@]}"; do
-    printf -v statement '%sdeclare %s=%q\n' "${statement:-}" "$var" "$1"
+  count=${#vars[@]}
+  (( $# > count )) && : $(( count-- ))
+  for (( i = 0; i < count; i++ )); do
+    printf -v statement '%sdeclare %s=%q\n' "${statement:-}" "${vars[i]}" "$1"
     shift
   done
+  (( count == ${#vars[@]} )) && { emit "$statement"; return ;}
+  printf -v __ '%q ' "$@"
+  printf -v statement '%sdeclare -a %s=( %s )\n' "$statement" "${vars[count]}" "$__"
   emit "$statement"
 }
 
 bring () { (
   [[ $2 == 'from'   ]] || return
-  [[ $1 == '('*')'  ]] && local -a functions=$1 || local -a functions=${!1}
+  [[ $1 == '('*')'  ]] && local -a functions=$1 || local -a functions=( "$1" )
   local library=$3
 
-  require library
-  [[ -n ${required_imports[@]:-} ]] && functions+=( "${_required_imports[@]}" )
+  $(require "$library")
+  (( ${#__dependencies[@]:-} )) && functions+=( "${__dependencies[@]}" )
   repr functions
-  _echo_functions __
+  _extract_functions __
+  emit "$__"
 ) }
 
 die () { [[ -n $1 ]] && puterr "$1"; exit "${2:-1}" ;}
 
-_echo_function () {
+emit () { printf 'eval eval %q\n' "$1" ;}
+
+_extract_function () {
   local function=$1
   local IFS=$'\n'
 
-  set -- $(type function)
+  set -- $(type "$function")
   shift
-  printf '%s\n' "$*"
+  printf -v __ '%s\n' "$@"
 }
 
-_echo_functions () {
+_extract_functions () {
   [[ $1 == '('*')' ]] && local -a functions=$1 || local -a functions=${!1}
   local function
+  local result
 
   for function in "${functions[@]}"; do
-    _echo_function "$function"
+    _extract_function "$function"
+    result+=$__
   done
+  repr result
 }
-
-emit () { printf 'eval eval %q\n' "$1" ;}
 
 get_ary () {
   local results=()
@@ -117,32 +127,46 @@ library () {
 }
 
 local_ary () {
-  local name=${1%%=*}
-  local value=${1#*=}
-  [[ $value == '('*')' ]] && emit "declare -A $name=$value" || emit 'declare -A '"$name"'=${!'"$value"'}'
+  local first=$1; shift
+  local name
+  local value
+
+  name=${first%%=*}
+  (( $# )) && value="${first#*=} $*" || value=${first#*=}
+  [[ $value == '('*')' ]] && emit "declare -a $name=$value" || emit 'declare -a '"$name"'=$'"$value"
 }
 
 local_hsh () {
-  local name=${1%%=*}
-  local value=${1#*=}
-  [[ $value == '('*')' ]] && emit "declare -a $name=$value" || emit 'declare -a '"$name"'=${!'"$value"'}'
+  local first=$1; shift
+  local name
+  local value
+
+  name=${first%%=*}
+  (( $# )) && value="${first#*=} $*" || value=${first#*=}
+  [[ $value == '('*')' ]] && emit "declare -A $name=$value" || emit 'declare -A '"$name"'=$'"$value"
 }
 
 local_str () {
-  local name=${1%%=*}
-  local value=${1#*=}
-  [[ $value == '('*')' ]] && emit "declare -- $name=$value" || emit 'declare -- '"$name"'=${!'"$value"'}'
+  local first=$1; shift
+  local name
+  local value
+
+  name=${1%%=*}
+  (( $# )) && value="${first#*=} $*" || value=${first#*=}
+  [[ $value == '('*')' ]] && emit "declare -- $name=$value" || emit 'declare -- '"$name"'=$'"$value"
 }
 
 log () { put "$@" ;}
 
-options_new () {
-  [[ $1 == '('*')' ]] && local -a inputs=$1 || local -a inputs=${!1}
-  declare -p __instanceh >/dev/null 2>&1    || declare -Ag __instanceh=( [next_id]=0 )
+parse_options () {
+  [[ $1 == '('*')' ]] && local -a inputs=$1 || local -a inputs=${!1}; shift
   local -A optionh=()
+  local -A resulth=()
+  local args=()
   local input
   local name
-  local next_id
+  local option
+  local statement
 
   for input in "${inputs[@]}"; do
     $(assign input to '( short long argument help )')
@@ -154,20 +178,6 @@ options_new () {
     [[ -n $short  ]] && optionh[$short]=$__
     [[ -n $long   ]] && optionh[$long]=$__
   done
-
-  next_id=${__instanceh[next_id]}
-  [[ -z ${__instanceh[$next_id]:-} ]] || return
-  repr optionh
-  __instanceh[$next_id]=$__
-  __=__instanceh["$next_id"]
-  __instanceh[next_id]=$(( next_id++ ))
-}
-
-options_parse () {
-  local -A optionh=${!1}; shift
-  local -A resulth=()
-  local args=()
-  local option
 
   while (( $# )); do
     case $1 in
@@ -195,9 +205,16 @@ options_parse () {
     esac
     shift
   done
-  repr args
-  resulth[arg]=$__
+  case ${#args[@]} in
+    '0' ) statement='set --';;
+    *   )
+      printf -v statement '%q ' "${args[@]}"
+      printf -v statement 'set -- %s' "$statement"
+      ;;
+  esac
   repr resulth
+  printf -v statement '%s\n__=%q' "${statement:-}" "$__"
+  emit "$statement"
 }
 
 part () {
@@ -240,7 +257,7 @@ require () {
     .sh
     ''
   )
-  [[ $library == */*  ]] && path=${library%/*} || path=$PATH
+  [[ $library == */*  ]] && path=${library%/*} || path=.:$PATH
   library=${library##*/}
   IFS=:
   for spec in $path; do
@@ -266,7 +283,7 @@ require_relative () {
     ''
   )
   [[ $library == */*  ]] || return
-  file=$CONCO_SRCE/$library
+  file=$CONCO_CALR/$library
   for extension in "${extensions[@]}"; do
     [[ -e $file$extension ]] && break
   done
