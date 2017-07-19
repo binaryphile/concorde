@@ -243,10 +243,19 @@ describe options_parse
 
   it "outputs arguments"; (
     get_here_ary <<'    EOS'
-      ( -o  '' '' 'flag 2' )
+      ( -o  '' '' 'a flag' )
     EOS
     $(parse_options __ -o arg1 arg2 )
     assert equal 'arg1 arg2' "$1 $2"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "doesn't output arguments if none are provided"; (
+    get_here_ary <<'    EOS'
+      ( -o  '' '' 'a flag' )
+    EOS
+    $(parse_options __ -o)
+    assert equal 0 $#
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 end
