@@ -82,21 +82,23 @@ Reserved Variables
 
 Concorde reserves the following global variables for its own use:
 
--   `CONCO_CALR` - the full path to the directory of the file which
-    sourced concorde
-
--   `CONCO_ROOT` - the full path to the directory above
-    `lib/concorde.bash`
-
 -   `__` - double-underscore, used for returning strings from functions
 
 -   `__conco` - a read-only marker to show that concorde has already
     been loaded
 
+-   `__conco_calr` - the full path to the directory of the file which
+    sourced concorde
+
+-   `__conco_root` - the full path to the directory above
+    `lib/concorde.bash`
+
 -   `__dependencies` - lists of dependencies for functions imported from
     other libraries
 
 -   `__instanceh` - an internal hash for holding data structures
+
+-   `__load` - an internal marker for reloading libraries
 
 Tutorial
 ========
