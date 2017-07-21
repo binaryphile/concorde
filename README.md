@@ -146,9 +146,9 @@ Save, and now the test suite passes. Our first green!
 However, `myscript` isn't all that exciting. In fact, if you make it
 executable and run it, it doesn't do anything!
 
-    $ chmod +x myscript
-    $ ./myscript
-    $
+    > chmod +x myscript
+    > ./myscript
+    >
 
 That's because the `hello_world` function exists, but nothing's calling
 it. So we call it:
@@ -163,9 +163,9 @@ it. So we call it:
 
 Now it runs correctly:
 
-    $ ./myscript
+    > ./myscript
     Hello, world!
-    $
+    >
 
 But something's wrong in the test window. Now the test shows passing,
 but it also shows the "Hello, world!" output, which it's not supposed
@@ -298,24 +298,25 @@ since we've already got that covered.
 
 Let's run one of the shpecs now. `cd`ing to the lib directory, I run:
 
-    $ shpec ../shpec/hello_world_shpec.bash
+    > shpec ../shpec/hello_world_shpec.bash
 
 and see that the test runs correctly. Now I `cd` up one level to the
 root of my project. Proud of my code but humble enough to know that you
 can never do enough testing, I decide to run the test once more for good
 measure:
 
-    $ shpec shpec/hello_world_shpec.bash
+    > shpec shpec/hello_world_shpec.bash
     shpec/hello_world_shpec.bash: line 1: hello_world.bash: No such file or directory
 
-What? It failed? Oh yeah, when `hello_world_shpec.bash` runs
-`source hello_world.bash`, bash looks for it in the current directory
-(and then in the PATH, but `hello_world.bash` isn't there either), so
-where I run the command from matters. Darn it.
+What? It failed? Oh yeah, when `hello_world_shpec.bash` runs `source
+hello_world.bash`, bash looks for `hello_world.bash` in the current
+directory (and then in the PATH, but `hello_world.bash` isn't there
+either), so the current directory determines whether the test is able to
+run. Darn it.
 
 I could just change the line to `source lib/hello_world.bash`, but then
-it would only work when I run the command from this directory and I'd
-like it to work anywhere.
+the test would only work when I run the command from this directory and
+I'd like it to work anywhere.
 
 Let's update `hello_world_shpec.bash`:
 
@@ -327,9 +328,32 @@ Let's update `hello_world_shpec.bash`:
 
 From the project root (just above `bin` et. al.):
 
-    $ shpec shpec/hello_world_shpec.bash
+    > shpec shpec/hello_world_shpec.bash
 
 Everything's happy again!
+
+`require_relative` is a function which sources another file, but takes
+the current directory out of the equation.  It finds the sourced file
+relative to the location of your file, not your shell's current
+directory.
+
+`require_relative` also doesn't require a file extension when you name
+the file, if the file's extension is `.bash` or `.sh`.  Hence the
+`require_relative ../lib/hello_world` call above.
+
+`require_relative` is a close cousin to concorde's `require` function,
+which also sources a file.  `require` is meant as a replacement for most
+uses of `source`.
+
+For bare filename arguments, `require` searches for the file in the
+PATH.  Unlike `source`, it doesn't check the current directory first.
+
+If `require` may also be given an absolute path, in which case it
+doesn't search further for the file, but still applies automatic
+extensions.
+
+Like `require_relative`, `require` also doesn't require the file
+extension.
 
 API
 ===

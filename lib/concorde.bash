@@ -1,5 +1,5 @@
-[[ -n ${__conco:-} && -z ${reload:-}  ]] && return
-[[ -n ${reload:-}                     ]] && { unset -v reload && echo reloaded || return ;}
+[[ -n ${__conco:-} && -z ${__load:-}  ]] && return
+[[ -n ${__load:-}                     ]] && { unset -v __load || return ;}
 [[ -z ${__conco:-}                    ]] && readonly __conco=loaded
 CONCO_ROOT=$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"/..)
 CONCO_CALR=$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[1]}")")")
@@ -189,7 +189,7 @@ parse_options () {
     esac
     option=${1#-}
     option=${option#-}
-    { [[ $1 =~ ^-{1,2}[^-] ]] && [[ -n ${optionh[$option]:-} ]] ;} && {
+    [[ $1 =~ ^-{1,2}[^-] && -n ${optionh[$option]:-} ]] && {
       $(grab '( argument name )' from "${optionh[$option]}")
       case $argument in
         ''  ) resulth[flag_$name]=1         ;;
@@ -257,8 +257,8 @@ require () {
     .sh
     ''
   )
-  [[ $library == */*  ]] && path=${library%/*} || path=.:$PATH
-  library=${library##*/}
+  [[ $library == /* || $library != *?/* ]] || return
+  [[ $library == /* ]] && { path=${library%/*}; library=${library##*/} ;}
   IFS=:
   for spec in $path; do
     for extension in "${extensions[@]}"; do
@@ -275,14 +275,13 @@ require_relative () {
   local extension
   local extensions=()
   local file
-  local spec
 
   extensions=(
     .bash
     .sh
     ''
   )
-  [[ $library == */*  ]] || return
+  [[ $library != /* && $library == *?/* ]] || return
   file=$CONCO_CALR/$library
   for extension in "${extensions[@]}"; do
     [[ -e $file$extension ]] && break
