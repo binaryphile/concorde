@@ -1,8 +1,8 @@
 [[ -n ${__conco:-} && -z ${__load:-}  ]] && return
 [[ -n ${__load:-}                     ]] && { unset -v __load || return ;}
 [[ -z ${__conco:-}                    ]] && readonly __conco=loaded
-CONCO_ROOT=$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"/..)
-CONCO_CALR=$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[1]}")")")
+__conco_root=$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"/..)
+__conco_calr=$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[1]}")")")
 
 unset -v CDPATH
 
@@ -114,15 +114,15 @@ library () {
   local statement
 
   get_here_str <<'  EOS'
-    [[ -n ${__%s:-} && -z ${reload:-} ]] && return
-    [[ -n ${reload:-}                 ]] && { unset -v reload && echo reloaded || return ;}
+    [[ -n ${__%s:-} && -z ${__load:-} ]] && return
+    [[ -n ${__load:-}                 ]] && { unset -v __load || return ;}
     [[ -z ${__%s:-}                   ]] && readonly __%s=loaded
-    %s_ROOT=$(readlink -f "$(dirname "$(readlink -f "$BASH_SOURCE")")"%s)
+    __%s_root=$(readlink -f "$(dirname "$(readlink -f "$BASH_SOURCE")")"%s)
   EOS
   statement=$__
   path=''
   (( depth )) && for (( i = 0; i < depth; i++ )); do path+=/..; done
-  printf -v statement "$statement" "$library_name" "$library_name" "$library_name" "${library_name^^}" "$path"
+  printf -v statement "$statement" "$library_name" "$library_name" "$library_name" "$library_name" "$path"
   emit "$statement"
 }
 
@@ -282,7 +282,7 @@ require_relative () {
     ''
   )
   [[ $library != /* && $library == *?/* ]] || return
-  file=$CONCO_CALR/$library
+  file=$__conco_calr/$library
   for extension in "${extensions[@]}"; do
     [[ -e $file$extension ]] && break
   done
