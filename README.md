@@ -252,12 +252,12 @@ And here's `bin/myscript`:
     hello_world
 
 We'll stop the entr window with ctrl-c, since the files have moved
-anyway. We've also split the source files, so now having two shpec files
-as well makes sense.
+anyway. We've also split the source files, so now having two
+corresponding shpec files makes sense.
 
 `shpec/hello_world_shpec.bash`:
 
-    source hellO_world.bash
+    source hello_world.bash
 
     describe hello_world
       it "outputs 'Hello, world!'"
@@ -314,7 +314,7 @@ What? It failed? Oh yeah, when `hello_world_shpec.bash` runs
 where I run the command from matters. Darn it.
 
 I could just change the line to `source lib/hello_world.bash`, but then
-it would only work when I run the command from this directory, and I'd
+it would only work when I run the command from this directory and I'd
 like it to work anywhere.
 
 Let's update `hello_world_shpec.bash`:
@@ -325,7 +325,7 @@ Let's update `hello_world_shpec.bash`:
     describe hello_world
     [...]
 
-From the project root:
+From the project root (just above `bin` et. al.):
 
     $ shpec shpec/hello_world_shpec.bash
 
