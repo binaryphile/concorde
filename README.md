@@ -13,8 +13,6 @@ things I've done in bash.
 Goals
 =====
 
-The big things which concorde attempts to address include:
-
 -   encourage development of reusable scripts and libraries
 
 -   encourage testable code
@@ -99,6 +97,266 @@ Concorde reserves the following global variables for its own use:
 
 -   `__instanceh` - an internal hash for holding data structures
 
+Tutorial
+========
+
+Let's start with a simple script, but developed in a test-driven
+fashion.
+
+I use [shpec] and [entr] to run my tests.  The script and shpec file
+start in the same directory.
+
+In one window, I run:
+
+    echo myscript | entr shpec myscript_shpec.bash
+
+This will monitor in the `myscript` file and re-run the test suite
+whenever it changes.
+
+In another window I fire up vim on `myscript_shpec.bash` and start with:
+
+```
+source myscript
+
+describe hello_world
+  it "outputs 'Hello, world!'"
+    result=$(hello_world)
+    assert equal "Hello, world!" "$result"
+  end
+end
+```
+
+Nothing so far from shpec, since I haven't touched myscript yet.
+
+Now I switch to editing `myscript`:
+
+```
+#!/usr/bin/env bash
+```
+
+Save this now and the test should run and fail.  That's a good thing, it
+shows that the test isn't providing a false positive.  Now to add the
+function:
+
+```
+#!/usr/bin/env bash
+
+hello_world () {
+  echo "Hello, world!"
+}
+```
+
+Save, and now the test suite passes.  Our first green!
+
+However, `myscript` isn't all that exciting.  In fact, if you make it
+executable and run it, it doesn't do anything!
+
+```
+$ chmod +x myscript
+$ ./myscript
+$
+```
+
+That's because the `hello_world` function exists, but nothing's calling
+it.  So we call it:
+
+```
+#!/usr/bin/env bash
+
+hello_world () {
+  echo "Hello, world!"
+}
+
+hello_world
+```
+
+Now it runs correctly:
+
+```
+$ ./myscript
+Hello, world!
+$
+```
+
+But something's wrong in the test window.  Now the test shows passing,
+but it also shows the "Hello, world!" output, which it's not supposed
+to.
+
+That's because the test is running the script when it runs the `source
+myscript` line, and that causes all of the actions in the script to
+occur.  When testing, we just want to test the functions, not run the
+script!
+
+So we add:
+
+```
+#!/usr/bin/env bash
+
+source concorde.bash
+
+hello_world () {
+  echo "Hello, world!"
+}
+
+$(return_if_sourced)
+
+hello_world
+```
+
+Now the test runs and passes, but the output doesn't occur.  That's
+because `return_if_sourced` detects that the script is being sourced
+with bash's `source` command and not being run from the command line as
+a script.  It stops sourcing the file there, so it never reaches the
+line which calls `hello_world`, instead returning control to the shpec
+file.
+
+If being run as a script from the command-line, however, the
+`return_if_sourced` call will do nothing and the script will continue to
+run past that line, fulfilling the call to `hello_world`.
+
+If you're experienced in bash, it may seem odd that a call to a function
+(and in a subshell, no less), can cause the return of the current,
+calling function.  For now let's not worry about it, but of course it
+does have something to do with the process substitution syntax
+surrounding it: `$()`.
+
+In a regular script, you might not choose to use functions at all,
+instead just writing a list of commands that need to go together.
+That's fine, but concorde won't help with that much.  I'd encourage you
+to start writing functions in order to make them testable.
+
+So if you want to make use of concorde's features, you'll want to write
+functions. They don't require that you change much; just wrap the entire
+script in a `main` function, then call `main` in the same manner as we
+called `hello_world` above.
+
+That would just mean prefacing the script lines with `main () {` and
+appending them with `}`. Then call `main` at the end, preferably after
+`$(return_if_sourced)`.  (You'll probably want to indent the script
+lines a couple spaces as well)
+
+Let's go back to the script.  How about some refactoring, now that we've
+got a function that we might want to use in other scripts as well.
+First, let's create a couple subdirectories; `lib` for a library we'll
+be creating and `bin` for our script.  Let's also move the shpec file to
+a `shpec` directory.
+
+Here's `lib/hello_world.bash`:
+
+```
+hello_world () {
+  echo "Hello, world!"
+}
+```
+
+And here's `bin/myscript`:
+
+```
+#!/usr/bin/env bash
+
+source concorde.bash
+source hello_world.bash
+
+$(return_if_sourced)
+
+hello_world
+```
+
+We'll stop the entr window and restart it while we're at it, since the
+files have moved.  We've also split them, so now having two shpec files
+makes sense.
+
+`shpec/hello_world_shpec.bash`:
+
+```
+source hellO_world.bash
+
+describe hello_world
+  it "outputs 'Hello, world!'"
+    result=$(hello_world)
+    assert equal "Hello, world!" "$result"
+  end
+end
+```
+
+This should work even though `hello_world.bash` doesn't use
+`return_if_source`, since it just defines the function and never runs
+it.
+
+`shpec/myscript_shpec.bash`:
+
+```
+source myscript
+```
+
+Hmm.  There's nothing really to test here, is there, since there are no
+functions defined by `myscript`?  Perhaps we should change that a little
+by making a formal `main` function which is responsible for taking the
+actions requested by the user:
+
+```
+#!/usr/bin/env bash
+
+source concorde.bash
+source hello_world.bash
+
+main () {
+  hello_world
+}
+
+$(return_if_sourced)
+
+main
+```
+
+Now we could test `main` in `myscript_shpec.bash`, but I think we'll
+hold off until it does something more than just call `hello_world`,
+since we've already got that covered.
+
+Let's run one of the shpecs now.  `cd`ing to the lib directory, I run:
+
+```
+$ shpec ../shpec/hello_world_shpec.bash
+```
+
+and see that the test runs correctly.  Now I `cd` up one level to the
+root of my project.  Proud of my code but humble enough to know that you
+can never do enough testing, I decide to run the test once more for good
+measure:
+
+```
+$ shpec shpec/hello_world_shpec.bash
+shpec/hello_world_shpec.bash: line 1: hello_world.bash: No such file or directory
+```
+
+What?  It failed?  Oh yeah, when `hello_world_shpec.bash` runs `source
+hello_world.bash`, bash looks for it in the current directory (and then
+in the PATH, but `hello_world.bash` isn't there either), so where
+I run the command from matters.  Darn it.
+
+I could just change the line to `source lib/hello_world.bash`, but then
+it would only work when I run the command from this directory, and I'd
+like it to work anywhere.
+
+Let's update `hello_world_shpec.bash`:
+
+```
+source concorde.bash
+$(require_relative ../lib/hello_world.bash)
+
+describe hello_world
+[...]
+```
+
+From the project root:
+
+```
+$ shpec shpec/hello_world_shpec.bash
+```
+
+Everything's happy again!
+
+
 API
 ===
 
@@ -162,11 +420,11 @@ Option Parsing
     Options definitions are in the form of an array literal, with each
     item containing a sub-array (literal) of four elements:
 
-    -   *short option* (including hyphen) - may be ommitted (with '' in
+    -   *short option* (including hyphen) - may be omitted (with `''` in
         its place) if *long option* is defined
 
-    -   *long option* (including double-hyphen) - may be ommitted (with
-        '' in its place) if *short option* is defined
+    -   *long option* (including double-hyphen) - may be omitted (with
+        `''` in its place) if *short option* is defined
 
     -   *argument name* - if the option takes an argument, the name of
         the variable in which to store the value.
