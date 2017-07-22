@@ -1,8 +1,10 @@
-[[ -n ${__conco:-} && -z ${__load:-}  ]] && return
-[[ -n ${__load:-}                     ]] && { unset -v __load || return ;}
-[[ -z ${__conco:-}                    ]] && readonly __conco=loaded
-__conco_root=$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"/..)
-__conco_calr=$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[1]}")")")
+[[ -n ${__featureh[concorde]:-} && -z ${__load:-} ]] && return
+[[ -n ${__load:-} ]] && { unset -v __load || return ;}
+declare -Ag __featureh
+__featureh[concorde]="(
+  [root]='$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"/..)'
+  [caller]='$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[1]}")")")'
+)"
 
 unset -v CDPATH
 
@@ -114,15 +116,18 @@ library () {
   local statement
 
   get_here_str <<'  EOS'
-    [[ -n ${__%s:-} && -z ${__load:-} ]] && return
-    [[ -n ${__load:-}                 ]] && { unset -v __load || return ;}
-    [[ -z ${__%s:-}                   ]] && readonly __%s=loaded
-    __%s_root=$(readlink -f "$(dirname "$(readlink -f "$BASH_SOURCE")")"%s)
+    [[ -n ${__featureh[%s]:-} && -z ${__load:-} ]] && return
+    [[ -n ${__load:-} ]] && { unset -v __load || return ;}
+    declare -Ag __featureh
+    __featureh[%s]="(
+      [root]='$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"%s)'
+      [caller]='$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[1]}")")")'
+    )"
   EOS
   statement=$__
   path=''
   (( depth )) && for (( i = 0; i < depth; i++ )); do path+=/..; done
-  printf -v statement "$statement" "$library_name" "$library_name" "$library_name" "$library_name" "$path"
+  printf -v statement "$statement" "$library_name" "$library_name" "$path"
   emit "$statement"
 }
 
@@ -144,16 +149,6 @@ local_hsh () {
   name=${first%%=*}
   (( $# )) && value="${first#*=} $*" || value=${first#*=}
   [[ $value == '('*')' ]] && emit "declare -A $name=$value" || emit 'declare -A '"$name"'=$'"$value"
-}
-
-local_str () {
-  local first=$1; shift
-  local name
-  local value
-
-  name=${1%%=*}
-  (( $# )) && value="${first#*=} $*" || value=${first#*=}
-  [[ $value == '('*')' ]] && emit "declare -- $name=$value" || emit 'declare -- '"$name"'=$'"$value"
 }
 
 log () { put "$@" ;}
@@ -282,7 +277,8 @@ require_relative () {
     ''
   )
   [[ $library != /* && $library == *?/* ]] || return
-  file=$__conco_calr/$library
+  $(grab caller from __featureh[concorde])
+  file=$caller/$library
   for extension in "${extensions[@]}"; do
     [[ -e $file$extension ]] && break
   done

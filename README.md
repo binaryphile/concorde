@@ -68,7 +68,9 @@ Features
 Prerequisites
 =============
 
-GNU readlink in your PATH, as `readlink`.
+-   GNU readlink in your PATH, as `readlink`
+
+-   `sed` in your PATH
 
 Installation
 ============
@@ -124,7 +126,7 @@ Now I switch to editing `myscript`:
 
     #!/usr/bin/env bash
 
-Save this now.
+Now I save it.
 
 In another window, I run:
 
@@ -143,7 +145,7 @@ add the function:
       echo "Hello, world!"
     }
 
-Save, and now the test suite passes. Our first green!
+I save and now the test suite passes. Our first green!
 
 However, `myscript` isn't all that exciting. In fact, if you make it
 executable and run it, it doesn't do anything!
@@ -277,7 +279,7 @@ never runs it.
     source myscript
 
 Hmm. There's nothing really to test here, is there, since there are no
-functions defined by `myscript`? Perhaps we should change that by making
+functions defined by `myscript`. Perhaps we should change that by making
 a formal `main` function which is responsible for taking the actions
 requested by the user:
 
@@ -298,7 +300,7 @@ Now we could test `main` in `myscript_shpec.bash`, but I think we'll
 hold off until it does something more than just call `hello_world`,
 since we've already got that covered.
 
-Let's run one of the shpecs now. `cd`ing to the lib directory, I run:
+Let's run one of the shpecs now. `cd`ing to the `lib` directory, I run:
 
     > shpec ../shpec/hello_world_shpec.bash
 
@@ -341,20 +343,29 @@ directory.
 
 `require_relative` also doesn't require a file extension when you name
 the file, if the file's extension is `.bash` or `.sh`.  Hence the
-`require_relative ../lib/hello_world` call above.
+`../lib/hello_world` above.
 
-`require_relative` is a close cousin to concorde's `require` function,
-which also sources a file.  `require` is meant as a replacement for most
-uses of `source`.
+Looking back at `bin/myscript`, notice that we are sourcing
+`hello_world.bash` there as well, but now we know that that will not
+work.
+
+If we want to use `require_relative` to solve the problem, that will
+work fine.  However, we could also put our project's `lib` directory in
+the PATH.  If we did so, then `source` would work after all.
+
+However, `source` does have a problem 
+
+`require_relative` has a close cousin in the `require` function, which
+also sources a file.  `require` is meant as a replacement for most uses
+of `source`.
 
 For bare filename arguments, `require` searches for the file in the
 PATH.  Unlike `source`, it doesn't check the current directory first.
 
-If `require` may also be given an absolute path, in which case it
-doesn't search further for the file, but still applies automatic
-extensions.
+`require` may also be given an absolute path, in which case it doesn't
+search the PATH for the file.
 
-Like `require_relative`, `require` also doesn't require the file
+Like `require_relative`, `require` allows you to omit the file
 extension.
 
 API
