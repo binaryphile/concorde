@@ -13,14 +13,14 @@ assign () {
   $(local_ary args=$1)
   $(local_ary vars=$3)
   local count
-  local statement
+  local statement=''
   local var
 
   set -- "${args[@]}"
   count=${#vars[@]}
   (( $# > count )) && : $(( count-- ))
   for (( i = 0; i < count; i++ )); do
-    printf -v statement '%sdeclare %s=%q\n' "${statement:-}" "${vars[i]}" "$1"
+    printf -v statement '%sdeclare %s=%q\n' "$statement" "${vars[i]}" "$1"
     shift
   done
   (( count == ${#vars[@]} )) && { emit "$statement"; return ;}
@@ -33,9 +33,16 @@ bring () { (
   [[ $2 == 'from'   ]] || return
   [[ $1 == '('*')'  ]] && local -a functions=$1 || local -a functions=( "$1" )
   local library=$3
+  local feature
 
+  feature=${library##*/}
+  feature=${feature%.*}
   $(require "$library")
-  (( ${#__dependencies[@]:-} )) && functions+=( "${__dependencies[@]}" )
+  $(grab dependency from "${__featureh[$feature]}")
+  [[ -n $dependency ]] && {
+    local -a dependencies=$dependency
+    functions+=( "${dependencies[@]}" )
+  }
   repr functions
   _extract_functions __
   emit "$__"

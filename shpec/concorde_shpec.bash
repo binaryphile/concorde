@@ -64,7 +64,13 @@ describe bring
   it "brings a function with dependencies"; (
     $(grab root from __featureh[concorde])
     temp=$root/lib/temp.bash
-    echo $'__dependencies=( two )\none () { :;}\ntwo () { :;}' >"$temp"
+    get_here_str <<'    EOS'
+      declare -Ag __featureh
+      __featureh[temp]='( [dependency]="( two )")'
+      one () { :;}
+      two () { :;}
+    EOS
+    echo "$__" >"$temp"
     $(bring one from "$temp")
     assert equal $'one\ntwo' "$(declare -F one two)"
     rm "$temp"
