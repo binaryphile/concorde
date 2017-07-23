@@ -1,8 +1,8 @@
-[[ -n ${__featureh[concorde]:-} && ${1:-} != 'reload' ]] && return
+[[ -n ${__feature_hsh[concorde]:-} && ${1:-} != 'reload' ]] && return
 [[ ${1:-} == 'reload' ]] && shift
 
-declare -Ag __featureh
-__featureh[concorde]="(
+declare -Ag __feature_hsh
+__feature_hsh[concorde]="(
     [root]='$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"/..)'
   [caller]='$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[1]}")")")'
 )"
@@ -40,7 +40,7 @@ bring () { (
   $(require "$spec")
   feature=${spec##*/}
   feature=${feature%.*}
-  $(grab dependencies from "${__featureh[$feature]}")
+  $(grab dependencies from "${__feature_hsh[$feature]}")
   [[ -n $dependencies ]] && {
     local -a dependency_ary=$dependencies
     function_ary+=( "${dependency_ary[@]}" )
@@ -100,7 +100,7 @@ get_str () { IFS=$'\n' read -rd '' __ ||:         ;}
 glob    () { __=$(set +o noglob; eval "echo $1")  ;}
 
 grab () {
-  [[ $2 == 'from'   ]] || return
+  [[ $2 == 'from' ]] || return
   $(local_hsh arg_hsh=$3)
   case $1 in
     '('*')' ) local -a var_ary=$1                   ;;
@@ -126,10 +126,10 @@ feature () {
   local statement
 
   get_here_str <<'  EOS'
-    [[ -n ${__featureh[%s]:-} && $1 != 'reload' ]] && return
+    [[ -n ${__feature_hsh[%s]:-} && $1 != 'reload' ]] && return
     [[ ${1:-} == 'reload' ]]  && shift
-    declare -Ag __featureh
-    __featureh[%s]="(
+    declare -Ag __feature_hsh
+    __feature_hsh[%s]="(
         [root]='$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"%s)'
       [caller]='$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[1]}")")")'
     )"
@@ -150,7 +150,7 @@ local_ary () {
 
   name=${first%%=*}
   (( $# )) && value="${first#*=} $*" || value=${first#*=}
-  [[ $value == '('*')' ]] && emit "declare -a $name=$value" || emit 'declare -a '"$name"'=$'"$value"
+  [[ $value == '('*')' ]] && emit "declare -a $name=$value" || emit 'declare -a '"$name"'=${'"$value"'}'
 }
 
 local_hsh () {
@@ -160,7 +160,7 @@ local_hsh () {
 
   name=${first%%=*}
   (( $# )) && value="${first#*=} $*" || value=${first#*=}
-  [[ $value == '('*')' ]] && emit "declare -A $name=$value" || emit 'declare -A '"$name"'=$'"$value"
+  [[ $value == '('*')' ]] && emit "declare -A $name=$value" || emit 'declare -A '"$name"'=${'"$value"'}'
 }
 
 log () { put "$@" ;}
@@ -227,10 +227,10 @@ parse_options () {
 part () {
   [[ $2 == 'on' ]] || return
   local IFS=$3
-  local results=()
+  local result_ary=()
 
-  results=( $1 )
-  repr results
+  result_ary=( $1 )
+  repr result_ary
 }
 
 put     () { printf '%s\n' "$@"   ;}
@@ -285,7 +285,7 @@ require_relative () {
     ''
   )
   [[ $spec != /* && $spec == *?/* ]] || return
-  $(grab caller from __featureh[concorde])
+  $(grab caller from __feature_hsh[concorde])
   file=$caller/$spec
   for extension in "${extension_ary[@]}"; do
     [[ -e $file$extension ]] && break
