@@ -64,11 +64,11 @@ _extract_function () {
 }
 
 _extract_functions () {
-  [[ $1 == '('*')' ]] && local -a functions=$1 || local -a functions=${!1}
+  $(local_ary function_ary=$1)
   local function
   local result
 
-  for function in "${functions[@]}"; do
+  for function in "${function_ary[@]}"; do
     _extract_function "$function"
     result+=$__
   done
@@ -76,10 +76,10 @@ _extract_functions () {
 }
 
 get_ary () {
-  local results=()
+  local result_ary=()
 
-  IFS=$'\n' read -rd '' -a results ||:
-  repr results
+  IFS=$'\n' read -rd '' -a result_ary ||:
+  repr result_ary
 }
 
 get_here_ary () {
@@ -96,23 +96,22 @@ get_here_str () {
   printf -v __ %s "${__//$'\n'$space/$'\n'}"
 }
 
-get_str () { IFS=$'\n' read -rd '' __ ||: ;}
-
-glob () { __=$(set +o noglob; eval "echo $1") ;}
+get_str () { IFS=$'\n' read -rd '' __ ||:         ;}
+glob    () { __=$(set +o noglob; eval "echo $1")  ;}
 
 grab () {
   [[ $2 == 'from'   ]] || return
-  [[ $3 == '('*')'  ]] && local -A argh=$3 || local -A argh=${!3}
+  $(local_hsh arg_hsh=$3)
   case $1 in
-    '('*')' ) local -a vars=$1                ;;
-    '*'     ) local -a vars=( "${!argh[@]}" ) ;;
-    *       ) local -a vars=(          "$1" ) ;;
+    '('*')' ) local -a var_ary=$1                   ;;
+    '*'     ) local -a var_ary=( "${!arg_hsh[@]}" ) ;;
+    *       ) local -a var_ary=( "$1"             ) ;;
   esac
   local var
   local statement
 
-  for var in "${vars[@]}"; do
-    printf -v statement '%sdeclare %s=%q\n' "${statement:-}" "$var" "${argh[$var]:-}"
+  for var in "${var_ary[@]}"; do
+    printf -v statement '%sdeclare %s=%q\n' "${statement:-}" "$var" "${arg_hsh[$var]:-}"
   done
   emit "$statement"
 }
@@ -167,24 +166,24 @@ local_hsh () {
 log () { put "$@" ;}
 
 parse_options () {
-  [[ $1 == '('*')' ]] && local -a inputs=$1 || local -a inputs=${!1}; shift
-  local -A optionh=()
-  local -A resulth=()
-  local args=()
+  $(local_ary input_ary=$1); shift
+  local -A option_hsh=()
+  local -A result_hsh=()
+  local arg_ary=()
   local input
   local name
   local option
   local statement
 
-  for input in "${inputs[@]}"; do
+  for input in "${input_ary[@]}"; do
     $(assign input to '( short long argument help )')
     short=${short#-}
     long=${long#--}
     long=${long//-/_}
     [[ -n $long ]] && name=$long || name=$short
     stuff '( argument name help )' into '()'
-    [[ -n $short  ]] && optionh[$short]=$__
-    [[ -n $long   ]] && optionh[$long]=$__
+    [[ -n $short  ]] && option_hsh[$short]=$__
+    [[ -n $long   ]] && option_hsh[$long]=$__
   done
 
   while (( $# )); do
@@ -197,30 +196,30 @@ parse_options () {
     esac
     option=${1#-}
     option=${option#-}
-    [[ $1 =~ ^-{1,2}[^-] && -n ${optionh[$option]:-} ]] && {
-      $(grab '( argument name )' from "${optionh[$option]}")
+    [[ $1 =~ ^-{1,2}[^-] && -n ${option_hsh[$option]:-} ]] && {
+      $(grab '( argument name )' from "${option_hsh[$option]}")
       case $argument in
-        ''  ) resulth[flag_$name]=1         ;;
-        *   ) resulth[$argument]=$2; shift  ;;
+        ''  ) result_hsh[flag_$name]=1         ;;
+        *   ) result_hsh[$argument]=$2; shift  ;;
       esac
       shift
       continue
     }
     case $1 in
-      '--'  ) shift                           ; args+=( "$@" ); break ;;
-      -*    ) puterr "unsupported option $1"  ; return 1              ;;
-      *     ) args+=( "$@" )                  ; break                 ;;
+      '--'  ) shift                           ; arg_ary+=( "$@" ); break  ;;
+      -*    ) puterr "unsupported option $1"  ; return 1                  ;;
+      *     ) arg_ary+=( "$@" )               ; break                     ;;
     esac
     shift
   done
-  case ${#args[@]} in
+  case ${#arg_ary[@]} in
     '0' ) statement='set --';;
     *   )
-      printf -v statement '%q ' "${args[@]}"
+      printf -v statement '%q ' "${arg_ary[@]}"
       printf -v statement 'set -- %s' "$statement"
       ;;
   esac
-  repr resulth
+  repr result_hsh
   printf -v statement '%s\n__=%q' "${statement:-}" "$__"
   emit "$statement"
 }
@@ -324,14 +323,14 @@ strict_mode () {
 
 stuff () {
   [[ $2 == 'into'   ]] || return
-  [[ $1 == '('*')'  ]] && local -a refs=$1    || local -a refs=( "$1" )
-  [[ $3 == '('*')'  ]] && local -A resulth=$3 || local -A resulth=${!3}
+  [[ $1 == '('*')'  ]] && local -a ref_ary=$1 || local -a ref_ary=( "$1" )
+  $(local_hsh result_hsh=$3)
   local ref
 
-  for ref in "${refs[@]}"; do
-    resulth[$ref]=${!ref}
+  for ref in "${ref_ary[@]}"; do
+    result_hsh[$ref]=${!ref}
   done
-  repr resulth
+  repr result_hsh
 }
 
 traceback () {
@@ -352,23 +351,23 @@ traceback () {
 }
 
 update () {
-  [[ $2 == 'with'   ]] || return
-  [[ $1 == '('*')'  ]] && local -A hash=$1     || local -A hash=${!1}
-  [[ $3 == '('*')'  ]] && local -A updateh=$3  || local -A updateh=${!3}
+  [[ $2 == 'with' ]] || return
+  $(local_hsh original_hsh=$1 )
+  $(local_hsh update_hsh=$3   )
   local key
 
-  for key in "${!updateh[@]}"; do
-    hash[$key]=${updateh[$key]}
+  for key in "${!update_hsh[@]}"; do
+    original_hsh[$key]=${update_hsh[$key]}
   done
-  repr hash
+  repr original_hsh
 }
 
 wed () {
   [[ $2 == 'with' ]] || return
-  [[ $1 == '('*')' ]] && local -a ary=$1 || local -a ary=${!1}
+  $(local_ary original_ary=$1)
   local IFS=$3
 
-  __=${ary[*]}
+  __=${original_ary[*]}
 }
 
 with () { repr "$1"; grab '*' from "$__" ;}
