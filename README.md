@@ -92,6 +92,9 @@ Let's start with a simple script, developed in a test-driven fashion.
 I use [shpec] and [entr] to run my tests. If you want to follow along,
 install those first.
 
+Basic Test-Driven Development with Bash
+---------------------------------------
+
 The script and shpec file start in the same directory. In one window I
 fire up vim on `myscript_shpec.bash` and start with:
 
@@ -144,6 +147,9 @@ hello_world () {
 
 I save and now the test suite passes. Our first green!
 
+Doing Something More than Just Passing
+--------------------------------------
+
 However, `myscript` isn't all that exciting. In fact, if you make it
 executable and run it, it doesn't do anything!
 
@@ -183,7 +189,16 @@ That's because the test is running the script when it gets to its
 to occur. When testing, we just want to test the functions, not run the
 script!
 
-So we add:
+Treating the Same File as Both a Script and a Library
+-----------------------------------------------------
+
+A script runs and accomplishes a task.  A library provides functions for
+scripts but doesn't usually do anything itself.
+
+Shpec needs to treat the script as a library however.  Can we have a
+script that acts like a library too? (Spoiler: yes)
+
+I'll add concorde and a call to one of its functions:
 
 ``` bash
 #!/usr/bin/env bash
@@ -217,10 +232,13 @@ purposes, you want all of the functions to be defined in the front
 portion. Before invoking any of them, you want `sourced?` to intervene
 so the test framework can short-circuit it when testing functions.
 
+Introducing Some Project Structure
+----------------------------------
+
 Let's go back to the script. How about some refactoring, now that we've
 got a function that we might want to use in other scripts as well?
 
-First I'll top the entr window with ctrl-c, since we'll be moving the
+First I'll stop the entr window with ctrl-c, since we'll be moving the
 files anyway.
 
 Then, I'll create a couple subdirectories; `lib` for a library we'll be
@@ -274,6 +292,9 @@ And `shpec/myscript_shpec.bash`:
 source myscript
 ```
 
+Using "main"
+------------
+
 Hmm. There's nothing really to test for `myscript`, since it defines no
 functions.  Perhaps we should change that by making a formal `main`
 function which is responsible for taking the actions requested by the
@@ -303,7 +324,13 @@ instead just writing a list of commands that need to go together. That's
 fine, but concorde won't help with that much. I'd encourage you to start
 writing functions in order to make them testable.
 
-Let's run one of the shpecs now. I run:
+Sourcing Features Correctly
+---------------------------
+
+I'm using the word "feature" here as a fancy name for a library, such as
+our `hello_world` library.
+
+First let's run one of the shpecs. I run:
 
 ``` bash
 > cd lib
@@ -368,6 +395,8 @@ install it on the PATH and just source it.  In that case, I could also
 use concorde's `require`, which does not require a file extension just
 like `require_relative`.  Otherwise it is pretty much the same as
 `source`.
+
+
 
 API
 ===
