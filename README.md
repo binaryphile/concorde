@@ -53,7 +53,7 @@ Features
 
 -   ruby-style tracebacks
 
--   packaging functions
+-   ruby-style require/load
 
 -   namespace manipulation functions
 

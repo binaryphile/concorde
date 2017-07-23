@@ -1,5 +1,6 @@
-[[ -n ${__featureh[concorde]:-} && -z ${__load:-} ]] && return
-[[ -n ${__load:-} ]] && { unset -v __load || return ;}
+[[ -n ${__featureh[concorde]:-} && ${1:-} != 'reload' ]] && return
+[[ ${1:-} == 'reload' ]] && shift
+
 declare -Ag __featureh
 __featureh[concorde]="(
     [root]='$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"/..)'
@@ -32,19 +33,19 @@ assign () {
 
 bring () { (
   [[ $2 == 'from'   ]] || return
-  [[ $1 == '('*')'  ]] && local -a functions=$1 || local -a functions=( "$1" )
-  local library=$3
+  [[ $1 == '('*')'  ]] && local -a function_ary=$1 || local -a function_ary=( "$1" )
+  local spec=$3
   local feature
 
-  feature=${library##*/}
+  $(require "$spec")
+  feature=${spec##*/}
   feature=${feature%.*}
-  $(require "$library")
-  $(grab dependency from "${__featureh[$feature]}")
-  [[ -n $dependency ]] && {
-    local -a dependencies=$dependency
-    functions+=( "${dependencies[@]}" )
+  $(grab dependencies from "${__featureh[$feature]}")
+  [[ -n $dependencies ]] && {
+    local -a dependency_ary=$dependencies
+    function_ary+=( "${dependency_ary[@]}" )
   }
-  repr functions
+  repr function_ary
   _extract_functions __
   emit "$__"
 ) }
@@ -118,28 +119,30 @@ grab () {
 
 instantiate () { printf -v "$1" %s "$(eval "echo ${!1}")" ;}
 
-library () {
-  local library_name=$1
+feature () {
+  local feature_name=$1
   local depth=${2:-1}
   local i
   local path
   local statement
 
   get_here_str <<'  EOS'
-    [[ -n ${__featureh[%s]:-} && -z ${__load:-} ]] && return
-    [[ -n ${__load:-} ]] && { unset -v __load || return ;}
+    [[ -n ${__featureh[%s]:-} && $1 != 'reload' ]] && return
+    [[ ${1:-} == 'reload' ]]  && shift
     declare -Ag __featureh
     __featureh[%s]="(
-      [root]='$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"%s)'
+        [root]='$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"%s)'
       [caller]='$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[1]}")")")'
     )"
   EOS
   statement=$__
   path=''
   (( depth )) && for (( i = 0; i < depth; i++ )); do path+=/..; done
-  printf -v statement "$statement" "$library_name" "$library_name" "$path"
+  printf -v statement "$statement" "$feature_name" "$feature_name" "$path"
   emit "$statement"
 }
+
+load () { require "$1" load ;}
 
 local_ary () {
   local first=$1; shift
@@ -249,7 +252,7 @@ repr () {
 }
 
 require () {
-  local library=$1
+  local library=$1; shift
   local IFS=$IFS
   local extension
   local extensions=()
@@ -272,7 +275,7 @@ require () {
   done
   file=$spec/$library$extension
   [[ -e $file ]] || return
-  emit "source $file"
+  emit "source $file $@"
 }
 
 require_relative () {

@@ -66,7 +66,7 @@ describe bring
     temp=$root/lib/temp.bash
     get_here_str <<'    EOS'
       declare -Ag __featureh
-      __featureh[temp]='( [dependency]="( two )")'
+      __featureh[temp]='( [dependencies]="( two )")'
       one () { :;}
       two () { :;}
     EOS
