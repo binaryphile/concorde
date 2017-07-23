@@ -214,16 +214,22 @@ line, fulfilling the call to `hello_world`.
 
 The implication for the structure of your scripts is that, for testing
 purposes, you want all of the functions to be defined in the front
-portion. Before invoking any of them, for example by calling `main`, you
-want `return_if_sourced` to intervene so the test framework can
-short-circuit that when just testing the functions.
+portion. Before invoking any of them, you want `sourced?` to intervene
+so the test framework can short-circuit it when testing functions.
 
 Let's go back to the script. How about some refactoring, now that we've
 got a function that we might want to use in other scripts as well?
 
-First, let's create a couple subdirectories; `lib` for a library we'll
-be creating and `bin` for our script. Let's also move the shpec file to
-a `shpec` directory.
+First I'll top the entr window with ctrl-c, since we'll be moving the
+files anyway.
+
+Then, I'll create a couple subdirectories; `lib` for a library we'll be
+creating and `bin` for our script. I'll also make a `shpec` directory
+for shpec files.
+
+``` bash
+> mkdir bin lib shpec
+```
 
 Here's `lib/hello_world.bash`:
 
@@ -246,9 +252,8 @@ sourced? && return
 hello_world
 ```
 
-We'll stop the entr window with ctrl-c, since the files have moved
-anyway. We've also split the source files, so now having two
-corresponding shpec files makes sense.
+We've split the source files, so now having two corresponding shpec
+files makes sense.
 
 `shpec/hello_world_shpec.bash`:
 
@@ -263,20 +268,16 @@ describe hello_world
 end
 ```
 
-This should work even though `hello_world.bash` doesn't use
-`return_if_source`, since `hello_world.bash` just defines a function and
-never runs it.
-
-`shpec/myscript_shpec.bash`:
+And `shpec/myscript_shpec.bash`:
 
 ``` bash
 source myscript
 ```
 
-Hmm. There's nothing really to test here, is there, since there are no
-functions defined by `myscript`. Perhaps we should change that by making
-a formal `main` function which is responsible for taking the actions
-requested by the user:
+Hmm. There's nothing really to test for `myscript`, since it defines no
+functions.  Perhaps we should change that by making a formal `main`
+function which is responsible for taking the actions requested by the
+user:
 
 ``` bash
 #!/usr/bin/env bash
@@ -302,11 +303,6 @@ instead just writing a list of commands that need to go together. That's
 fine, but concorde won't help with that much. I'd encourage you to start
 writing functions in order to make them testable.
 
-So if you want to make use of concorde's features, you'll want to write
-functions. They don't require that you change much; just wrap the entire
-script in a `main` function, then call `main` in the same manner as we
-called `hello_world` above.
-
 Let's run one of the shpecs now. I run:
 
 ``` bash
@@ -314,9 +310,9 @@ Let's run one of the shpecs now. I run:
 > shpec ../shpec/hello_world_shpec.bash
 ```
 
-and see that the test runs correctly. Proud of my code but humble enough
-to know that you can never do enough testing, I decide to run the test
-once more for good measure, changing directory first:
+and see that the test runs correctly, as it does. Proud of my code but
+humble enough to know that you can never do enough testing, I decide to
+run the test once more for good measure, changing directory first:
 
 ``` bash
 > cd ..
@@ -324,17 +320,16 @@ once more for good measure, changing directory first:
 shpec/hello_world_shpec.bash: line 1: hello_world.bash: No such file or directory
 ```
 
-What? It failed? Oh yeah, when `hello_world_shpec.bash` runs
-`source hello_world.bash`, bash looks for `hello_world.bash` in the
-current directory (and then in the PATH, but `hello_world.bash` isn't
-there either), so the current directory determines whether the test is
-able to run. Darn it.
+What? It failed? Oh yeah, when `hello_world_shpec.bash` runs `source
+hello_world.bash`, bash looks for `hello_world.bash` in the current
+directory, so the current directory determines whether the test is able
+to run. Darn it.
 
 I could just change the line to `source lib/hello_world.bash`, but then
 the test would only work when I run the command from this directory and
-I'd like it to work anywhere.
+I'd basically have the same problem.  I want it to work from anywhere.
 
-Let's update `hello_world_shpec.bash`:
+I know, let's update `hello_world_shpec.bash`:
 
 ``` bash
 source concorde.bash
@@ -359,30 +354,20 @@ directory.
 
 `require_relative` also doesn't require a file extension when you name
 the file, if the file's extension is `.bash` or `.sh`. Hence the
-`../lib/hello_world` above.
+`../lib/hello_world` above.  This borrows from ruby, where the library
+is called a "feature" and is referred to by its name, without an
+extension.
 
 Looking back at `bin/myscript`, notice that we are sourcing
 `hello_world.bash` there as well, but now we know that that will not
-work.
+work.  If I decide to distribute `hello_world.bash` with `myscript`,
+then I'll just use `require_relative` to load it.
 
-If we want to use `require_relative` to solve the problem, that will
-work fine. However, we could also put our project's `lib` directory in
-the PATH. If we did so, then `source` would work after all.
-
-However, `source` does have a problem
-
-`require_relative` has a close cousin in the `require` function, which
-also sources a file. `require` is meant as a replacement for most uses
-of `source`.
-
-For bare filename arguments, `require` searches for the file in the
-PATH. Unlike `source`, it doesn't check the current directory first.
-
-`require` may also be given an absolute path, in which case it doesn't
-search the PATH for the file.
-
-Like `require_relative`, `require` allows you to omit the file
-extension.
+However, if I intend to distribute `hello_world.bash` separately, I'll
+install it on the PATH and just source it.  In that case, I could also
+use concorde's `require`, which does not require a file extension just
+like `require_relative`.  Otherwise it is pretty much the same as
+`source`.
 
 API
 ===
