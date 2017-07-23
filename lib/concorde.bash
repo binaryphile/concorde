@@ -2,11 +2,12 @@
 [[ -n ${__load:-} ]] && { unset -v __load || return ;}
 declare -Ag __featureh
 __featureh[concorde]="(
-  [root]='$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"/..)'
+    [root]='$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"/..)'
   [caller]='$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[1]}")")")'
 )"
 
 unset -v CDPATH
+set -o noglob
 
 assign () {
   [[ $2 == 'to' ]] || return
@@ -95,6 +96,8 @@ get_here_str () {
 }
 
 get_str () { IFS=$'\n' read -rd '' __ ||: ;}
+
+glob () { __=$(set +o noglob; eval "echo $1") ;}
 
 grab () {
   [[ $2 == 'from'   ]] || return
@@ -294,7 +297,7 @@ require_relative () {
   emit "source $file"
 }
 
-return_if_sourced () { emit 'return 0 2>/dev/null ||:' ;}
+sourced? () { [[ ${FUNCNAME[@]: -1} == 'source' ]] ;}
 
 strict_mode () {
   local status=$1

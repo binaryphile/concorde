@@ -19,24 +19,18 @@ Goals
 
 -   encourage use of functions
 
--   encourage use of local variables and reducing dependence on globals;
-    generally reducing namespace clutter
+-   encourage use of local variables and reduce dependence on globals;
+    generally reduce namespace clutter
 
--   make arrays and hashes (associative arrays) friendlier and more
-    useful
+-   make arrays and hashes (associative arrays) friendlier
 
--   make debugging easier with tracebacks
+-   make debugging easier
 
--   provide a reasonably programmable option parser
+-   make option parsing standard
 
--   reduce the visual noise of excess punctuation wherever possible
-    (quotes, braces, dollar-signs)
+-   reduce visual noise (quotes, braces, dollar-signs)
 
--   encourage an "OO-lite" method of marrying code to complex data
-    structures in an approachable way
-
-Most of these goals are intertwined, and many of the provided functions
-rely on and build off of each other.
+-   encourage patterns with some of the advantages of object-orientation
 
 With this toolset, it is simple to create bash scripts which:
 
@@ -46,11 +40,9 @@ With this toolset, it is simple to create bash scripts which:
 
 -   are able to receive and parse GNU-style options
 
--   automatically stop on unexpected errors and produce tracebacks to
-    the malfunctioning lines of code
+-   automatically stop on unexpected errors and produce tracebacks
 
--   are easily refactorable into shared libraries of functions for your
-    other scripts
+-   are easily refactorable into shared libraries of functions
 
 Features
 ========
@@ -61,9 +53,11 @@ Features
 
 -   ruby-style tracebacks
 
--   library packaging functions
+-   packaging functions
 
--   utilitarian string and array manipulations
+-   namespace manipulation functions
+
+-   string, array and hash utility functions
 
 Prerequisites
 =============
@@ -86,22 +80,22 @@ Concorde reserves the following global variables for its own use:
 
 -   `__` - double-underscore, used for returning strings from functions
 
--   `__concordeh` - a hash for meta-information
+-   `__featureh` - a hash for feature (i.e. library) meta-data
 
--   `__instanceh` - an internal hash for holding data structures
+-   `__instanceh` - a hash for holding object-like data structures
 
--   `__load` - a signal to reload an already loaded library
+-   `__load` - a flag to indicate reloading of an already loaded feature
 
 Tutorial
 ========
 
-Let's start with a simple script, but developed in a test-driven
-fashion.
+Let's start with a simple script, developed in a test-driven fashion.
 
-I use \[shpec\] and \[entr\] to run my tests. The script and shpec file
-start in the same directory.
+I use \[shpec\] and \[entr\] to run my tests. If you want to follow
+along, install those first.
 
-In one window I fire up vim on `myscript_shpec.bash` and start with:
+The script and shpec file start in the same directory.  In one window I
+fire up vim on `myscript_shpec.bash` and start with:
 
     source myscript
 
@@ -111,6 +105,12 @@ In one window I fire up vim on `myscript_shpec.bash` and start with:
         assert equal "Hello, world!" "$result"
       end
     end
+
+Don't worry about the shpec syntax for a moment.  It's really just
+regular bash.  Shpec tries to make itself look like ruby by providing
+ruby-like function names as well as encouraging ruby-like indentation.
+Bash doesn't care about the indentation and the functions are just
+regular bash.
 
 Now I switch to editing `myscript`:
 
@@ -125,9 +125,10 @@ In another window, I run:
 This will monitor the `myscript` file and re-run the test suite whenever
 it changes.
 
-Save `myscript` again and the test should run and fail. That's a good
-thing, it shows that the test isn't providing a false positive. Now to
-add the function:
+I save `myscript` again and the test runs and fails. That's a good
+thing, since it shows that the test isn't providing a false positive.
+
+Now to add the function:
 
     #!/usr/bin/env bash
 
@@ -145,7 +146,7 @@ executable and run it, it doesn't do anything!
     >
 
 That's because the `hello_world` function exists, but nothing's calling
-it. So we call it:
+it. So I call it:
 
     #!/usr/bin/env bash
 
@@ -165,7 +166,7 @@ But something's wrong in the test window. Now the test shows passing,
 but it also shows the "Hello, world!" output, which it's not supposed
 to.
 
-That's because the test is running the script when it runs the
+That's because the test is running the script when it gets to its
 `source myscript` line, and that causes all of the actions in the script
 to occur. When testing, we just want to test the functions, not run the
 script!
@@ -180,40 +181,22 @@ So we add:
       echo "Hello, world!"
     }
 
-    $(return_if_sourced)
+    sourced? && return
 
     hello_world
 
-Now the test runs and passes, but the output doesn't occur. That's
-because `return_if_sourced` detects that the script is being read with
-bash's `source` command and not being run from the command line as a
-script. It stops sourcing the file there, so it never reaches the line
-which calls `hello_world`, instead returning control to the shpec file.
+Now the test runs and passes, but the output doesn't occur.  That's
+because `sourced?` detects that the script is being read with bash's
+`source` command and not being run from the command line as a script.
+(don't mind the question mark)
 
-If being run as a script from the command-line, however, the
-`return_if_sourced` call will do nothing and the script will continue to
-run past that line, fulfilling the call to `hello_world`.
+The `return` stops the sourcing of the file there, so the interpreter
+never reaches the line which calls `hello_world`.  Instead, control is
+returned to the shpec file.
 
-If you're experienced in bash, it may seem odd that a call to a function
-(and in a subshell, no less), can cause the return of the current,
-calling function. For now let's not worry about it, but of course it
-does have something to do with the process substitution syntax
-surrounding it: `$()`.
-
-In a regular script, you might not choose to use functions at all,
-instead just writing a list of commands that need to go together. That's
-fine, but concorde won't help with that much. I'd encourage you to start
-writing functions in order to make them testable.
-
-So if you want to make use of concorde's features, you'll want to write
-functions. They don't require that you change much; just wrap the entire
-script in a `main` function, then call `main` in the same manner as we
-called `hello_world` above.
-
-That would just mean prefacing the script lines with `main () {` and
-appending them with `}`. Then call `main` at the end, preferably after
-`$(return_if_sourced)`. (You'll probably want to indent the script lines
-a couple spaces as well)
+If being run as a script from the command-line, however, the `sourced?`
+call will return false and the script will continue to run past that
+line, fulfilling the call to `hello_world`.
 
 The implication for the structure of your scripts is that, for testing
 purposes, you want all of the functions to be defined in the front
@@ -289,6 +272,16 @@ requested by the user:
 Now we could test `main` in `myscript_shpec.bash`, but I think we'll
 hold off until it does something more than just call `hello_world`,
 since we've already got that covered.
+
+In a regular script, you might not choose to use functions at all,
+instead just writing a list of commands that need to go together. That's
+fine, but concorde won't help with that much. I'd encourage you to start
+writing functions in order to make them testable.
+
+So if you want to make use of concorde's features, you'll want to write
+functions. They don't require that you change much; just wrap the entire
+script in a `main` function, then call `main` in the same manner as we
+called `hello_world` above.
 
 Let's run one of the shpecs now. `cd`ing to the `lib` directory, I run:
 
