@@ -253,23 +253,19 @@ repr () {
 
 require () {
   local spec=$1; shift
+  local reload=${1:-}
   local IFS=$IFS
   local extension
-  local extensions=()
+  local extension_ary=()
   local item
   local file
   local path
 
-  extensions=(
-    .bash
-    .sh
-    ''
-  )
-  [[ $spec == /* || $spec != *?/* ]] || return
-  [[ $spec == /* ]] && { path=${spec%/*}; spec=${spec##*/} ;}
+  [[ $reload == 'reload' ]] && extension_ary=( '' ) || extension_ary=( .bash .sh '' )
+  [[ $spec == /* ]] && { path=${spec%/*}; spec=${spec##*/} ;} || path=$PATH:.
   IFS=:
   for item in $path; do
-    for extension in "${extensions[@]}"; do
+    for extension in "${extension_ary[@]}"; do
       [[ -e $item/$spec$extension ]] && break 2
     done
   done
