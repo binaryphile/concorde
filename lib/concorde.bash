@@ -142,7 +142,7 @@ feature () {
   emit "$statement"
 }
 
-load () { require "$1" load ;}
+load () { require "$1" reload ;}
 
 local_ary () {
   local first=$1; shift
@@ -252,28 +252,28 @@ repr () {
 }
 
 require () {
-  local library=$1; shift
+  local spec=$1; shift
   local IFS=$IFS
   local extension
   local extensions=()
+  local item
   local file
   local path
-  local spec
 
   extensions=(
     .bash
     .sh
     ''
   )
-  [[ $library == /* || $library != *?/* ]] || return
-  [[ $library == /* ]] && { path=${library%/*}; library=${library##*/} ;}
+  [[ $spec == /* || $spec != *?/* ]] || return
+  [[ $spec == /* ]] && { path=${spec%/*}; spec=${spec##*/} ;}
   IFS=:
-  for spec in $path; do
+  for item in $path; do
     for extension in "${extensions[@]}"; do
-      [[ -e $spec/$library$extension ]] && break 2
+      [[ -e $item/$spec$extension ]] && break 2
     done
   done
-  file=$spec/$library$extension
+  file=$item/$spec$extension
   [[ -e $file ]] || return
   emit "source $file $@"
 }
