@@ -279,25 +279,25 @@ require () {
 }
 
 require_relative () {
-  local library=$1
+  local spec=$1; shift
   local extension
-  local extensions=()
+  local extension_ary=()
   local file
 
-  extensions=(
+  extension_ary=(
     .bash
     .sh
     ''
   )
-  [[ $library != /* && $library == *?/* ]] || return
+  [[ $spec != /* && $spec == *?/* ]] || return
   $(grab caller from __featureh[concorde])
-  file=$caller/$library
-  for extension in "${extensions[@]}"; do
+  file=$caller/$spec
+  for extension in "${extension_ary[@]}"; do
     [[ -e $file$extension ]] && break
   done
   file=$file$extension
   [[ -e $file ]] || return
-  emit "source $file"
+  emit "source $file $@"
 }
 
 sourced? () { [[ ${FUNCNAME[@]: -1} == 'source' ]] ;}
