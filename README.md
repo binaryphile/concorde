@@ -384,14 +384,14 @@ is called a "feature" and is referred to by its name, without an
 extension.
 
 I'm sure you've noticed the process substitution around the call to
-`require_relative`.  That's because it actually generates a `source`
-statement on stdout, which is then executed in the context of the
-caller.  If the `source` command were actually run by the
+`require_relative`. (the "$()")  That's because it actually generates a
+`source` statement on stdout, which is then executed in the context of
+the caller.  If the `source` command were actually run by the
 `require_relative` function itself, certain statements (such as
 `declare`s) would not be evaluated properly.
 
-When to Use require_relative Vs require
----------------------------------------
+When to Use "require_relative" vs "require"
+-------------------------------------------
 
 Looking back at `bin/myscript`, notice that we are sourcing
 `hello_world.bash` there as well, but now we know that that will not
@@ -420,6 +420,48 @@ sourced? && return
 
 main "$@"
 ```
+
+"require" vs "load", and "feature"
+----------------------------------
+
+`require` and company will source a file without needing the file
+extension.  In ruby (but not concorde), `require` also makes sure that a
+feature loaded this way doesn't get executed more than once, since it
+may be `require`d more than once in a given project.  If it gets
+`require`d again, ruby simply returns instead of loading it again.
+
+Ruby also provides a `load` function, which forces the loading of the
+file, even if the file has already been loaded.  Unlike `require`, it
+needs the full name of the file, including extension.
+
+Recognizing the fact that users may choose to use `source` instead of
+concorde's `require`, concorde provides a different function to ensure
+that features aren't reloaded.  Adding `feature` to your library will
+prevent reloads, whether the library is `source`d or `require`d.
+
+I'll update `hello_world.bash` as an example:
+
+``` bash
+source concorde.bash
+$(feature hello_world)
+
+hello_world () {
+  echo "Hello, world!"
+}
+```
+
+This is actually already useful for our example, since now concorde is
+loaded in two places; `myscript` and `hello_world.bash`.  Concorde uses
+its own `feature` capability to ensure it is only loaded once.
+
+More importantly, it's possible for a project to grow complex enough
+that the files which source each other could accidentally go around in a
+circle, which would cause an infinite loop when you try to run it.
+`feature` prevents such a loop from occurring by stopping when it sees
+that a feature is already loaded.
+
+If you need to force the reload of a feature, for example during
+development, you can use concorde's `load` function just like ruby's.
 
 API
 ===
