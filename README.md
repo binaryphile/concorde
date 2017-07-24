@@ -226,8 +226,8 @@ past that line, fulfilling the call to `hello_world`.
 
 The implication for the structure of your scripts is that, for testing
 purposes, you want all of the functions to be defined before calling any
-of them.  Before you do, you want `sourced?` to intervene so the test
-framework can short-circuit the script's actions.
+of them.  Before you do call them, you want `sourced?` to intervene so
+the test framework can short-circuit the script's actions.
 
 Introducing Some Structure
 --------------------------
@@ -334,7 +334,7 @@ First let's run one of the shpecs. I run:
 > shpec ../shpec/hello_world_shpec.bash
 ```
 
-and see that the test runs correctly, as it does. Proud of my code but
+and see that the test runs correctly, as it does. Proud of my code, but
 humble enough to know that you can never do enough testing, I decide to
 run the test once more for good measure, changing directory first:
 
@@ -344,10 +344,11 @@ run the test once more for good measure, changing directory first:
 shpec/hello_world_shpec.bash: line 1: hello_world.bash: No such file or directory
 ```
 
-What? It failed? Oh yeah, when `hello_world_shpec.bash` runs `source
-hello_world.bash`, bash looks for `hello_world.bash` in the current
-directory, so the current directory determines whether the test is able
-to run. Darn it.
+What? It failed?
+
+Oh yeah, when `hello_world_shpec.bash` runs `source hello_world.bash`,
+bash looks for `hello_world.bash` in the current directory, so the
+current directory determines whether the test is able to run. Darn it.
 
 I could just change the line to `source lib/hello_world.bash`, but then
 the test would only work when I run the command from this directory and
@@ -382,6 +383,16 @@ the file, if the file's extension is `.bash` or `.sh`. Hence the
 is called a "feature" and is referred to by its name, without an
 extension.
 
+I'm sure you've noticed the process substitution around the call to
+`require_relative`.  That's because it actually generates a `source`
+statement on stdout, which is then executed in the context of the
+caller.  If the `source` command were actually run by the
+`require_relative` function itself, certain statements (such as
+`declare`s) would not be evaluated properly.
+
+When to Use require_relative Vs require
+---------------------------------------
+
 Looking back at `bin/myscript`, notice that we are sourcing
 `hello_world.bash` there as well, but now we know that that will not
 work.  If I decide to distribute `hello_world.bash` with `myscript`,
@@ -393,7 +404,22 @@ use concorde's `require`, which does not require a file extension just
 like `require_relative`.  Otherwise it is pretty much the same as
 `source`.
 
+In this case, I'll choose `require_relative` for `myscript`:
 
+``` bash
+#!/usr/bin/env bash
+
+source concorde.bash
+$(require_relative ../lib/hello_world)
+
+main () {
+  hello_world
+}
+
+sourced? && return
+
+main "$@"
+```
 
 API
 ===
