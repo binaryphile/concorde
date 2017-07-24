@@ -109,11 +109,10 @@ describe hello_world
 end
 ```
 
-Don't worry about the shpec syntax for a moment. It's really just
-regular bash. Shpec tries to make itself look like ruby by providing
-ruby-like function names as well as encouraging ruby-like indentation.
-Bash doesn't care about the indentation and the functions are just
-regular bash.
+Don't worry about the shpec syntax for the moment. It's just regular
+bash. Shpec tries to make itself look like ruby by providing ruby-like
+function names as well as encouraging ruby-like indentation.  However,
+bash doesn't care about the indentation.
 
 Now I switch to editing `myscript`:
 
@@ -121,9 +120,7 @@ Now I switch to editing `myscript`:
 #!/usr/bin/env bash
 ```
 
-Now I save it.
-
-In another window, I run:
+Now I save it.  In another window, I run:
 
 ``` bash
 > echo myscript | entr bash -c 'shpec myscript_shpec.bash'
@@ -135,7 +132,7 @@ it changes.
 I save `myscript` again and the test runs and fails. That's a good
 thing, since it shows that the test isn't providing a false positive.
 
-Now to add the function:
+Now to add the function to `myscript`:
 
 ``` bash
 #!/usr/bin/env bash
@@ -147,8 +144,8 @@ hello_world () {
 
 I save and now the test suite passes. Our first green!
 
-Doing Something More than Just Passing
---------------------------------------
+Doing More than Just Passing the Test
+-------------------------------------
 
 However, `myscript` isn't all that exciting. In fact, if you make it
 executable and run it, it doesn't do anything!
@@ -184,13 +181,13 @@ But something's wrong in the test window. Now the test shows passing,
 but it also shows the "Hello, world!" output, which it's not supposed
 to.
 
-That's because the test is running the script when it gets to its
-`source myscript` line, and that causes all of the actions in the script
-to occur. When testing, we just want to test the functions, not run the
+That's because the test is runs the script when it gets to its `source
+myscript` line, and that causes *all* of the actions in the script to
+occur. When testing, we just want to test the functions, not run the
 script!
 
-Treating the Same File as Both a Script and a Library
------------------------------------------------------
+Treating the Same File as Both Script and Library
+-------------------------------------------------
 
 A script runs and accomplishes a task.  A library provides functions for
 scripts but doesn't usually do anything itself.
@@ -223,22 +220,22 @@ The `return` stops the sourcing of the file there, so the interpreter
 never reaches the line which calls `hello_world`. Instead, control is
 returned to the shpec file.
 
-If being run as a script from the command-line, however, the `sourced?`
-call will return false and the script will continue to run past that
-line, fulfilling the call to `hello_world`.
+If the script is being run from the command-line, however, the
+`sourced?` call will return false and the script will continue to run
+past that line, fulfilling the call to `hello_world`.
 
 The implication for the structure of your scripts is that, for testing
-purposes, you want all of the functions to be defined in the front
-portion. Before invoking any of them, you want `sourced?` to intervene
-so the test framework can short-circuit it when testing functions.
+purposes, you want all of the functions to be defined before calling any
+of them.  Before you do, you want `sourced?` to intervene so the test
+framework can short-circuit the script's actions.
 
-Introducing Some Project Structure
-----------------------------------
+Introducing Some Structure
+--------------------------
 
 Let's go back to the script. How about some refactoring, now that we've
-got a function that we might want to use in other scripts as well?
+got a function that we may want to use in other scripts as well?
 
-First I'll stop the entr window with ctrl-c, since we'll be moving the
+First I'll stop the `entr` window with ctrl-c, since we'll be moving the
 files anyway.
 
 Then, I'll create a couple subdirectories; `lib` for a library we'll be
