@@ -399,10 +399,15 @@ work.  If I decide to distribute `hello_world.bash` with `myscript`,
 then I'll just use `require_relative` to load it.
 
 However, if I intend to distribute `hello_world.bash` separately, I'll
-install it on the PATH and just source it.  In that case, I could also
-use concorde's `require`, which does not require a file extension just
-like `require_relative`.  Otherwise it is pretty much the same as
-`source`.
+install it on the PATH and just source it.  In that case, I could
+instead use concorde's `require`. `require` does not require a file
+extension, just like `require_relative`.
+
+Otherwise `require` it is pretty much the same as `source`, with one
+major exception.  Unlike both `source` and ruby's `require`, concorde's
+`require` doesn't search the local directory.  If you need to load a
+file from the current directory, you'll need to provide an absolute or
+relative path to either `require` or `require_relative`, repsectively.
 
 In this case, I'll choose `require_relative` for `myscript`:
 
@@ -451,7 +456,7 @@ hello_world () {
 ```
 
 This is actually already useful for our example, since now concorde is
-loaded in two places; `myscript` and `hello_world.bash`.  Concorde uses
+loaded in two places: `myscript` and `hello_world.bash`.  Concorde uses
 its own `feature` capability to ensure it is only loaded once.
 
 More importantly, it's possible for a project to grow complex enough
@@ -461,7 +466,8 @@ circle, which would cause an infinite loop when you try to run it.
 that a feature is already loaded.
 
 If you need to force the reload of a feature, for example during
-development, you can use concorde's `load` function just like ruby's.
+development, you can use concorde's `load` function just like
+ruby's.
 
 API
 ===

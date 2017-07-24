@@ -261,7 +261,7 @@ require () {
   local path
 
   [[ $reload == 'reload' ]] && extension_ary=( '' ) || extension_ary=( .bash .sh '' )
-  [[ $spec == /* ]] && { path=${spec%/*}; spec=${spec##*/} ;} || path=$PATH:.
+  [[ $spec == /* ]] && { path=${spec%/*}; spec=${spec##*/} ;} || path=$PATH
   IFS=:
   for item in $path; do
     for extension in "${extension_ary[@]}"; do
