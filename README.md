@@ -400,14 +400,14 @@ then I'll just use `require_relative` to load it.
 
 However, if I intend to distribute `hello_world.bash` separately, I'll
 install it on the PATH and just source it.  In that case, I could
-instead use concorde's `require`. `require` does not require a file
-extension, just like `require_relative`.
+instead use concorde's `require` instead of `source`. `require` does not
+require a file extension, just like `require_relative`.
 
-Otherwise `require` it is pretty much the same as `source`, with one
-major exception.  Unlike both `source` and ruby's `require`, concorde's
+Otherwise `require` is pretty much the same as `source`, with one major
+exception.  Unlike both `source` and ruby's `require`, concorde's
 `require` doesn't search the local directory.  If you need to load a
 file from the current directory, you'll need to provide an absolute or
-relative path to either `require` or `require_relative`, repsectively.
+relative path to either `require` or `require_relative`, respectively.
 
 In this case, I'll choose `require_relative` for `myscript`:
 
@@ -426,8 +426,8 @@ sourced? && return
 main "$@"
 ```
 
-"require" vs "load", and "feature"
-----------------------------------
+"require" and "feature"
+-----------------------
 
 `require` and company will source a file without needing the file
 extension.  In ruby (but not concorde), `require` also makes sure that a
@@ -435,14 +435,10 @@ feature loaded this way doesn't get executed more than once, since it
 may be `require`d more than once in a given project.  If it gets
 `require`d again, ruby simply returns instead of loading it again.
 
-Ruby also provides a `load` function, which forces the loading of the
-file, even if the file has already been loaded.  Unlike `require`, it
-needs the full name of the file, including extension.
-
-Recognizing the fact that users may choose to use `source` instead of
-concorde's `require`, concorde provides a different function to ensure
-that features aren't reloaded.  Adding `feature` to your library will
-prevent reloads, whether the library is `source`d or `require`d.
+Recognizing the fact that users may use `source` instead of concorde's
+`require`, concorde provides a different function to ensure that
+features aren't reloaded.  Adding `feature` to your library will prevent
+reloads, whether the library is `source`d or `require`d.
 
 I'll update `hello_world.bash` as an example:
 
@@ -460,14 +456,144 @@ loaded in two places: `myscript` and `hello_world.bash`.  Concorde uses
 its own `feature` capability to ensure it is only loaded once.
 
 More importantly, it's possible for a project to grow complex enough
-that the files which source each other could accidentally go around in a
-circle, which would cause an infinite loop when you try to run it.
-`feature` prevents such a loop from occurring by stopping when it sees
-that a feature is already loaded.
+that the files which source each other could go around in a circle,
+which would cause an infinite loop when you try to run it.  `feature`
+prevents such a loop from occurring by stopping when it sees that a
+feature is already loaded.
 
-If you need to force the reload of a feature, for example during
-development, you can use concorde's `load` function just like
-ruby's.
+Reloading with "load"
+---------------------
+
+Ruby also provides a `load` function, which forces the loading of the
+file, even if the file has already been loaded.  Unlike `require`, it
+needs the full name of the file, including extension.  If you need to
+force the reload of a feature, for example during development, you can
+use concorde's `load` function just like ruby's.
+
+Command-line Parsing
+--------------------
+
+Let's get back to coding.
+
+Now I want to add some command-line parsing to `myscript`.  I'm going to
+add an argument which allows me specify the name I'd like the script to
+say hello to.
+
+I fire up entr again:
+
+``` bash
+> echo lib/hello_world.bash | entr bash -c 'shpec shpec/hello_world.bash'
+```
+
+First I'll allow `hello_world` to say a name, if provided.
+
+`shpec/hello_world_shpec.bash`:
+
+``` bash
+[...]
+
+describe hello_world
+  it "outputs 'Hello, world!' if no argument"
+    result=$(hello_world)
+    assert equal "Hello, world!" "$result"
+  end
+
+  it "outputs 'Hello, [arg]!' if an argument"
+    result=$(hello_world name)
+    assert equal "Hello, name!" "$result"
+  end
+end
+```
+
+I save `lib/hello_world.bash` to trigger shpec, which fails on the
+second test.  Good.
+
+`lib/hello_world.bash`:
+
+``` bash
+[...]
+
+hello_world () {
+  local name=${1:-world}
+
+  echo "Hello, $name!"
+}
+```
+
+I save and this time the test passes.  Now I'll modify `myscript` to
+accept a name.
+
+This time, I'll write tests for `main`.
+
+`shpec/myscript_shpec.bash`:
+
+``` bash
+source concorde.bash
+$(require_relative ../bin/myscript)
+
+describe main
+  it "outputs 'Hello, world!' if no name option"
+    result=$(main)
+    assert equal "Hello, world!" "$result"
+  end
+
+  it "outputs 'Hello, [arg]!' if an option"
+    result=$(main name)
+    assert equal "Hello, name!" "$result"
+  end
+end
+```
+
+In this test, I'm expecting `main` to get a positional argument with the
+name.
+
+`bin/myscript`:
+
+``` bash
+[...]
+
+main () {
+  hello_world "${1:-}"
+}
+
+[...]
+```
+
+Save and we see that it works.
+
+However, a positional argument isn't really an option, it's an argument.
+I'd like to use a short option of `-n` and a long option of `--name`
+instead.
+
+I'll be using concorde's option parser, which means I'll need to know a
+bit about how it provides options to main.
+
+First, I'll be calling the parser before I call `main`.  I'll provide it
+with the relevant information about the options I'm defining, as well as
+the positional arguments fed to the script so it can parse them.
+
+The option parser is the function `parse_options`.  It wants an array of
+option definitions, where the option definitions themselves are an array
+of fields.
+
+The fields are short option, long option, argument name (if desired) and
+help.  Short or long can be omitted so long long as at least one of them
+is defined.  Argument name is only used if we are storing a provided
+followup value, as opposed to just defining a true/false flag.  Finally,
+help is there to remind us what the option is supposed to be, although
+it's not currently used for anything else.
+
+If we were just defining an array, our option would look something like:
+
+``` bash
+option=(-n --name name 'a name to say hello to')
+```
+
+However, the option parser needs to take multiple such definitions,
+themselves stored in an array.  Unfortunately, bash can only store
+strings in array values, not other arrays.
+
+Here's where we get to one of those idioms for which concorde is named.
 
 API
 ===
