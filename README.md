@@ -101,9 +101,9 @@ fire up vim on `myscript_shpec.bash` and start with:
 ``` bash
 source myscript
 
-describe hello_world
+describe hello
   it "outputs 'Hello, world!'"
-    result=$(hello_world)
+    result=$(hello)
     assert equal "Hello, world!" "$result"
   end
 end
@@ -137,7 +137,7 @@ Now to add the function to `myscript`:
 ``` bash
 #!/usr/bin/env bash
 
-hello_world () {
+hello () {
   echo "Hello, world!"
 }
 ```
@@ -156,17 +156,17 @@ executable and run it, it doesn't do anything!
 >
 ```
 
-That's because the `hello_world` function exists, but nothing's calling
-it. So I call it:
+That's because the `hello` function exists, but nothing's calling it. So
+I call it:
 
 ``` bash
 #!/usr/bin/env bash
 
-hello_world () {
+hello () {
   echo "Hello, world!"
 }
 
-hello_world
+hello
 ```
 
 Now it runs correctly:
@@ -202,13 +202,13 @@ I'll add concorde and a call to one of its functions:
 
 source concorde.bash
 
-hello_world () {
+hello () {
   echo "Hello, world!"
 }
 
 sourced? && return
 
-hello_world
+hello
 ```
 
 Now the test runs and passes, but the output doesn't occur. That's
@@ -217,12 +217,12 @@ because `sourced?` detects that the script is being read with bash's
 (don't mind the question mark, it's part of the function's name)
 
 The `return` stops the sourcing of the file there, so the interpreter
-never reaches the line which calls `hello_world`. Instead, control is
-returned to the shpec file.
+never reaches the line which calls `hello`. Instead, control is returned
+to the shpec file.
 
 If the script is being run from the command-line, however, the
 `sourced?` call will return false and the script will continue to run
-past that line, fulfilling the call to `hello_world`.
+past that line, fulfilling the call to `hello`.
 
 The implication for the structure of your scripts is that, for testing
 purposes, you want all of the functions to be defined before calling any
@@ -246,10 +246,10 @@ for shpec files.
 > mkdir bin lib shpec
 ```
 
-Here's `lib/hello_world.bash`:
+Here's `lib/hello.bash`:
 
 ``` bash
-hello_world () {
+hello () {
   echo "Hello, world!"
 }
 ```
@@ -260,24 +260,24 @@ And here's `bin/myscript`:
 #!/usr/bin/env bash
 
 source concorde.bash
-source hello_world.bash
+source hello.bash
 
 sourced? && return
 
-hello_world
+hello
 ```
 
 We've split the source files, so now having two corresponding shpec
 files makes sense.
 
-`shpec/hello_world_shpec.bash`:
+`shpec/hello_shpec.bash`:
 
 ``` bash
-source hello_world.bash
+source hello.bash
 
-describe hello_world
+describe hello
   it "outputs 'Hello, world!'"
-    result=$(hello_world)
+    result=$(hello)
     assert equal "Hello, world!" "$result"
   end
 end
@@ -301,10 +301,10 @@ user:
 #!/usr/bin/env bash
 
 source concorde.bash
-source hello_world.bash
+source hello.bash
 
 main () {
-  hello_world
+  hello
 }
 
 sourced? && return
@@ -313,8 +313,8 @@ main "$@"
 ```
 
 Now we could test `main` in `myscript_shpec.bash`, but I think we'll
-hold off until it does something more than just call `hello_world`,
-since we've already got that covered.
+hold off until it does something more than just call `hello`, since
+we've already got that covered.
 
 In a regular script, you might not choose to use functions at all,
 instead just writing a list of commands that need to go together. That's
@@ -325,13 +325,13 @@ Sourcing Features Correctly
 ---------------------------
 
 I'm using the word "feature" here as a fancy name for a library, such as
-our `hello_world` library.
+our `hello` library.
 
 First let's run one of the shpecs. I run:
 
 ``` bash
 > cd lib
-> shpec ../shpec/hello_world_shpec.bash
+> shpec ../shpec/hello_shpec.bash
 ```
 
 and see that the test runs correctly, as it does. Proud of my code, but
@@ -340,34 +340,34 @@ run the test once more for good measure, changing directory first:
 
 ``` bash
 > cd ..
-> shpec shpec/hello_world_shpec.bash
-shpec/hello_world_shpec.bash: line 1: hello_world.bash: No such file or directory
+> shpec shpec/hello_shpec.bash
+shpec/hello_shpec.bash: line 1: hello.bash: No such file or directory
 ```
 
 What? It failed?
 
-Oh yeah, when `hello_world_shpec.bash` runs `source hello_world.bash`,
-bash looks for `hello_world.bash` in the current directory, so the
-current directory determines whether the test is able to run. Darn it.
+Oh yeah, when `hello_shpec.bash` runs `source hello.bash`, bash looks
+for `hello.bash` in the current directory, so the current directory
+determines whether the test is able to run. Darn it.
 
-I could just change the line to `source lib/hello_world.bash`, but then
-the test would only work when I run the command from this directory and
-I'd basically have the same problem. I want it to work from anywhere.
+I could just change the line to `source lib/hello.bash`, but then the
+test would only work when I run the command from this directory and I'd
+basically have the same problem. I want it to work from anywhere.
 
-I know, let's update `hello_world_shpec.bash`:
+I know, let's update `hello_shpec.bash`:
 
 ``` bash
 source concorde.bash
-$(require_relative ../lib/hello_world)
+$(require_relative ../lib/hello)
 
-describe hello_world
+describe hello
 [...]
 ```
 
 From the project root, where I just was:
 
 ``` bash
-> shpec shpec/hello_world_shpec.bash
+> shpec shpec/hello_shpec.bash
 ```
 
 Everything's happy again!
@@ -379,7 +379,7 @@ directory.
 
 `require_relative` also doesn't require a file extension when you name
 the file, if the file's extension is `.bash` or `.sh`. Hence the
-`../lib/hello_world` above. This borrows from ruby, where the library is
+`../lib/hello` above. This borrows from ruby, where the library is
 called a "feature" and is referred to by its name, without an extension.
 
 I'm sure you've noticed the process substitution around the call to
@@ -392,15 +392,15 @@ the caller. If the `source` command were actually run by the
 When to Use "require\_relative" vs "require"
 --------------------------------------------
 
-Looking back at `bin/myscript`, notice that we are sourcing
-`hello_world.bash` there as well, but now we know that that will not
-work. If I decide to distribute `hello_world.bash` with `myscript`, then
-I'll just use `require_relative` to load it.
+Looking back at `bin/myscript`, notice that we are sourcing `hello.bash`
+there as well, but now we know that that will not work. If I decide to
+distribute `hello.bash` with `myscript`, then I'll just use
+`require_relative` to load it.
 
-However, if I intend to distribute `hello_world.bash` separately, I'll
-install it on the PATH and just source it. In that case, I could instead
-use concorde's `require` instead of `source`. `require` does not require
-a file extension, just like `require_relative`.
+However, if I intend to distribute `hello.bash` separately, I'll install
+it on the PATH and just source it. In that case, I could instead use
+concorde's `require` instead of `source`. `require` does not require a
+file extension, just like `require_relative`.
 
 Otherwise `require` is pretty much the same as `source`, with one major
 exception. Unlike both `source` and ruby's `require`, concorde's
@@ -414,10 +414,10 @@ In this case, I'll choose `require_relative` for `myscript`:
 #!/usr/bin/env bash
 
 source concorde.bash
-$(require_relative ../lib/hello_world)
+$(require_relative ../lib/hello)
 
 main () {
-  hello_world
+  hello
 }
 
 sourced? && return
@@ -439,20 +439,20 @@ Recognizing the fact that users may use `source` instead of concorde's
 features aren't reloaded. Adding `feature` to your library will prevent
 reloads, whether the library is `source`d or `require`d.
 
-I'll update `hello_world.bash` as an example:
+I'll update `hello.bash` as an example:
 
 ``` bash
 source concorde.bash
-$(feature hello_world)
+$(feature hello)
 
-hello_world () {
+hello () {
   echo "Hello, world!"
 }
 ```
 
 This is actually already useful for our example, since now concorde is
-loaded in two places: `myscript` and `hello_world.bash`. Concorde uses
-its own `feature` capability to ensure it is only loaded once.
+loaded in two places: `myscript` and `hello.bash`. Concorde uses its own
+`feature` capability to ensure it is only loaded once.
 
 More importantly, it's possible for a project to grow complex enough
 that the files which source each other could go around in a circle,
@@ -480,35 +480,35 @@ the script to say hello to.
 I fire up entr again:
 
 ``` bash
-> echo lib/hello_world.bash | entr bash -c 'shpec shpec/hello_world.bash'
+> echo lib/hello.bash | entr bash -c 'shpec shpec/hello.bash'
 ```
 
-First I'll allow `hello_world` to say a name, if provided.
+First I'll allow `hello` to say a name, if provided.
 
-`shpec/hello_world_shpec.bash`:
+`shpec/hello_shpec.bash`:
 
 ``` bash
 [...]
 
-describe hello_world
+describe hello
   [...]
 
   it "outputs 'Hello, [arg]!' if an argument"
-    result=$(hello_world name)
+    result=$(hello name)
     assert equal "Hello, name!" "$result"
   end
 end
 ```
 
-I save `lib/hello_world.bash` to trigger shpec, which fails on the
-second test. Good.
+I save `lib/hello.bash` to trigger shpec, which fails on the second
+test. Good.
 
-`lib/hello_world.bash`:
+`lib/hello.bash`:
 
 ``` bash
 [...]
 
-hello_world () {
+hello () {
   local name=${1:-world}
 
   echo "Hello, $name!"
@@ -548,7 +548,7 @@ name.
 [...]
 
 main () {
-  hello_world "${1:-}"
+  hello "${1:-}"
 }
 
 [...]
