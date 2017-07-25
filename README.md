@@ -458,7 +458,7 @@ its own `feature` capability to ensure it is only loaded once.
 More importantly, it's possible for a project to grow complex enough
 that the files which source each other could go around in a circle,
 which would cause an infinite loop when you try to run it.  `feature`
-prevents such a loop from occurring by stopping when it sees that a
+prevents such a loop from occurring by returning when it sees that a
 feature is already loaded.
 
 Reloading with "load"
@@ -470,14 +470,13 @@ needs the full name of the file, including extension.  If you need to
 force the reload of a feature, for example during development, you can
 use concorde's `load` function just like ruby's.
 
-Command-line Parsing
---------------------
+Hello, name!
+--------------
 
 Let's get back to coding.
 
-Now I want to add some command-line parsing to `myscript`.  I'm going to
-add an argument which allows me specify the name I'd like the script to
-say hello to.
+I'm going to add an argument which allows me specify the name I'd like
+the script to say hello to.
 
 I fire up entr again:
 
@@ -493,10 +492,7 @@ First I'll allow `hello_world` to say a name, if provided.
 [...]
 
 describe hello_world
-  it "outputs 'Hello, world!' if no argument"
-    result=$(hello_world)
-    assert equal "Hello, world!" "$result"
-  end
+  [...]
 
   it "outputs 'Hello, [arg]!' if an argument"
     result=$(hello_world name)
@@ -532,12 +528,12 @@ source concorde.bash
 $(require_relative ../bin/myscript)
 
 describe main
-  it "outputs 'Hello, world!' if no name option"
+  it "outputs 'Hello, world!'"
     result=$(main)
     assert equal "Hello, world!" "$result"
   end
 
-  it "outputs 'Hello, [arg]!' if an option"
+  it "outputs 'Hello, [arg]!' if given an option"
     result=$(main name)
     assert equal "Hello, name!" "$result"
   end
@@ -561,9 +557,12 @@ main () {
 
 Save and we see that it works.
 
+Arguments vs Options and Command-line Parsing
+---------------------------------------------
+
 However, a positional argument isn't really an option, it's an argument.
 I'd like to use a short option of `-n` and a long option of `--name`
-instead.
+instead.  I want the name stored in the variable "name".
 
 I'll be using concorde's option parser, which means I'll need to know a
 bit about how it provides options to main.
@@ -576,14 +575,13 @@ The option parser is the function `parse_options`.  It wants an array of
 option definitions, where the option definitions themselves are an array
 of fields.
 
-The fields are short option, long option, argument name (if desired) and
-help.  Short or long can be omitted so long long as at least one of them
-is defined.  Argument name is only used if we are storing a provided
-followup value, as opposed to just defining a true/false flag.  Finally,
-help is there to remind us what the option is supposed to be, although
-it's not currently used for anything else.
+The fields are short option, long option, name of the user's value
+(blank if the option is a flag) and help.  Short or long can be omitted
+so long as at least one of them is defined.  Help is there to remind us
+what the option is supposed to be, although it's not currently used for
+anything else.
 
-If we were just defining an array, our option would look something like:
+If we were just defining an option array, our option would look like:
 
 ``` bash
 option=(-n --name name 'a name to say hello to')
@@ -591,9 +589,33 @@ option=(-n --name name 'a name to say hello to')
 
 However, the option parser needs to take multiple such definitions,
 themselves stored in an array.  Unfortunately, bash can only store
-strings in array values, not other arrays.
+strings in array elements, not other arrays.
 
 Here's where we get to one of those idioms for which concorde is named.
+
+`repr` and Array Values in Concorde
+-----------------------------------
+
+The rule in concorde is that, when passing array values, they are passed
+as strings.  This is convenient, since that's all bash can pass.
+
+I may work with an array in my function in the usual manner.  Once I
+want to pass it to another function, however, I need to convert it to a
+string value.
+
+That's the job of the `repr` function.  It creates an array literal from
+an array.  What's an array literal, you ask?  It's the syntax which bash
+allows on the right-hand side of an array assignment statement.
+
+Array literal syntax is a string value, starting and ending with
+parentheses.  Inside are values, with or without indices in brackets.
+For example, the following is a valid literal:
+
+``` bash
+( zero [1]=one [2]="two with spaces" [3]='three with single-quotes' )
+```
+
+The quotes are evaluated out and don't end up as part of the values.
 
 API
 ===
