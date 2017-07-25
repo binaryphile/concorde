@@ -7,6 +7,13 @@ The format is based on [Keep a Changelog] and this project adheres to
 Latest Changes
 ==============
 
+[v0.0.3] - 2017-07-25
+---------------------
+
+### Fixed
+
+-   `feature` syntax error
+
 [v0.0.2] - 2017-07-25
 ---------------------
 
@@ -20,13 +27,13 @@ Latest Changes
 
 -   removed search of current directory from `require`
 
--   removed "__load" variable used by `feature` in favor of "reload"
+-   removed "\_\_load" variable used by `feature` in favor of "reload"
     argument
 
 ### Added
 
 -   `load` function - uses new "reload" argument to `require` instead of
-    "__load" variable
+    "\_\_load" variable
 
 ### Fixed
 
@@ -41,7 +48,7 @@ Latest Changes
 
 ### Refactored
 
--   coding style for array vs array literal naming - _ary for arrays,
+-   coding style for array vs array literal naming - \_ary for arrays,
     plural for literals, similar for hashes
 
 -   switched to using `local_ary` and `local_hsh` where appropriate
@@ -55,6 +62,9 @@ Latest Changes
 
 -   refactored option parsing
 
+Older Changes
+=============
+
 [v0.0.0] - 2017-07-18
 ---------------------
 
@@ -62,13 +72,9 @@ Latest Changes
 
 -   tons of stuff
 
-Older Changes
-=============
-
-Nothing to see here
-
   [Keep a Changelog]: http://keepachangelog.com/
   [Semantic Versioning]: http://semver.org/
+  [v0.0.3]: https://github.com/binaryphile/concorde/compare/v0.0.2...v0.0.3
   [v0.0.2]: https://github.com/binaryphile/concorde/compare/v0.0.1...v0.0.2
   [v0.0.1]: https://github.com/binaryphile/concorde/compare/v0.0.0...v0.0.1
   [v0.0.0]: https://github.com/binaryphile/concorde/tree/v0.0.0
