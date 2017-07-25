@@ -120,7 +120,7 @@ Now I switch to editing `myscript`:
 #!/usr/bin/env bash
 ```
 
-Now I save it. In another window, I run:
+I save it and in another window, I run:
 
 ``` bash
 > echo myscript | entr bash -c 'shpec myscript_shpec.bash'
@@ -195,7 +195,7 @@ scripts but doesn't usually do anything itself.
 Shpec needs to treat the script as a library however. Can we have a
 script that acts like a library too? (Spoiler: yes)
 
-I'll add concorde and a call to one of its functions:
+I'll add concorde and call one of its functions:
 
 ``` bash
 #!/usr/bin/env bash
@@ -289,7 +289,7 @@ And `shpec/myscript_shpec.bash`:
 source myscript
 ```
 
-Using "main"
+Using `main`
 ------------
 
 Hmm. There's nothing really to test for `myscript`, since it defines no
@@ -377,20 +377,20 @@ the current directory out of the equation. It finds the sourced file
 relative to the location of your file, not your shell's current
 directory.
 
-`require_relative` also doesn't require a file extension when you name
-the file, if the file's extension is `.bash` or `.sh`. Hence the
+`require_relative` also doesn't require a file extension when you
+specify the file, if the file's extension is `.bash` or `.sh`. Hence the
 `../lib/hello` above. This borrows from ruby, where the library is
 called a "feature" and is referred to by its name, without an extension.
 
 I'm sure you've noticed the process substitution around the call to
-`require_relative`. (the "$()") That's because it actually generates a
-`source` statement on stdout, which is then executed in the context of
-the caller. If the `source` command were actually run by the
-`require_relative` function itself, certain statements (such as
+`require_relative`. (the "$()") That's because `require_relative`
+actually generates a `source` statement on stdout, which is then
+executed in the context of the caller. If the `source` command were run
+by the `require_relative` function itself, certain statements (such as
 `declare`s) would not be evaluated properly.
 
-When to Use "require\_relative" vs "require"
---------------------------------------------
+When to Use `require_relative` vs `require`
+-------------------------------------------
 
 Looking back at `bin/myscript`, notice that we are sourcing `hello.bash`
 there as well, but now we know that that will not work. If I decide to
@@ -425,7 +425,7 @@ sourced? && return
 main "$@"
 ```
 
-"require" and "feature"
+`require` and `feature`
 -----------------------
 
 `require` and company will source a file without needing the file
@@ -454,13 +454,7 @@ This is actually already useful for our example, since now concorde is
 loaded in two places: `myscript` and `hello.bash`. Concorde uses its own
 `feature` capability to ensure it is only loaded once.
 
-More importantly, it's possible for a project to grow complex enough
-that the files which source each other could go around in a circle,
-which would cause an infinite loop when you try to run it. `feature`
-prevents such a loop from occurring by returning when it sees that a
-feature is already loaded.
-
-Reloading with "load"
+Reloading with `load`
 ---------------------
 
 Ruby also provides a `load` function, which forces the loading of the
