@@ -111,7 +111,7 @@ end
 
 Don't worry about the shpec syntax for the moment. It's just regular
 bash. Shpec tries to make itself look like ruby by providing ruby-like
-function names as well as encouraging ruby-like indentation.  However,
+function names as well as encouraging ruby-like indentation. However,
 bash doesn't care about the indentation.
 
 Now I switch to editing `myscript`:
@@ -120,7 +120,7 @@ Now I switch to editing `myscript`:
 #!/usr/bin/env bash
 ```
 
-Now I save it.  In another window, I run:
+Now I save it. In another window, I run:
 
 ``` bash
 > echo myscript | entr bash -c 'shpec myscript_shpec.bash'
@@ -181,18 +181,18 @@ But something's wrong in the test window. Now the test shows passing,
 but it also shows the "Hello, world!" output, which it's not supposed
 to.
 
-That's because the test is runs the script when it gets to its `source
-myscript` line, and that causes *all* of the actions in the script to
-occur. When testing, we just want to test the functions, not run the
-script!
+That's because the test runs the script when it gets to its
+`source myscript` line, and that causes *all* of the actions in the
+script to occur. When testing, we just want to test the functions, not
+run the script!
 
 Treating the Same File as Both Script and Library
 -------------------------------------------------
 
-A script runs and accomplishes a task.  A library provides functions for
+A script runs and accomplishes a task. A library provides functions for
 scripts but doesn't usually do anything itself.
 
-Shpec needs to treat the script as a library however.  Can we have a
+Shpec needs to treat the script as a library however. Can we have a
 script that acts like a library too? (Spoiler: yes)
 
 I'll add concorde and a call to one of its functions:
@@ -226,7 +226,7 @@ past that line, fulfilling the call to `hello_world`.
 
 The implication for the structure of your scripts is that, for testing
 purposes, you want all of the functions to be defined before calling any
-of them.  Before you do call them, you want `sourced?` to intervene so
+of them. Before you do call them, you want `sourced?` to intervene so
 the test framework can short-circuit the script's actions.
 
 Introducing Some Structure
@@ -293,7 +293,7 @@ Using "main"
 ------------
 
 Hmm. There's nothing really to test for `myscript`, since it defines no
-functions.  Perhaps we should change that by making a formal `main`
+functions. Perhaps we should change that by making a formal `main`
 function which is responsible for taking the actions requested by the
 user:
 
@@ -352,7 +352,7 @@ current directory determines whether the test is able to run. Darn it.
 
 I could just change the line to `source lib/hello_world.bash`, but then
 the test would only work when I run the command from this directory and
-I'd basically have the same problem.  I want it to work from anywhere.
+I'd basically have the same problem. I want it to work from anywhere.
 
 I know, let's update `hello_world_shpec.bash`:
 
@@ -379,34 +379,33 @@ directory.
 
 `require_relative` also doesn't require a file extension when you name
 the file, if the file's extension is `.bash` or `.sh`. Hence the
-`../lib/hello_world` above.  This borrows from ruby, where the library
-is called a "feature" and is referred to by its name, without an
-extension.
+`../lib/hello_world` above. This borrows from ruby, where the library is
+called a "feature" and is referred to by its name, without an extension.
 
 I'm sure you've noticed the process substitution around the call to
-`require_relative`. (the "$()")  That's because it actually generates a
+`require_relative`. (the "$()") That's because it actually generates a
 `source` statement on stdout, which is then executed in the context of
-the caller.  If the `source` command were actually run by the
+the caller. If the `source` command were actually run by the
 `require_relative` function itself, certain statements (such as
 `declare`s) would not be evaluated properly.
 
-When to Use "require_relative" vs "require"
--------------------------------------------
+When to Use "require\_relative" vs "require"
+--------------------------------------------
 
 Looking back at `bin/myscript`, notice that we are sourcing
 `hello_world.bash` there as well, but now we know that that will not
-work.  If I decide to distribute `hello_world.bash` with `myscript`,
-then I'll just use `require_relative` to load it.
+work. If I decide to distribute `hello_world.bash` with `myscript`, then
+I'll just use `require_relative` to load it.
 
 However, if I intend to distribute `hello_world.bash` separately, I'll
-install it on the PATH and just source it.  In that case, I could
-instead use concorde's `require` instead of `source`. `require` does not
-require a file extension, just like `require_relative`.
+install it on the PATH and just source it. In that case, I could instead
+use concorde's `require` instead of `source`. `require` does not require
+a file extension, just like `require_relative`.
 
 Otherwise `require` is pretty much the same as `source`, with one major
-exception.  Unlike both `source` and ruby's `require`, concorde's
-`require` doesn't search the local directory.  If you need to load a
-file from the current directory, you'll need to provide an absolute or
+exception. Unlike both `source` and ruby's `require`, concorde's
+`require` doesn't search the local directory. If you need to load a file
+from the current directory, you'll need to provide an absolute or
 relative path to either `require` or `require_relative`, respectively.
 
 In this case, I'll choose `require_relative` for `myscript`:
@@ -430,14 +429,14 @@ main "$@"
 -----------------------
 
 `require` and company will source a file without needing the file
-extension.  In ruby (but not concorde), `require` also makes sure that a
+extension. In ruby (but not concorde), `require` also makes sure that a
 feature loaded this way doesn't get executed more than once, since it
-may be `require`d more than once in a given project.  If it gets
+may be `require`d more than once in a given project. If it gets
 `require`d again, ruby simply returns instead of loading it again.
 
 Recognizing the fact that users may use `source` instead of concorde's
 `require`, concorde provides a different function to ensure that
-features aren't reloaded.  Adding `feature` to your library will prevent
+features aren't reloaded. Adding `feature` to your library will prevent
 reloads, whether the library is `source`d or `require`d.
 
 I'll update `hello_world.bash` as an example:
@@ -452,12 +451,12 @@ hello_world () {
 ```
 
 This is actually already useful for our example, since now concorde is
-loaded in two places: `myscript` and `hello_world.bash`.  Concorde uses
+loaded in two places: `myscript` and `hello_world.bash`. Concorde uses
 its own `feature` capability to ensure it is only loaded once.
 
 More importantly, it's possible for a project to grow complex enough
 that the files which source each other could go around in a circle,
-which would cause an infinite loop when you try to run it.  `feature`
+which would cause an infinite loop when you try to run it. `feature`
 prevents such a loop from occurring by returning when it sees that a
 feature is already loaded.
 
@@ -465,13 +464,13 @@ Reloading with "load"
 ---------------------
 
 Ruby also provides a `load` function, which forces the loading of the
-file, even if the file has already been loaded.  Unlike `require`, it
-needs the full name of the file, including extension.  If you need to
+file, even if the file has already been loaded. Unlike `require`, it
+needs the full name of the file, including extension. If you need to
 force the reload of a feature, for example during development, you can
 use concorde's `load` function just like ruby's.
 
 Hello, name!
---------------
+------------
 
 Let's get back to coding.
 
@@ -502,7 +501,7 @@ end
 ```
 
 I save `lib/hello_world.bash` to trigger shpec, which fails on the
-second test.  Good.
+second test. Good.
 
 `lib/hello_world.bash`:
 
@@ -516,7 +515,7 @@ hello_world () {
 }
 ```
 
-I save and this time the test passes.  Now I'll modify `myscript` to
+I save and this time the test passes. Now I'll modify `myscript` to
 accept a name.
 
 This time, I'll write tests for `main`.
@@ -562,22 +561,22 @@ Arguments vs Options and Command-line Parsing
 
 However, a positional argument isn't really an option, it's an argument.
 I'd like to use a short option of `-n` and a long option of `--name`
-instead.  I want the name stored in the variable "name".
+instead. I want the name stored in the variable "name".
 
 I'll be using concorde's option parser, which means I'll need to know a
 bit about how it provides options to main.
 
-First, I'll be calling the parser before I call `main`.  I'll provide it
+First, I'll be calling the parser before I call `main`. I'll provide it
 with the relevant information about the options I'm defining, as well as
 the positional arguments fed to the script so it can parse them.
 
-The option parser is the function `parse_options`.  It wants an array of
+The option parser is the function `parse_options`. It wants an array of
 option definitions, where the option definitions themselves are an array
 of fields.
 
 The fields are short option, long option, name of the user's value
-(blank if the option is a flag) and help.  Short or long can be omitted
-so long as at least one of them is defined.  Help is there to remind us
+(blank if the option is a flag) and help. Short or long can be omitted
+so long as at least one of them is defined. Help is there to remind us
 what the option is supposed to be, although it's not currently used for
 anything else.
 
@@ -588,7 +587,7 @@ option=(-n --name name 'a name to say hello to')
 ```
 
 However, the option parser needs to take multiple such definitions,
-themselves stored in an array.  Unfortunately, bash can only store
+themselves stored in an array. Unfortunately, bash can only store
 strings in array elements, not other arrays.
 
 Here's where we get to one of those idioms for which concorde is named.
@@ -597,19 +596,19 @@ Here's where we get to one of those idioms for which concorde is named.
 -----------------------------------
 
 The rule in concorde is that, when passing array values, they are passed
-as strings.  This is convenient, since that's all bash can pass.
+as strings. This is convenient, since that's all bash can pass.
 
-I may work with an array in my function in the usual manner.  Once I
-want to pass it to another function, however, I need to convert it to a
+I may work with an array in my function in the usual manner. Once I want
+to pass it to another function, however, I need to convert it to a
 string value.
 
-That's the job of the `repr` function.  It creates an array literal from
-an array.  What's an array literal, you ask?  It's the syntax which bash
+That's the job of the `repr` function. It creates an array literal from
+an array. What's an array literal, you ask? It's the syntax which bash
 allows on the right-hand side of an array assignment statement.
 
 Array literal syntax is a string value, starting and ending with
-parentheses.  Inside are values, with or without indices in brackets.
-For example, the following is a valid literal:
+parentheses. Inside are values, with or without indices in brackets. For
+example, the following is a valid literal:
 
 ``` bash
 ( zero [1]=one [2]="two with spaces" [3]='three with single-quotes' )
