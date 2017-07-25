@@ -7,6 +7,47 @@ The format is based on [Keep a Changelog] and this project adheres to
 Latest Changes
 ==============
 
+[v0.0.2] - 2017-07-25
+---------------------
+
+### Changed
+
+-   changed `return_if_sourced` to `sourced`
+
+-   changed `library` to `feature`
+
+-   removed nonsensical `local_str`
+
+-   removed search of current directory from `require`
+
+-   removed "__load" variable used by `feature` in favor of "reload"
+    argument
+
+### Added
+
+-   `load` function - uses new "reload" argument to `require` instead of
+    "__load" variable
+
+### Fixed
+
+-   `local_ary` and `local_hsh` were broken
+
+-   `require_relative` didn't work for second caller - only used caller
+    dir from first caller
+
+### Documented
+
+-   readme tutorial (work-in-progress)
+
+### Refactored
+
+-   coding style for array vs array literal naming - _ary for arrays,
+    plural for literals, similar for hashes
+
+-   switched to using `local_ary` and `local_hsh` where appropriate
+
+-   implementation of `return_if_sourced`, now `sourced`
+
 [v0.0.1] - 2017-07-19
 ---------------------
 
@@ -28,5 +69,6 @@ Nothing to see here
 
   [Keep a Changelog]: http://keepachangelog.com/
   [Semantic Versioning]: http://semver.org/
+  [v0.0.2]: https://github.com/binaryphile/concorde/compare/v0.0.1...v0.0.2
   [v0.0.1]: https://github.com/binaryphile/concorde/compare/v0.0.0...v0.0.1
   [v0.0.0]: https://github.com/binaryphile/concorde/tree/v0.0.0
