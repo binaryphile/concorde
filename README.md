@@ -671,15 +671,118 @@ get_here_ary <<'EOS'
   ( -n --name name 'the name to say hello to' )
 EOS
 
-$(parse_options __ "$@")
-$(grab name from __)
+$(parse_options  __ "$@")
+$(grab name from __     )
 main "$name"
 ```
 
 `parse_options` takes the option definition from `get_here_ary`, as well
 as the arguments provided on the command line.  It generates a hash with
-the name of our named option, "name" as a key and the user-supplied
-input for that option as its value.
+the name of our option, "name", as a key and the user-supplied input for
+that option as its value.
+
+Of course, since it's being returned by `parse_options`, the hash is
+returned as a hash literal (like an array literal, but keys are strings
+and are required).  Like other strings, the literal is returned in the
+global variable `__`.
+
+At this point we see a new function, `grab`.  `grab` takes the name of
+our key and gets it from the hash.  By "getting", I mean that it creates
+a local variable of the same name as the key, with the key's value as
+its own value.
+
+As you can see, the local variable "name" is then passed to `main`.  It
+contains the user-specified value that we will be saying "hello" to.
+
+If we run it, we see that it works:
+
+``` bash
+> bin/myscript -n Clive
+Hello, Clive!
+
+> bin/myscript --name Jenny
+Hello, Jenny!
+
+> bin/myscript --name=Ella
+Hello, Ella!
+```
+
+Notice that all three forms of GNU-style options are covered.
+
+`parse_options` Details
+-----------------------
+
+Let's deconstruct the call a bit more:
+
+``` bash
+$(parse_options __ "$@")
+```
+
+Above, I said that the first argument was the option literal stored in
+`__`.  However, that would be `"$__"`.  I've only given `__` here
+instead.
+
+That's because `parse_options` has a special method of receiving its
+first argument, the option definition array.
+
+We could have used `"$__"` in the call like:
+
+``` bash
+$(parse_options "$__" "$@")
+```
+
+and `parse_options` will get the string value as a normal positional
+argument.
+
+However, concorde has another rule to make things more readable.
+Wherever concorde's functions expect an array or hash literal as an
+argument, they also accept the variable name which holds the string as
+an alternative.  In this case, that's `__`.
+
+They can do this because there's no ambiguity between the two kinds of
+string.  Literals always begin and end with parentheses, while variable
+names can't contain parentheses at all.  Concorde's functions use its
+`local_ary` and `local_hsh` functions to detect the difference and store
+the correct value.
+
+After the definitions, `parse_options` also expects the arguments passed
+to the script.  That's the `"$@"` at the end of the call.  These are all
+of the command-line arguments, including the option flags themselves as
+well as the values.
+
+When `parse_options` returns, it sets `__` to the hash of all of the
+named arguments as well as flag arguments.  The named arguments are keys
+with their values stored in the hash.
+
+The flags are also keys, but with "_flag" appended to their name.  For
+example, if a flag option had a long name of "--option", its key in the
+hash would be "option_flag".  The same would be true of a short option
+(e.g. "o_flag"), but if both a short and long name are provided for the
+same option, then it receives the long name as the key prefix.
+
+Flags are set to "1" if they are present, otherwise they are unset and
+not in the hash.
+
+Either when all defined options are exhausted, or when the special
+option "--" is encountered, then option processing stops and the
+remainder of the arguments (if any) are treated as positional arguments.
+
+When `parse_options` returns, it resets the positional arguments (`$1`,
+etc.) to only contain the positional arguments determined by the parsing
+process.  That is, it removes the flag and named options from the
+script's positional arguments.  That's why the positional arguments may
+still need to be passed to main if they are needed, like so:
+
+``` bash
+main "$name" "$@"
+```
+
+Usually, I will pass the option hash as well as the positional arguments
+for main to handle:
+
+``` bash
+main __ "$@"
+```
 
 API
 ===
