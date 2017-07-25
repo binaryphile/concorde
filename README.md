@@ -610,6 +610,17 @@ example, the following is a valid literal:
 
 The quotes are evaluated out and don't end up as part of the values.
 
+If you assigned that to the array "array" and printed out the values,
+you'd get:
+
+``` bash
+> for i in "${!array[@]}"; do echo "$i: ${array[i]}"; done
+0: zero
+1: one
+2: two with spaces
+3: three with single-quotes
+```
+
 API
 ===
 
