@@ -1,6 +1,6 @@
+declare -Ag __feature_hsh
 [[ -n ${__feature_hsh[concorde.root]:-} && ${1:-} != 'reload' ]] && return
 [[ ${1:-} == 'reload' ]] && shift
-declare -Ag __feature_hsh
 __feature_hsh[concorde.root]=$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"/..)
 
 unset -v CDPATH
@@ -120,9 +120,9 @@ feature () {
   local statement
 
   get_here_str <<'  EOS'
+    declare -Ag __feature_hsh
     [[ -n ${__feature_hsh[%s.root]:-} && $1 != 'reload' ]] && return
     [[ ${1:-} == 'reload' ]]  && shift
-    declare -Ag __feature_hsh
     __feature_hsh[%s.root]=$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"%s)
   EOS
   statement=$__
