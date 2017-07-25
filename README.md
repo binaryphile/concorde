@@ -473,7 +473,7 @@ the script to say hello to.
 I fire up entr again:
 
 ``` bash
-> echo lib/hello.bash | entr bash -c 'shpec shpec/hello.bash'
+> echo lib/hello.bash | entr bash -c 'shpec shpec/hello_shpec.bash'
 ```
 
 First I'll allow `hello` to say a name, if provided.
@@ -513,6 +513,14 @@ accept a name.
 
 This time, I'll write tests for `main`.
 
+I ctrl-c the entr window and run:
+
+``` bash
+> echo bin/myscript | entr bash -c 'shpec shpec/myscript_shpec.bash'
+```
+
+Next I edit the test file.
+
 `shpec/myscript_shpec.bash`:
 
 ``` bash
@@ -526,8 +534,8 @@ describe main
   end
 
   it "outputs 'Hello, [arg]!' if given an option"
-    result=$(main name)
-    assert equal "Hello, name!" "$result"
+    result=$(main myname)
+    assert equal "Hello, myname!" "$result"
   end
 end
 ```
@@ -547,7 +555,9 @@ main () {
 [...]
 ```
 
-Save and we see that it works.
+I save and see that it works.
+
+I'll stop testing in the entr window for the moment.
 
 Arguments vs Options and Command-line Parsing
 ---------------------------------------------
@@ -624,9 +634,9 @@ you'd get:
 --------------
 
 There is also a concorde function to help define the our option array,
-`get_here_ary` (the "ary" stands for "array").  `get_here_ary` returns a
-bash [here document] as an array literal, with one element per line of
-input.
+`get_here_ary` (the "ary" stands for "array").  `get_here_ary` takes a
+bash [here document] and returns an array literal, with each line of the
+input string split into its own array element.
 
 For example, this returns a two-element option definition array:
 
@@ -639,11 +649,37 @@ EOS
 
 First, `get_here_ary` strips the leading whitespace from the heredoc.
 Then it creates an array from the lines of the heredoc.  Finally, it
-returns the array literal in the global variable `__`
-(double-underscore).
+returns the literal representation of the array in the global variable
+`__` (double-underscore).
 
-NOtice that the values of the lines are themselves already array
+Notice that the values of the lines are themselves already array
 literals.  This is how we pass an array of arrays with concorde.
+
+`parse_options` and `grab`
+---------------
+
+Now we're ready to feed the options to the parser.
+
+`bin/myscript`:
+
+``` bash
+[...]
+
+sourced && return
+
+get_here_ary <<'EOS'
+  ( -n --name name 'the name to say hello to' )
+EOS
+
+$(parse_options __ "$@")
+$(grab name from __)
+main "$name"
+```
+
+`parse_options` takes the option definition from `get_here_ary`, as well
+as the arguments provided on the command line.  It generates a hash with
+the name of our named option, "name" as a key and the user-supplied
+input for that option as its value.
 
 API
 ===
