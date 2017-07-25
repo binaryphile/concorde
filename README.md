@@ -586,8 +586,8 @@ strings in array elements, not other arrays.
 
 Here's where we get to one of those idioms for which concorde is named.
 
-`repr` and Array Values in Concorde
------------------------------------
+Array Literals
+--------------
 
 The rule in concorde is that, when passing array values, they are passed
 as strings. This is convenient, since that's all bash can pass.
@@ -596,13 +596,13 @@ I may work with an array in my function in the usual manner. Once I want
 to pass it to another function, however, I need to convert it to a
 string value.
 
-That's the job of the `repr` function. It creates an array literal from
-an array. What's an array literal, you ask? It's the syntax which bash
-allows on the right-hand side of an array assignment statement.
+To do so, I use an array literal. What's an array literal, you ask? It's
+the syntax which bash allows on the right-hand side of an array
+assignment statement to define an array.
 
 Array literal syntax is a string value, starting and ending with
-parentheses. Inside are values, with or without indices in brackets. For
-example, the following is a valid literal:
+parentheses. Inside are values separated by spaces, with or without
+indices in brackets. For example, the following is a valid literal:
 
 ``` bash
 ( zero [1]=one [2]="two with spaces" [3]='three with single-quotes' )
@@ -610,16 +610,41 @@ example, the following is a valid literal:
 
 The quotes are evaluated out and don't end up as part of the values.
 
-If you assigned that to the array "array" and printed out the values,
+If you assigned that to the array "my_array" and printed out the values,
 you'd get:
 
 ``` bash
-> for i in "${!array[@]}"; do echo "$i: ${array[i]}"; done
+> for i in "${!my_array[@]}"; do echo "$i: ${my_array[i]}"; done
 0: zero
 1: one
 2: two with spaces
 3: three with single-quotes
 ```
+
+`get_here_ary`
+--------------
+
+There is also a concorde function to help define the our option array,
+`get_here_ary` (the "ary" stands for "array").  `get_here_ary` returns a
+bash [here document] as an array literal, with one element per line of
+input.
+
+For example, this returns a two-element option definition array:
+
+``` bash
+get_here_ary <<'EOS'
+  ( -o  --option  ''     'a flag'       )
+  ( -a  ''        value  'an argument'  )
+EOS
+```
+
+First, `get_here_ary` strips the leading whitespace from the heredoc.
+Then it creates an array from the lines of the heredoc.  Finally, it
+returns the array literal in the global variable `__`
+(double-underscore).
+
+NOtice that the values of the lines are themselves already array
+literals.  This is how we pass an array of arrays with concorde.
 
 API
 ===
@@ -717,3 +742,4 @@ options_new __
 
   [shpec]: https://github.com/rylnd/shpec
   [entr]: http://entrproject.org/
+  [here document]: http://wiki.bash-hackers.org/syntax/redirection#here_documents
