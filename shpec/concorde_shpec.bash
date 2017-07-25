@@ -42,26 +42,38 @@ describe bring
   end
 
   it "accepts a literal list of functions"; (
-    echo $'one () { :;}\ntwo () { :;}' >temp.bash
-    $(bring '( one two )' from temp)
+    $(grab root from __feature_hsh[concorde])
+    temp=$root/lib/temp.bash
+    echo $'one () { :;}\ntwo () { :;}' >"$temp"
+    $(bring '( one two )' from "$temp")
     assert equal $'one\ntwo' "$(declare -F one two)"
-    rm temp.bash
+    rm "$temp"
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
   end
 
   it "accepts a single function argument"; (
-    echo $'one () { :;}' >temp.bash
-    $(bring one from temp)
+    $(grab root from __feature_hsh[concorde])
+    temp=$root/lib/temp.bash
+    echo $'one () { :;}' >"$temp"
+    $(bring one from "$temp")
     assert equal one "$(declare -F one)"
-    rm temp.bash
+    rm "$temp"
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
   end
 
   it "brings a function with dependencies"; (
-    echo $'__dependencies=( two )\none () { :;}\ntwo () { :;}' >temp.bash
-    $(bring one from temp)
+    $(grab root from __feature_hsh[concorde])
+    temp=$root/lib/temp.bash
+    get_here_str <<'    EOS'
+      declare -Ag __feature_hsh
+      __feature_hsh[temp]='( [dependencies]="( two )")'
+      one () { :;}
+      two () { :;}
+    EOS
+    echo "$__" >"$temp"
+    $(bring one from "$temp")
     assert equal $'one\ntwo' "$(declare -F one two)"
-    rm temp.bash
+    rm "$temp"
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
   end
 end
