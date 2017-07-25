@@ -206,27 +206,26 @@ hello () {
   echo "Hello, world!"
 }
 
-sourced? && return
+sourced && return
 
 hello
 ```
 
 Now the test runs and passes, but the output doesn't occur. That's
-because `sourced?` detects that the script is being read with bash's
+because `sourced` detects that the script is being read with bash's
 `source` command and not being run from the command line as a script.
-(don't mind the question mark, it's part of the function's name)
 
 The `return` stops the sourcing of the file there, so the interpreter
 never reaches the line which calls `hello`. Instead, control is returned
 to the shpec file.
 
 If the script is being run from the command-line, however, the
-`sourced?` call will return false and the script will continue to run
+`sourced` call will return false and the script will continue to run
 past that line, fulfilling the call to `hello`.
 
 The implication for the structure of your scripts is that, for testing
 purposes, you want all of the functions to be defined before calling any
-of them. Before you do call them, you want `sourced?` to intervene so
+of them. Before you do call them, you want `sourced` to intervene so
 the test framework can short-circuit the script's actions.
 
 Introducing Some Structure
@@ -262,7 +261,7 @@ And here's `bin/myscript`:
 source concorde.bash
 source hello.bash
 
-sourced? && return
+sourced && return
 
 hello
 ```
@@ -307,7 +306,7 @@ main () {
   hello
 }
 
-sourced? && return
+sourced && return
 
 main "$@"
 ```
@@ -420,7 +419,7 @@ main () {
   hello
 }
 
-sourced? && return
+sourced && return
 
 main "$@"
 ```
@@ -605,7 +604,7 @@ parentheses. Inside are values separated by spaces, with or without
 indices in brackets. For example, the following is a valid literal:
 
 ``` bash
-( zero [1]=one [2]="two with spaces" [3]='three with single-quotes' )
+( zero [1]=one [2]="two with spaces" 'three with single-quotes' )
 ```
 
 The quotes are evaluated out and don't end up as part of the values.

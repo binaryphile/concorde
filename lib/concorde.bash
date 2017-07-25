@@ -1,14 +1,9 @@
-[[ -n ${__feature_hsh[concorde]:-} && ${1:-} != 'reload' ]] && return
+[[ -n ${__feature_hsh[concorde.root]:-} && ${1:-} != 'reload' ]] && return
 [[ ${1:-} == 'reload' ]] && shift
-
 declare -Ag __feature_hsh
-__feature_hsh[concorde]="(
-    [root]='$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"/..)'
-  [caller]='$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[1]}")")")'
-)"
+__feature_hsh[concorde.root]=$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"/..)
 
 unset -v CDPATH
-set -o noglob
 
 assign () {
   [[ $2 == 'to' ]] || return
@@ -97,7 +92,6 @@ get_here_str () {
 }
 
 get_str () { IFS=$'\n' read -rd '' __ ||:         ;}
-glob    () { __=$(set +o noglob; eval "echo $1")  ;}
 
 grab () {
   [[ $2 == 'from' ]] || return
@@ -126,13 +120,10 @@ feature () {
   local statement
 
   get_here_str <<'  EOS'
-    [[ -n ${__feature_hsh[%s]:-} && $1 != 'reload' ]] && return
+    [[ -n ${__feature_hsh[%s.root]:-} && $1 != 'reload' ]] && return
     [[ ${1:-} == 'reload' ]]  && shift
     declare -Ag __feature_hsh
-    __feature_hsh[%s]="(
-        [root]='$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"%s)'
-      [caller]='$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[1]}")")")'
-    )"
+    __feature_hsh[%s.root]=$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"%s)
   EOS
   statement=$__
   path=''
@@ -275,6 +266,7 @@ require () {
 
 require_relative () {
   local spec=$1; shift
+  local caller_dir
   local extension
   local extension_ary=()
   local file
@@ -285,8 +277,8 @@ require_relative () {
     ''
   )
   [[ $spec != /* && $spec == *?/* ]] || return
-  $(grab caller from __feature_hsh[concorde])
-  file=$caller/$spec
+  caller_dir=$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[1]}")")")
+  file=$caller_dir/$spec
   for extension in "${extension_ary[@]}"; do
     [[ -e $file$extension ]] && break
   done
@@ -295,7 +287,7 @@ require_relative () {
   emit "source $file $@"
 }
 
-sourced? () { [[ ${FUNCNAME[@]: -1} == 'source' ]] ;}
+sourced () { [[ ${FUNCNAME[@]: -1} == 'source' ]] ;}
 
 strict_mode () {
   local status=$1
