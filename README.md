@@ -288,13 +288,16 @@ And `shpec/myscript_shpec.bash`:
 source myscript
 ```
 
-Using `main`
+Using `mymain`
 ------------
 
 Hmm. There's nothing really to test for `myscript`, since it defines no
-functions. Perhaps we should change that by making a formal `main`
+functions. Perhaps we should change that by making a formal "main"
 function which is responsible for taking the actions requested by the
-user:
+user.
+
+Unfortunately, bash has a special purpose for "main" as a context name,
+so I'll use "mymain" instead:
 
 ``` bash
 #!/usr/bin/env bash
@@ -302,16 +305,16 @@ user:
 source concorde.bash
 source hello.bash
 
-main () {
+mymain () {
   hello
 }
 
 sourced && return
 
-main "$@"
+mymain "$@"
 ```
 
-Now we could test `main` in `myscript_shpec.bash`, but I think we'll
+Now we could test `mymain` in `myscript_shpec.bash`, but I think we'll
 hold off until it does something more than just call `hello`, since
 we've already got that covered.
 
@@ -415,13 +418,13 @@ In this case, I'll choose `require_relative` for `myscript`:
 source concorde.bash
 $(require_relative ../lib/hello)
 
-main () {
+mymain () {
   hello
 }
 
 sourced && return
 
-main "$@"
+mymain "$@"
 ```
 
 `require` and `feature`
@@ -511,7 +514,7 @@ hello () {
 I save and this time the test passes. Now I'll modify `myscript` to
 accept a name.
 
-This time, I'll write tests for `main`.
+This time, I'll write tests for `mymain`.
 
 I ctrl-c the entr window and run:
 
@@ -527,20 +530,20 @@ Next I edit the test file.
 source concorde.bash
 $(require_relative ../bin/myscript)
 
-describe main
+describe mymain
   it "outputs 'Hello, world!'"
-    result=$(main)
+    result=$(mymain)
     assert equal "Hello, world!" "$result"
   end
 
   it "outputs 'Hello, [arg]!' if given an option"
-    result=$(main myname)
+    result=$(mymain myname)
     assert equal "Hello, myname!" "$result"
   end
 end
 ```
 
-In this test, I'm expecting `main` to get a positional argument with the
+In this test, I'm expecting `mymain` to get a positional argument with the
 name.
 
 `bin/myscript`:
@@ -548,7 +551,7 @@ name.
 ``` bash
 [...]
 
-main () {
+mymain () {
   hello "${1:-}"
 }
 
@@ -567,9 +570,9 @@ I'd like to use a short option of `-n` and a long option of `--name`
 instead. I want the name stored in the variable "name".
 
 I'll be using concorde's option parser, which means I'll need to know a
-bit about how it provides options to main.
+bit about how it provides options to `mymain`.
 
-First, I'll be calling the parser before I call `main`. I'll provide it
+First, I'll be calling the parser before I call `mymain`. I'll provide it
 with the relevant information about the options I'm defining, as well as
 the positional arguments fed to the script so it can parse them.
 
@@ -673,7 +676,7 @@ EOS
 
 $(parse_options  __ "$@")
 $(grab name from __     )
-main "$name"
+mymain "$name"
 ```
 
 `parse_options` takes the option definition from `get_here_ary`, as well
@@ -691,7 +694,7 @@ our key and gets it from the hash. By "getting", I mean that it creates
 a local variable of the same name as the key, with the key's value as
 its own value.
 
-As you can see, the local variable "name" is then passed to `main`. It
+As you can see, the local variable "name" is then passed to `mymain`. It
 contains the user-specified value that we will be saying "hello" to.
 
 If we run it, we see that it works:
@@ -770,18 +773,59 @@ When `parse_options` returns, it resets the positional arguments (`$1`,
 etc.) to only contain the positional arguments determined by the parsing
 process. That is, it removes the flag and named options from the
 script's positional arguments. That's why the positional arguments may
-still need to be passed to main if they are needed, like so:
+be passed to `mymain` if they are needed, like so:
 
 ``` bash
-main "$name" "$@"
+mymain "$name" "$@"
 ```
+
+Reworking `mymain`
+--------------
 
 Usually, I will pass the option hash as well as the positional arguments
-for main to handle:
+for `mymain` to handle, since `mymain` will usually have several options
+to deal with, and that's easier than passing them onesy-twosy.
+
+Let's do that.  Of course, we'll need to update the test script first:
+
+`shpec/myscript_shpec.bash`:
 
 ``` bash
-main __ "$@"
+[...]
+
+describe mymain
+  [...]
+
+  it "outputs 'Hello, [arg]!' if given an option"
+    result=$(mymain '( [name]=myname )')
+    assert equal "Hello, myname!" "$result"
+  end
+end
 ```
+
+Remember that `grab` can take a literal as easily as a variable
+containing one, so that's what's provided in the call here.
+
+`bin/myscript`:
+
+``` bash
+[...]
+
+mymain () {
+  $(grab name from "$1")
+
+  hello "$name"
+}
+
+[...]
+
+$(parse_options __ "$@")
+mymain __ "$@"
+```
+
+This passes the option hash and remaining positional arguments into
+`mymain` for processing.  Usually that will be `mymain`'s primary
+responsibilty.
 
 API
 ===
