@@ -146,12 +146,23 @@ local_ary () {
 
 local_hsh () {
   local first=$1; shift
+  local item
+  local key
   local name
+  local result=''
   local value
 
   name=${first%%=*}
   (( $# )) && value="${first#*=} $*" || value=${first#*=}
-  [[ $value == '('*')' ]] && emit "declare -A $name=$value" || emit 'declare -A '"$name"'=${'"$value"'}'
+  [[ $value =~ ^[_[:alpha:]][_[:alnum:]]*(\[.+])?$ ]] && { emit 'declare -A '"$name"'=${'"$value"'}'; return ;}
+  [[ $value == '('*')' ]] && { emit "declare -A $name=$value"; return ;}
+  for item in $value; do
+    [[ $item == *?=?* ]] || return
+    key=${item%%=*}
+    result+="[$key]=${item#*=} "
+  done
+  result="( $result )"
+  emit "declare -A $name=$result"
 }
 
 log () { put "$@" ;}

@@ -208,7 +208,13 @@ describe local_hsh
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
-  it "creates a hash from a reference"; (
+  it "creates a hash from a succinct literal"; (
+    $(local_hsh result_hsh=zero=0)
+    assert equal 0 "${result_hsh[zero]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates a hash from a string reference"; (
     sampleh='( [zero]=0 )'
     $(local_hsh result_hsh=sampleh)
     assert equal 0 "${result_hsh[zero]}"
