@@ -286,15 +286,15 @@ describe part
   end
 end
 
-# describe wed
-#   it "joins an array literal with a delimiter"
-#     wed '( one two )' with @
-#     assert equal one@two "$__"
-#   end
-#
-#   it "joins an array literal by name with a delimiter"
-#     sample='( one two )'
-#     wed sample with @
-#     assert equal one@two "$__"
-#   end
-# end
+describe wed
+  it "joins an array literal with a delimiter"
+    wed '( one two )' with @
+    assert equal one@two "$__"
+  end
+
+  it "joins an array literal by name with a delimiter"
+    sample='( one two )'
+    wed sample with @
+    assert equal one@two "$__"
+  end
+end
