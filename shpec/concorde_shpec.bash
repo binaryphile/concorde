@@ -119,6 +119,13 @@ describe feature
     assert unequal '' "$root"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
+
+  it "creates a root entry for the feature"; (
+    $(feature sample)
+    $(grab root from_feature sample)
+    assert unequal '' "$root"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
 end
 #
 # describe grab
