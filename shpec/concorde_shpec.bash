@@ -195,9 +195,16 @@ end
 # end
 
 describe local_hsh
-  it "creates a local hash from a literal"; (
+  it "creates a hash from a literal"; (
     $(local_hsh sample_hsh='( [zero]=0 )')
     assert equal 0 "${sample_hsh[zero]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates a local hash"; (
+    result=$(local_hsh sample_hsh='( [zero]=0 )')
+    [[ $result == *declare* ]]
+    assert equal 0 $?
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 end
