@@ -1,7 +1,7 @@
 declare -Ag __feature_hsh
-[[ -n ${__feature_hsh[concorde.root]:-} && ${1:-} != 'reload' ]] && return
+[[ -n ${__feature_hsh[concorde]:-} && ${1:-} != 'reload' ]] && return
 [[ ${1:-} == 'reload' ]] && shift
-__feature_hsh[concorde.root]=$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"/..)
+__feature_hsh[concorde]="( [root]=$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"/..) )"
 
 unset -v CDPATH
 
@@ -94,8 +94,8 @@ get_here_str () {
 get_str () { IFS=$'\n' read -rd '' __ ||:         ;}
 
 grab () {
-  [[ $2 == 'from' ]] || return
-  $(local_hsh arg_hsh=$3)
+  [[ $2 == 'from_feature' || $2 == 'from' ]] || return
+  [[ $2 == 'from_feature' ]] && $(local_hsh arg_hsh=__feature_hsh[$3]) || $(local_hsh arg_hsh=$3)
   case $1 in
     '('*')' ) local -a var_ary=$1                   ;;
     '*'     ) local -a var_ary=( "${!arg_hsh[@]}" ) ;;
@@ -121,9 +121,9 @@ feature () {
 
   get_here_str <<'  EOS'
     declare -Ag __feature_hsh
-    [[ -n ${__feature_hsh[%s.root]:-} && $1 != 'reload' ]] && return
+    [[ -n ${__feature_hsh[%s]:-} && $1 != 'reload' ]] && return
     [[ ${1:-} == 'reload' ]]  && shift
-    __feature_hsh[%s.root]=$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"%s)
+    __feature_hsh[%s]="( [root]=$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"%s) )"
   EOS
   statement=$__
   path=''

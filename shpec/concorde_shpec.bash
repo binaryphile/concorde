@@ -42,7 +42,7 @@ describe bring
   end
 
   it "accepts a literal list of functions"; (
-    $(grab root from __feature_hsh[concorde])
+    $(grab root from_feature concorde)
     temp=$root/lib/temp.bash
     echo $'one () { :;}\ntwo () { :;}' >"$temp"
     $(bring '( one two )' from "$temp")
@@ -52,7 +52,7 @@ describe bring
   end
 
   it "accepts a single function argument"; (
-    $(grab root from __feature_hsh[concorde])
+    $(grab root from_feature concorde)
     temp=$root/lib/temp.bash
     echo $'one () { :;}' >"$temp"
     $(bring one from "$temp")
@@ -62,7 +62,7 @@ describe bring
   end
 
   it "brings a function with dependencies"; (
-    $(grab root from __feature_hsh[concorde])
+    $(grab root from_feature concorde)
     temp=$root/lib/temp.bash
     get_here_str <<'    EOS'
       declare -Ag __feature_hsh
