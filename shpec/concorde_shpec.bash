@@ -131,7 +131,7 @@ describe feature
     $(feature sample)
     $(grab root from_feature sample)
     old_root=$root
-    $(feature sample2 2)
+    $(feature sample2 depth=2)
     $(grab root from_feature sample2)
     [[ $old_root == $root/* ]]
     assert equal 0 $?

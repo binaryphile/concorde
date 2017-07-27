@@ -113,8 +113,9 @@ grab () {
 instantiate () { printf -v "$1" %s "$(eval "echo ${!1}")" ;}
 
 feature () {
-  local feature_name=$1
-  local depth=${2:-1}
+  local feature_name=$1; shift
+  local depth=1
+  (( $# )) && $(grab depth from "$*")
   local i
   local path
   local statement
