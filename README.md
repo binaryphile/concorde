@@ -153,7 +153,6 @@ executable and run it, it doesn't do anything!
 ``` bash
 > chmod +x myscript
 > ./myscript
->
 ```
 
 That's because the `hello` function exists, but nothing's calling it. So
@@ -225,8 +224,8 @@ line, fulfilling the call to `hello`.
 
 The implication for the structure of your scripts is that, for testing
 purposes, you want all of the functions to be defined before calling any
-of them. Before you do call them, you want `sourced` to intervene so the
-test framework can short-circuit the script's actions.
+of them. Before you do call them, you want to intervene with `sourced`
+so the test framework can short-circuit the script's actions.
 
 Introducing Some Structure
 --------------------------
@@ -288,13 +287,13 @@ And `shpec/myscript_shpec.bash`:
 source myscript
 ```
 
-Using `mymain`
-------------
-
 Hmm. There's nothing really to test for `myscript`, since it defines no
 functions. Perhaps we should change that by making a formal "main"
 function which is responsible for taking the actions requested by the
 user.
+
+Using `mymain`
+------------
 
 Unfortunately, bash has a special purpose for "main" as a context name,
 so I'll use "mymain" instead:
@@ -306,7 +305,7 @@ source concorde.bash
 source hello.bash
 
 mymain () {
-  hello
+  hello "$@"
 }
 
 sourced && return
@@ -315,13 +314,8 @@ mymain "$@"
 ```
 
 Now we could test `mymain` in `myscript_shpec.bash`, but I think we'll
-hold off until it does something more than just call `hello`, since
-we've already got that covered.
-
-In a regular script, you might not choose to use functions at all,
-instead just writing a list of commands that need to go together. That's
-fine, but concorde won't help with that much. I'd encourage you to start
-writing functions in order to make them testable.
+hold off until it does something more than just call `hello`.  We've
+already got testing `hello` covered.
 
 Sourcing Features Correctly
 ---------------------------
@@ -338,7 +332,8 @@ First let's run one of the shpecs. I run:
 
 and see that the test runs correctly, as it does. Proud of my code, but
 humble enough to know that you can never do enough testing, I decide to
-run the test once more for good measure, changing directory first:
+run the test once more for good measure.  I'll just change directory
+first, that couldn't hurt anything, could it?
 
 ``` bash
 > cd ..
@@ -348,15 +343,17 @@ shpec/hello_shpec.bash: line 1: hello.bash: No such file or directory
 
 What? It failed?
 
-Oh yeah, when `hello_shpec.bash` runs `source hello.bash`, bash looks
-for `hello.bash` in the current directory, so the current directory
-determines whether the test is able to run. Darn it.
+Oh yeah...`hello_shpec.bash` contains the line `source hello.bash`.
+When bash looks for `hello.bash`, first it searches the PATH (hint: it's
+not there) and then the current directory.  When I was in the directory
+with `hello.bash`, that made it work, but only there.  The current
+directory determines whether the test is able to run. Darn it.
 
 I could just change the line to `source lib/hello.bash`, but then the
 test would only work when I run the command from this directory and I'd
 basically have the same problem. I want it to work from anywhere.
 
-I know, let's update `hello_shpec.bash`:
+I know! Let's update `hello_shpec.bash`:
 
 ``` bash
 source concorde.bash
@@ -374,22 +371,27 @@ From the project root, where I just was:
 
 Everything's happy again!
 
+`require_relative`
+------------------
+
 `require_relative` is a function which sources another file, but takes
 the current directory out of the equation. It finds the sourced file
 relative to the location of your file, not your shell's current
 directory.
 
-`require_relative` also doesn't require a file extension when you
-specify the file, if the file's extension is `.bash` or `.sh`. Hence the
-`../lib/hello` above. This borrows from ruby, where the library is
-called a "feature" and is referred to by its name, without an extension.
+If the file's extenstion is `.bash` or `.sh`, then `require_relative`
+doesn't require the extension be specified.  Hence the `../lib/hello`
+above. This borrows from ruby, where the library is called a "feature"
+and is referred to by its name, without an extension.
 
 I'm sure you've noticed the process substitution around the call to
-`require_relative`. (the "$()") That's because `require_relative`
-actually generates a `source` statement on stdout, which is then
-executed in the context of the caller. If the `source` command were run
-by the `require_relative` function itself, certain statements (such as
-`declare`s) would not be evaluated properly.
+`require_relative`. (the `$()`) That's because `require_relative`
+actually generates a `source` statement on stdout which is then
+executed by the process substitution, but in the context of the caller.
+
+If the `source` command were run by the `require_relative` function
+itself, certain statements (such as `declare` or `return`) would not be
+executed properly.
 
 When to Use `require_relative` vs `require`
 -------------------------------------------
@@ -419,7 +421,7 @@ source concorde.bash
 $(require_relative ../lib/hello)
 
 mymain () {
-  hello
+  hello "$@"
 }
 
 sourced && return
@@ -452,18 +454,9 @@ hello () {
 }
 ```
 
-This is actually already useful for our example, since now concorde is
-loaded in two places: `myscript` and `hello.bash`. Concorde uses its own
-`feature` capability to ensure it is only loaded once.
-
-Reloading with `load`
----------------------
-
-Ruby also provides a `load` function, which forces the loading of the
-file, even if the file has already been loaded. Unlike `require`, it
-needs the full name of the file, including extension. If you need to
-force the reload of a feature, for example during development, you can
-use concorde's `load` function just like ruby's.
+This is actually already useful for our example, since both `myscript`
+and `hello.bash` load concorde.  Concorde employs its own feature
+protection to make sure it is not loaded multiple times itself.
 
 Hello, name!
 ------------
@@ -490,8 +483,8 @@ describe hello
   [...]
 
   it "outputs 'Hello, [arg]!' if an argument"
-    result=$(hello name)
-    assert equal "Hello, name!" "$result"
+    result=$(hello myname)
+    assert equal "Hello, myname!" "$result"
   end
 end
 ```
@@ -522,7 +515,8 @@ I ctrl-c the entr window and run:
 > echo bin/myscript | entr bash -c 'shpec shpec/myscript_shpec.bash'
 ```
 
-Next I edit the test file.
+Next I edit the test file.  This is pretty much going to look like the
+`hello` tests, but I'll be changing it soon.
 
 `shpec/myscript_shpec.bash`:
 
@@ -543,50 +537,48 @@ describe mymain
 end
 ```
 
-In this test, I'm expecting `mymain` to get a positional argument with the
-name.
-
-`bin/myscript`:
-
-``` bash
-[...]
-
-mymain () {
-  hello "${1:-}"
-}
-
-[...]
-```
-
-I save and see that it works.
+The script already handles this by passing command-line arguments
+through to `hello` unchanged, so the test passes the first time.  That's
+ok in this case.
 
 I'll stop testing in the entr window for the moment.
 
 Arguments vs Options and Command-line Parsing
 ---------------------------------------------
 
-However, a positional argument isn't really an option, it's an argument.
-I'd like to use a short option of `-n` and a long option of `--name`
-instead. I want the name stored in the variable "name".
+So a positional argument to the script works, such as `> myscript
+myname`, but that isn't really an option, it's an argument.  I'd like to
+use a short option of `-n` and a long option of `--name` instead. I want
+the name stored in the variable "name".
 
 I'll be using concorde's option parser, which means I'll need to know a
 bit about how it provides options to `mymain`.
 
 First, I'll be calling the parser before I call `mymain`. I'll provide it
 with the relevant information about the options I'm defining, as well as
-the positional arguments fed to the script so it can parse them.
+the positional arguments provided by the user.
 
 The option parser is the function `parse_options`. It wants an array of
 option definitions, where the option definitions themselves are an array
-of fields.
+of fields, followed by the user-provided arguments.
 
-The fields are short option, long option, name of the user's value
-(blank if the option is a flag) and help. Short or long can be omitted
-so long as at least one of them is defined. Help is there to remind us
-what the option is supposed to be, although it's not currently used for
-anything else.
+The fields are:
 
-If we were just defining an option array, our option would look like:
+-   short option
+
+-   long option
+
+-   name of the user's value (blank if the option is a flag)
+
+-   help
+
+Short or long can be omitted so long as at least one of them is defined.
+
+Help is there to remind us what the option is supposed to be, although
+it's not currently used for anything else.
+
+If we were just defining a single option as an array, it would look
+like:
 
 ``` bash
 option=(-n --name name 'a name to say hello to')
@@ -596,25 +588,32 @@ However, the option parser needs to take multiple such definitions,
 themselves stored in an array. Unfortunately, bash can only store
 strings in array elements, not other arrays.
 
-Here's where we get to one of those idioms for which concorde is named.
+Here's where we get to one of those...[sigh]
+
+Concorde: Idioms, sir?
+
+Idioms! for which concorde is named.
 
 Array Literals
 --------------
 
 The rule in concorde is that, when passing array values, they are passed
-as strings. This is convenient, since that's all bash can pass.
+as strings. This is convenient, since strings are the only thing that
+bash can pass.
 
-I may work with an array in my function in the usual manner. Once I want
-to pass it to another function, however, I need to convert it to a
-string value.
-
-To do so, I use an array literal. What's an array literal, you ask? It's
-the syntax which bash allows on the right-hand side of an array
-assignment statement to define an array.
+To do so, I use an array literal. What's an array literal, you ask?  If
+you've ever initialized an array during an assignment statement, you
+already know. It's the syntax which bash allows on the right-hand side
+of an array assignment statement to define an array.
 
 Array literal syntax is a string value, starting and ending with
-parentheses. Inside are values separated by spaces, with or without
-indices in brackets. For example, the following is a valid literal:
+parentheses. Inside are values separated by spaces.  For normal arrays,
+values can appear with or without indices.  If included, indices are
+numerals in brackets, followed by an equal sign and the value.  The
+value appears in single- or double-quotes if it contains whitespace.
+
+For example, the following is a valid literal, even though some values
+have an index and others don't:
 
 ``` bash
 ( zero [1]=one [2]="two with spaces" 'three with single-quotes' )
@@ -622,7 +621,7 @@ indices in brackets. For example, the following is a valid literal:
 
 The quotes are evaluated out and don't end up as part of the values.
 
-If you assigned that to the array "my\_array" and printed out the
+If you assigned the above to the array "my\_array" and printed out the
 values, you'd get:
 
 ``` bash
@@ -638,10 +637,21 @@ values, you'd get:
 
 There is also a concorde function to help define the our option array,
 `get_here_ary` (the "ary" stands for "array"). `get_here_ary` takes a
-bash [here document] and returns an array literal, with each line of the
-input string split into its own array element.
+bash [here document] and returns an array composed of each line of the
+heredoc.
 
-For example, this returns a two-element option definition array:
+Actually, here we get to another couple concorde idioms.  The first is
+that functions can only return strings, not arrays, so an array is
+returned as its literal, just like arrays being passed in.  So far, so
+good, that should seem familiar.
+
+The second is slightly more tricky.  Rather than use process
+substitution (the frequently seen `$()`) to capture string output into a
+variable, concorde prefers to put returned strings into the global
+variable `__` (double underscore).  `__` is noted as a variable reserved
+by concorde for its own use.
+
+For example, here is the definition of two options:
 
 ``` bash
 get_here_ary <<'EOS'
