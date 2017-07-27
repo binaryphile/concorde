@@ -273,19 +273,19 @@ describe options_parse
   end
 end
 
-# describe part
-#   it "splits a string on a delimiter"
-#     part one@two on @
-#     assert equal '([0]="one" [1]="two")' "$__"
-#   end
-#
-#   it "doesn't split a string by name with a delimiter"
-#     sample=one@two
-#     part sample on @
-#     assert equal '([0]="sample")' "$__"
-#   end
-# end
-#
+describe part
+  it "splits a string on a delimiter"
+    part one@two on @
+    assert equal '([0]="one" [1]="two")' "$__"
+  end
+
+  it "doesn't split a string by name with a delimiter"
+    sample=one@two
+    part sample on @
+    assert equal '([0]="sample")' "$__"
+  end
+end
+
 # describe wed
 #   it "joins an array literal with a delimiter"
 #     wed '( one two )' with @
