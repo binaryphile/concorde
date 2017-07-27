@@ -35,9 +35,9 @@ bring () { (
   $(require "$spec")
   feature=${spec##*/}
   feature=${feature%.*}
-  $(grab dependencies from "${__feature_hsh[$feature]}")
+  $(grab dependencies from_feature "$feature")
   [[ -n $dependencies ]] && {
-    local -a dependency_ary=$dependencies
+    $(local_ary dependency_ary=$dependencies)
     function_ary+=( "${dependency_ary[@]}" )
   }
   repr function_ary
