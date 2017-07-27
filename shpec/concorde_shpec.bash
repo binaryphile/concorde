@@ -126,6 +126,17 @@ describe feature
     assert unequal '' "$root"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
+
+  it "modifies the depth of the root path based on an argument"; (
+    $(feature sample)
+    $(grab root from_feature sample)
+    old_root=$root
+    $(feature sample2 2)
+    $(grab root from_feature sample2)
+    [[ $old_root == $root/* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
 end
 #
 # describe grab
