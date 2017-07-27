@@ -138,7 +138,7 @@ describe feature
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 end
-#
+
 # describe grab
 #   it "instantiates a key/value pair from a hash literal as a local"; (
 #     $(grab one from '([one]=1)')
@@ -193,7 +193,15 @@ end
 #     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
 #   end
 # end
-#
+
+describe local_hsh
+  it "creates a local hash from a literal"; (
+    $(local_hsh sample_hsh='( [zero]=0 )')
+    assert equal 0 "${sample_hsh[zero]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+end
+
 # describe options_parse
 #   it "accepts a short flag option"; (
 #     get_here_ary <<'    EOS'
