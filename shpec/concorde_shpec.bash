@@ -214,6 +214,12 @@ describe local_hsh
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
+  it "creates a hash from a succinct literal with multiple items"; (
+    $(local_hsh result_hsh='zero=0 one=1')
+    assert equal '0 1' "${result_hsh[zero]} ${result_hsh[one]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
   it "creates a hash from a string reference"; (
     sampleh='( [zero]=0 )'
     $(local_hsh result_hsh=sampleh)
