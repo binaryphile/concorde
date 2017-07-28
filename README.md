@@ -383,10 +383,10 @@ doesn't require the extension be specified. Hence the `../lib/hello`
 above. This borrows from ruby, where the library is called a "feature"
 and is referred to by its name, without an extension.
 
-I'm sure you've noticed the process substitution around the call to
+I'm sure you've noticed the [command substitution] around the call to
 `require_relative`. (the `$()`) That's because `require_relative`
 actually generates a `source` statement on stdout which is then executed
-by the process substitution, but in the context of the caller.
+by the command substitution, but in the context of the caller.
 
 If the `source` command were run by the `require_relative` function
 itself, certain statements (such as `declare` or `return`) would not be
@@ -642,7 +642,7 @@ that functions can only return strings, not arrays, so an array is
 returned as its literal, just like arrays being passed in. So far, so
 good, that should seem familiar.
 
-The second is slightly more tricky. Rather than use process substitution
+The second is slightly more tricky. Rather than use command substitution
 (the frequently seen `$()`) to capture string output into a variable,
 concorde prefers to put returned strings into the global variable `__`
 (double underscore). `__` is noted as a variable reserved by concorde
@@ -811,8 +811,8 @@ end
 ```
 
 Ok, I'm cheating here again. Here's another idiom, that of the succinct
-hash literal.  "Succinct hash literal" is only a name of my own
-invention and has no broader meaning, fyi.
+hash literal. "Succinct hash literal" is only a name of my own invention
+and has no broader meaning, fyi.
 
 See that `mymain name=myname`? That's a function call, followed by a
 hash literal. Normally the hash literal would look like:
@@ -855,6 +855,11 @@ responsibilty.
 `mymain` uses `grab` to get the only value it cares about from the
 passed hash and passes that to `hello`. If no name was provided by the
 user, `$name` will exist but be empty.
+
+A Last Couple Points And...
+---------------------------
+
+So we've got a pretty good skeleton for a script that can be TDD'd
 
 API
 ===
@@ -952,4 +957,5 @@ options_new __
 
   [shpec]: https://github.com/rylnd/shpec
   [entr]: http://entrproject.org/
+  [command substitution]: http://wiki.bash-hackers.org/syntax/expansion/cmdsubst
   [here document]: http://wiki.bash-hackers.org/syntax/redirection#here_documents
