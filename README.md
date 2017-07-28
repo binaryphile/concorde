@@ -585,7 +585,7 @@ However, the option parser needs to take multiple such definitions,
 themselves stored in an array. Unfortunately, bash can only store
 strings in array elements, not other arrays.
 
-Here's where we get to one of those...[sigh]
+Here's where we get to one of those...\[sigh\]
 
 Concorde: Idioms, sir?
 
@@ -810,21 +810,22 @@ describe mymain
 end
 ```
 
-Ok, I'm cheating here again.  Here's another idiom, that of the succinct
-hash literal.
+Ok, I'm cheating here again. Here's another idiom, that of the succinct
+hash literal.  "Succinct hash literal" is only a name of my own
+invention and has no broader meaning, fyi.
 
-See that `mymain name=myname`?  That's a function call, followed by a
-hash literal.  Normally the hash literal would look like:
+See that `mymain name=myname`? That's a function call, followed by a
+hash literal. Normally the hash literal would look like:
 
 ``` bash
 '( [name]=myname )'
 ```
 
 However, because hash literals require indices, they are a bit more
-unambiguous than array literals. Concorde's functions use this to be a
-bit more succinct in what they accept for hash literals.  The succinct
-form does away with the parentheses as well as the brackets around the
-key name.  So the following is a valid succinct hash literal:
+unambiguous than array literals. Concorde's functions use this to be
+more succinct in what they accept for hash literals. The succinct form
+does away with the parentheses as well as the brackets around the key
+name. So the following is a valid succinct hash literal:
 
 ``` bash
 'name=myname other_key="other value"'
@@ -852,7 +853,7 @@ This passes the option hash and remaining positional arguments into
 responsibilty.
 
 `mymain` uses `grab` to get the only value it cares about from the
-passed hash and passes that to `hello`.  If no name was provided by the
+passed hash and passes that to `hello`. If no name was provided by the
 user, `$name` will exist but be empty.
 
 API
