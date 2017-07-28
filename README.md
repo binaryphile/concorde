@@ -173,7 +173,6 @@ Now it runs correctly:
 ``` bash
 > ./myscript
 Hello, world!
->
 ```
 
 But something's wrong in the test window. Now the test shows passing,
@@ -293,7 +292,7 @@ function which is responsible for taking the actions requested by the
 user.
 
 Using `mymain`
-------------
+--------------
 
 Unfortunately, bash has a special purpose for "main" as a context name,
 so I'll use "mymain" instead:
@@ -314,7 +313,7 @@ mymain "$@"
 ```
 
 Now we could test `mymain` in `myscript_shpec.bash`, but I think we'll
-hold off until it does something more than just call `hello`.  We've
+hold off until it does something more than just call `hello`. We've
 already got testing `hello` covered.
 
 Sourcing Features Correctly
@@ -332,7 +331,7 @@ First let's run one of the shpecs. I run:
 
 and see that the test runs correctly, as it does. Proud of my code, but
 humble enough to know that you can never do enough testing, I decide to
-run the test once more for good measure.  I'll just change directory
+run the test once more for good measure. I'll just change directory
 first, that couldn't hurt anything, could it?
 
 ``` bash
@@ -343,11 +342,11 @@ shpec/hello_shpec.bash: line 1: hello.bash: No such file or directory
 
 What? It failed?
 
-Oh yeah...`hello_shpec.bash` contains the line `source hello.bash`.
-When bash looks for `hello.bash`, first it searches the PATH (hint: it's
-not there) and then the current directory.  When I was in the directory
-with `hello.bash`, that made it work, but only there.  The current
-directory determines whether the test is able to run. Darn it.
+Oh yeah...`hello_shpec.bash` contains the line `source hello.bash`. When
+bash looks for `hello.bash`, first it searches the PATH (hint: it's not
+there) and then the current directory. When I was in the directory with
+`hello.bash`, that made it work, but only there. The current directory
+determines whether the test is able to run. Darn it.
 
 I could just change the line to `source lib/hello.bash`, but then the
 test would only work when I run the command from this directory and I'd
@@ -380,14 +379,14 @@ relative to the location of your file, not your shell's current
 directory.
 
 If the file's extenstion is `.bash` or `.sh`, then `require_relative`
-doesn't require the extension be specified.  Hence the `../lib/hello`
+doesn't require the extension be specified. Hence the `../lib/hello`
 above. This borrows from ruby, where the library is called a "feature"
 and is referred to by its name, without an extension.
 
 I'm sure you've noticed the process substitution around the call to
 `require_relative`. (the `$()`) That's because `require_relative`
-actually generates a `source` statement on stdout which is then
-executed by the process substitution, but in the context of the caller.
+actually generates a `source` statement on stdout which is then executed
+by the process substitution, but in the context of the caller.
 
 If the `source` command were run by the `require_relative` function
 itself, certain statements (such as `declare` or `return`) would not be
@@ -455,7 +454,7 @@ hello () {
 ```
 
 This is actually already useful for our example, since both `myscript`
-and `hello.bash` load concorde.  Concorde employs its own feature
+and `hello.bash` load concorde. Concorde employs its own feature
 protection to make sure it is not loaded multiple times itself.
 
 Hello, name!
@@ -509,14 +508,8 @@ accept a name.
 
 This time, I'll write tests for `mymain`.
 
-I ctrl-c the entr window and run:
-
-``` bash
-> echo bin/myscript | entr bash -c 'shpec shpec/myscript_shpec.bash'
-```
-
-Next I edit the test file.  This is pretty much going to look like the
-`hello` tests, but I'll be changing it soon.
+I ctrl-c the entr window. Next I edit the test file. This is pretty much
+going to look like the `hello` tests, but I'll be changing it soon.
 
 `shpec/myscript_shpec.bash`:
 
@@ -537,26 +530,30 @@ describe mymain
 end
 ```
 
-The script already handles this by passing command-line arguments
-through to `hello` unchanged, so the test passes the first time.  That's
-ok in this case.
+I run:
 
-I'll stop testing in the entr window for the moment.
+``` bash
+> shpec shpec/myscript_shpec.bash
+```
+
+The script already handles this by passing command-line arguments
+through to `hello` unchanged, so the test passes the first time. That's
+ok in this case.
 
 Arguments vs Options and Command-line Parsing
 ---------------------------------------------
 
-So a positional argument to the script works, such as `> myscript
-myname`, but that isn't really an option, it's an argument.  I'd like to
-use a short option of `-n` and a long option of `--name` instead. I want
-the name stored in the variable "name".
+So a positional argument to the script works, such as
+`> myscript myname`, but that isn't really an option, it's an argument.
+I'd like to use a short option of `-n` and a long option of `--name`
+instead. I want the name stored in the variable "name".
 
 I'll be using concorde's option parser, which means I'll need to know a
 bit about how it provides options to `mymain`.
 
-First, I'll be calling the parser before I call `mymain`. I'll provide it
-with the relevant information about the options I'm defining, as well as
-the positional arguments provided by the user.
+First, I'll be calling the parser before I call `mymain`. I'll provide
+it with the relevant information about the options I'm defining, as well
+as the positional arguments provided by the user.
 
 The option parser is the function `parse_options`. It wants an array of
 option definitions, where the option definitions themselves are an array
@@ -601,16 +598,16 @@ The rule in concorde is that, when passing array values, they are passed
 as strings. This is convenient, since strings are the only thing that
 bash can pass.
 
-To do so, I use an array literal. What's an array literal, you ask?  If
+To do so, I use an array literal. What's an array literal, you ask? If
 you've ever initialized an array during an assignment statement, you
 already know. It's the syntax which bash allows on the right-hand side
 of an array assignment statement to define an array.
 
 Array literal syntax is a string value, starting and ending with
-parentheses. Inside are values separated by spaces.  For normal arrays,
-values can appear with or without indices.  If included, indices are
-numerals in brackets, followed by an equal sign and the value.  The
-value appears in single- or double-quotes if it contains whitespace.
+parentheses. Inside are values separated by spaces. For normal arrays,
+values can appear with or without indices. If included, indices are
+numerals in brackets, followed by an equal sign and the value. The value
+appears in single- or double-quotes if it contains whitespace.
 
 For example, the following is a valid literal, even though some values
 have an index and others don't:
@@ -640,16 +637,16 @@ There is also a concorde function to help define the our option array,
 bash [here document] and returns an array composed of each line of the
 heredoc.
 
-Actually, here we get to another couple concorde idioms.  The first is
+Actually, here we get to another couple concorde idioms. The first is
 that functions can only return strings, not arrays, so an array is
-returned as its literal, just like arrays being passed in.  So far, so
+returned as its literal, just like arrays being passed in. So far, so
 good, that should seem familiar.
 
-The second is slightly more tricky.  Rather than use process
-substitution (the frequently seen `$()`) to capture string output into a
-variable, concorde prefers to put returned strings into the global
-variable `__` (double underscore).  `__` is noted as a variable reserved
-by concorde for its own use.
+The second is slightly more tricky. Rather than use process substitution
+(the frequently seen `$()`) to capture string output into a variable,
+concorde prefers to put returned strings into the global variable `__`
+(double underscore). `__` is noted as a variable reserved by concorde
+for its own use.
 
 For example, here is the definition of two options:
 
@@ -790,13 +787,13 @@ mymain "$name" "$@"
 ```
 
 Reworking `mymain`
---------------
+------------------
 
 Usually, I will pass the option hash as well as the positional arguments
 for `mymain` to handle, since `mymain` will usually have several options
 to deal with, and that's easier than passing them onesy-twosy.
 
-Let's do that.  Of course, we'll need to update the test script first:
+Let's do that. Of course, we'll need to update the test script first:
 
 `shpec/myscript_shpec.bash`:
 
@@ -834,7 +831,7 @@ mymain __ "$@"
 ```
 
 This passes the option hash and remaining positional arguments into
-`mymain` for processing.  Usually that will be `mymain`'s primary
+`mymain` for processing. Usually that will be `mymain`'s primary
 responsibilty.
 
 API
