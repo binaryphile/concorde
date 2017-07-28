@@ -14,6 +14,14 @@ Latest Changes
 
 -   succinct hash literals for `local_hsh` et. al.
 
+-   `grab` has `from_feature` argument
+
+### Refactored
+
+-   "__feature_hsh" implementation
+
+-   use `local_ary` and `local_hsh` where appropriate
+
 ### Documented
 
 -   readme tutorial

@@ -139,60 +139,60 @@ describe feature
   end
 end
 
-# describe grab
-#   it "instantiates a key/value pair from a hash literal as a local"; (
-#     $(grab one from '([one]=1)')
-#     assert equal 1 "$one"
-#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-#   end
-#
-#   it "instantiates more than one key/value pair from a hash literal"; (
-#     $(grab '(one two)' from '([one]=1 [two]=2)')
-#     assert equal '1 2' "$one $two"
-#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-#   end
-#
-#   it "instantiates all key/value pairs from a hash literal"; (
-#     $(grab '*' from '([one]=1 [two]=2 [three]=3)')
-#     assert equal '1 2 3' "$one $two $three"
-#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-#   end
-#
-#   it "instantiates a key/value pair from a hash literal reference"; (
-#     sample='([one]=1)'
-#     $(grab one from sample)
-#     assert equal 1 "$one"
-#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-#   end
-#
-#   it "instantiates more than one key/value pair from a hash literal reference"; (
-#     sample='([one]=1 [two]=2)'
-#     $(grab '(one two)' from sample)
-#     assert equal '1 2' "$one $two"
-#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-#   end
-#
-#   it "instantiates all key/value pairs from a hash literal reference"; (
-#     sample='([one]=1 [two]=2 [three]=3)'
-#     $(grab '*' from sample)
-#     assert equal '1 2 3' "$one $two $three"
-#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-#   end
-#
-#   it "errors if \$3 isn't 'from'"; (
-#     grab one two
-#     assert unequal 0 $?
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "doesn't work if the first argument is a reference"; (
-#     sample=one
-#     result=$(grab sample from '([one]=1)')
-#     declare -p one >/dev/null 2>&1
-#     assert unequal 0 $?
-#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-#   end
-# end
+describe grab
+  it "instantiates a key/value pair from a hash literal as a local"; (
+    $(grab one from '([one]=1)')
+    assert equal 1 "$one"
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
+
+  it "instantiates more than one key/value pair from a hash literal"; (
+    $(grab '(one two)' from '([one]=1 [two]=2)')
+    assert equal '1 2' "$one $two"
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
+
+  it "instantiates all key/value pairs from a hash literal"; (
+    $(grab '*' from '([one]=1 [two]=2 [three]=3)')
+    assert equal '1 2 3' "$one $two $three"
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
+
+  it "instantiates a key/value pair from a hash literal reference"; (
+    sample='([one]=1)'
+    $(grab one from sample)
+    assert equal 1 "$one"
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
+
+  it "instantiates more than one key/value pair from a hash literal reference"; (
+    sample='([one]=1 [two]=2)'
+    $(grab '(one two)' from sample)
+    assert equal '1 2' "$one $two"
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
+
+  it "instantiates all key/value pairs from a hash literal reference"; (
+    sample='([one]=1 [two]=2 [three]=3)'
+    $(grab '*' from sample)
+    assert equal '1 2 3' "$one $two $three"
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
+
+  it "errors if \$3 isn't 'from'"; (
+    grab one two
+    assert unequal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "doesn't work if the first argument is a reference"; (
+    sample=one
+    result=$(grab sample from '([one]=1)')
+    declare -p one >/dev/null 2>&1
+    assert unequal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
+end
 
 describe local_hsh
   it "creates a local hash"; (
