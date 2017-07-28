@@ -7,8 +7,8 @@ Concorde: "Idiom, sir?"
 
 Idiom!
 
-Concorde is a small-ish library which distills some of the most useful
-things I've done in bash.
+Concorde is a library which distills some of the most useful things (to
+me) I've done in bash.
 
 Goals
 =====
@@ -36,7 +36,7 @@ With this toolset, it is simple to create bash scripts which:
 
 -   are more readable
 
--   can be developed in a test-driven manner
+-   can be developed in a [test-driven] manner
 
 -   are able to receive and parse GNU-style options
 
@@ -304,13 +304,16 @@ source concorde.bash
 source hello.bash
 
 mymain () {
-  hello "$@"
+  hello
 }
 
 sourced && return
 
 mymain "$@"
 ```
+
+By convention, I'll pass the script's arguments (`"$@"`) to `mymain` for
+parsing, even though they aren't currently needed.
 
 Now we could test `mymain` in `myscript_shpec.bash`, but I think we'll
 hold off until it does something more than just call `hello`. We've
@@ -420,7 +423,7 @@ source concorde.bash
 $(require_relative ../lib/hello)
 
 mymain () {
-  hello "$@"
+  hello
 }
 
 sourced && return
@@ -536,28 +539,50 @@ I run:
 > shpec shpec/myscript_shpec.bash
 ```
 
-The script already handles this by passing command-line arguments
-through to `hello` unchanged, so the test passes the first time. That's
-ok in this case.
+and the test fails.  Again, good.
+
+Now to update `bin/myscript`:
+
+``` bash
+[...]
+
+mymain () {
+  hello "$@"
+}
+
+[...]
+```
+
+`mymain` already receives the arguments from the user, so now it simply
+passes them along to `hello`.
+
+I run:
+
+``` bash
+> shpec shpec/myscript_shpec.bash
+```
+
+and the test passes.
 
 Arguments vs Options and Command-line Parsing
 ---------------------------------------------
 
-So a positional argument to the script works, such as
-`> myscript myname`, but that isn't really an option, it's an argument.
-I'd like to use a short option of `-n` and a long option of `--name`
-instead. I want the name stored in the variable "name".
+So a user's positional argument to the script works but that isn't
+really option parsing.  I'd like to use a real command-line option with
+dashes.  How about a short option of `-n` and a long option of `--name`.
+I'll want the name stored in the variable "name" when all is said and
+done.
 
 I'll be using concorde's option parser, which means I'll need to know a
 bit about how it provides options to `mymain`.
 
-First, I'll be calling the parser before I call `mymain`. I'll provide
-it with the relevant information about the options I'm defining, as well
-as the positional arguments provided by the user.
+First, I'll be calling the parser in the global scope, before I call
+`mymain`. I'll provide it with the relevant information about the
+options I'm defining.  Then I'll also feed it the user's input arguments
 
-The option parser is the function `parse_options`. It wants an array of
-option definitions, where the option definitions themselves are an array
-of fields, followed by the user-provided arguments.
+The option parser is the function `parse_options`. First it wants an
+array of option definitions, where the option definitions themselves are
+an array of fields.
 
 The fields are:
 
@@ -574,6 +599,12 @@ Short or long can be omitted so long as at least one of them is defined.
 Help is there to remind us what the option is supposed to be, although
 it's not currently used for anything else.
 
+After the definitions, `parse_options` will want the user's actual
+arguments.
+
+Array Literals
+--------------
+
 If we were just defining a single option as an array, it would look
 like:
 
@@ -585,14 +616,14 @@ However, the option parser needs to take multiple such definitions,
 themselves stored in an array. Unfortunately, bash can only store
 strings in array elements, not other arrays.
 
+Message for You, Sir
+-------------------
+
 Here's where we get to one of those...\[sigh\]
 
 Concorde: Idioms, sir?
 
 Idioms! for which concorde is named.
-
-Array Literals
---------------
 
 The rule in concorde is that, when passing array values, they are passed
 as strings. This is convenient, since strings are the only thing that
@@ -635,20 +666,38 @@ values, you'd get:
 There is also a concorde function to help define the our option array,
 `get_here_ary` (the "ary" stands for "array"). `get_here_ary` takes a
 bash [here document] and returns an array composed of each line of the
-heredoc.
+heredoc.  It's as if you split the heredoc on newlines, then put each
+line into an array element (because that's what it does).
+
+Another Message for You, Sir
+----------------------------
 
 Actually, here we get to another couple concorde idioms. The first is
-that functions can only return strings, not arrays, so an array is
-returned as its literal, just like arrays being passed in. So far, so
-good, that should seem familiar.
+that array and hash values are always returned as literals. As we've
+already seen that's the same way arrays and hashes are passed into
+functions, so that should seem familiar.  Bash is good at passing
+strings.  Not so much other data structures.
 
 The second is slightly more tricky. Rather than use command substitution
 (the frequently seen `$()`) to capture string output into a variable,
 concorde prefers to put returned strings into the global variable `__`
 (double underscore). `__` is noted as a variable reserved by concorde
-for its own use.
+for its own use.  Now that you know how it's used, it's for your use as
+well.
 
-For example, here is the definition of two options:
+The caveat with `__` is that it changes all the time, so you can't rely
+on it to stay the same.  Any concorde function you call may store its
+return value there.  If you want to preserve that value, then you need
+to immediately assign it to another variable:
+
+``` bash
+myvalue=$__
+```
+
+`get_here_ary` Redux
+--------------------
+
+Here is the definition of two options:
 
 ``` bash
 get_here_ary <<'EOS'
@@ -663,7 +712,7 @@ returns the literal representation of the array in the global variable
 `__` (double-underscore).
 
 Notice that the values of the lines are themselves already array
-literals. This is how we pass an array of arrays with concorde.
+literals. That's how we can pass an array of arrays with concorde.
 
 `parse_options` and `grab`
 --------------------------
@@ -856,10 +905,74 @@ responsibilty.
 passed hash and passes that to `hello`. If no name was provided by the
 user, `$name` will exist but be empty.
 
-A Last Couple Points And...
+A Last Couple Points - or - TL;DR
 ---------------------------
 
-So we've got a pretty good skeleton for a script that can be TDD'd
+So we've got a pretty good skeleton for a script that can be TDD'd, has
+basic option parsing and can make use of libraries which don't clutter
+its global variable namespace.
+
+Here's a slightly more interesting version of `myscript` with some
+additions.  I've brought `hello` back in for conciseness:
+
+``` bash
+#!/usr/bin/env bash
+
+mymain () {
+  $(grab '( greeting mellow_flag )' from "$1"); shift
+  local argh
+  local name
+
+  (( mellow_flag )) && punctuation=.          # flags are boolean and can be evaluated in arithmetic context
+  stuff '( greeting punctuation )' into '()'  # return a hash literal with the keys/values of the named variables
+  argh=$__                                    # save it
+  (( ! $# )) && { hello argh; exit ;}         # run this and bail if no positional args provided
+  while (( $# )); do                          # consume positional args
+    name=$1
+    stuff name into argh                      # add name variable into earlier hash literal
+    hello __                                  # use double-underscore but don't save it
+    shift                                     # next arg
+  done
+}
+
+hello () {
+  $(grab '( greeting name punctuation )' from "$1") # receive arguments from a keyword hash
+
+  # defaults if blank
+  : ${greeting:=Hello}
+  : ${name:=world}
+  : ${punctuation:=!}
+  echo "$greeting, $name$punctuation"
+}
+
+usage () {
+  get_here_str <<'  EOS'
+    myscript OPTIONS [name...name...]
+
+    Outputs "Hello, world!" when run without options.
+
+    Outputs "Hello, [name]!" when provided with a name.
+
+    Multiple names result in multiple greetings, one per line.
+
+    Options:
+      --mellow        Don't use an exclamation mark
+      -g GREETING     Use GREETING instead of "Hello"
+  EOS
+  printf '\n\n%s\n' "$__"
+}
+
+sourced && return
+strict_mode on      # stop on errors and issue a traceback
+
+get_here_ary <<'EOS'
+  ( '' --mellow ''        "don't use an exclamation mark (flag)")
+  ( -g ''       greeting  "an alternative greeting to 'Hello'"  )
+EOS
+
+$(parse_options __ "$@")
+mymain __ "$@"
+```
 
 API
 ===
@@ -955,6 +1068,7 @@ EOS
 options_new __
 ```
 
+  [test-driven]: https://www.agilealliance.org/glossary/tdd
   [shpec]: https://github.com/rylnd/shpec
   [entr]: http://entrproject.org/
   [command substitution]: http://wiki.bash-hackers.org/syntax/expansion/cmdsubst
