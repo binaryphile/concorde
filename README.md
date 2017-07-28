@@ -539,7 +539,7 @@ I run:
 > shpec shpec/myscript_shpec.bash
 ```
 
-and the test fails.  Again, good.
+and the test fails. Again, good.
 
 Now to update `bin/myscript`:
 
@@ -568,8 +568,8 @@ Arguments vs Options and Command-line Parsing
 ---------------------------------------------
 
 So a user's positional argument to the script works but that isn't
-really option parsing.  I'd like to use a real command-line option with
-dashes.  How about a short option of `-n` and a long option of `--name`.
+really option parsing. I'd like to use a real command-line option with
+dashes. How about a short option of `-n` and a long option of `--name`.
 I'll want the name stored in the variable "name" when all is said and
 done.
 
@@ -578,7 +578,7 @@ bit about how it provides options to `mymain`.
 
 First, I'll be calling the parser in the global scope, before I call
 `mymain`. I'll provide it with the relevant information about the
-options I'm defining.  Then I'll also feed it the user's input arguments
+options I'm defining. Then I'll also feed it the user's input arguments
 
 The option parser is the function `parse_options`. First it wants an
 array of option definitions, where the option definitions themselves are
@@ -617,7 +617,7 @@ themselves stored in an array. Unfortunately, bash can only store
 strings in array elements, not other arrays.
 
 Message for You, Sir
--------------------
+--------------------
 
 Here's where we get to one of those...\[sigh\]
 
@@ -666,7 +666,7 @@ values, you'd get:
 There is also a concorde function to help define the our option array,
 `get_here_ary` (the "ary" stands for "array"). `get_here_ary` takes a
 bash [here document] and returns an array composed of each line of the
-heredoc.  It's as if you split the heredoc on newlines, then put each
+heredoc. It's as if you split the heredoc on newlines, then put each
 line into an array element (because that's what it does).
 
 Another Message for You, Sir
@@ -675,20 +675,20 @@ Another Message for You, Sir
 Actually, here we get to another couple concorde idioms. The first is
 that array and hash values are always returned as literals. As we've
 already seen that's the same way arrays and hashes are passed into
-functions, so that should seem familiar.  Bash is good at passing
-strings.  Not so much other data structures.
+functions, so that should seem familiar. Bash is good at passing
+strings. Not so much other data structures.
 
 The second is slightly more tricky. Rather than use command substitution
 (the frequently seen `$()`) to capture string output into a variable,
 concorde prefers to put returned strings into the global variable `__`
 (double underscore). `__` is noted as a variable reserved by concorde
-for its own use.  Now that you know how it's used, it's for your use as
+for its own use. Now that you know how it's used, it's for your use as
 well.
 
 The caveat with `__` is that it changes all the time, so you can't rely
-on it to stay the same.  Any concorde function you call may store its
-return value there.  If you want to preserve that value, then you need
-to immediately assign it to another variable:
+on it to stay the same. Any concorde function you call may store its
+return value there. If you want to preserve that value, then you need to
+immediately assign it to another variable:
 
 ``` bash
 myvalue=$__
@@ -906,14 +906,14 @@ passed hash and passes that to `hello`. If no name was provided by the
 user, `$name` will exist but be empty.
 
 A Last Couple Points - or - TL;DR
----------------------------
+---------------------------------
 
 So we've got a pretty good skeleton for a script that can be TDD'd, has
 basic option parsing and can make use of libraries which don't clutter
 its global variable namespace.
 
 Here's a slightly more interesting version of `myscript` with some
-additions.  I've brought `hello` back in for conciseness:
+additions. I've brought `hello` back in for conciseness:
 
 ``` bash
 #!/usr/bin/env bash
