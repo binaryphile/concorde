@@ -804,16 +804,33 @@ describe mymain
   [...]
 
   it "outputs 'Hello, [arg]!' if given an option"
-    result=$(mymain '( [name]=myname )')
+    result=$(mymain name=myname)
     assert equal "Hello, myname!" "$result"
   end
 end
 ```
 
-Remember that `grab` can take a literal as easily as a variable
-containing one, so that's what's provided in the call here.
+Ok, I'm cheating here again.  Here's another idiom, that of the succinct
+hash literal.
 
-`bin/myscript`:
+See that `mymain name=myname`?  That's a function call, followed by a
+hash literal.  Normally the hash literal would look like:
+
+``` bash
+'( [name]=myname )'
+```
+
+However, because hash literals require indices, they are a bit more
+unambiguous than array literals. Concorde's functions use this to be a
+bit more succinct in what they accept for hash literals.  The succinct
+form does away with the parentheses as well as the brackets around the
+key name.  So the following is a valid succinct hash literal:
+
+``` bash
+'name=myname other_key="other value"'
+```
+
+Back to `bin/myscript`:
 
 ``` bash
 [...]
@@ -833,6 +850,10 @@ mymain __ "$@"
 This passes the option hash and remaining positional arguments into
 `mymain` for processing. Usually that will be `mymain`'s primary
 responsibilty.
+
+`mymain` uses `grab` to get the only value it cares about from the
+passed hash and passes that to `hello`.  If no name was provided by the
+user, `$name` will exist but be empty.
 
 API
 ===
