@@ -181,7 +181,7 @@ to.
 
 That's because the test runs the script when it gets to its
 `source myscript` line, and that causes *all* of the actions in the
-script to occur. When testing, we just want to test the functions, not
+script to occur. When testing, we just want to load the functions, not
 run the script!
 
 Treating the Same File as Both Script and Library
@@ -912,16 +912,86 @@ So we've got a pretty good skeleton for a script that can be TDD'd, has
 basic option parsing and can make use of libraries which don't clutter
 its global variable namespace.
 
+Here's a template I might start with for a script:
+
+``` bash
+#!/usr/bin/env bash
+
+script_globals () {
+  # declare globals/constants in function so you can
+  # short-circuit or redefine easily during tests
+
+  get_here_ary <<'  EOS'
+    ( -o --option myoption "an option")
+  EOS
+  options=$__
+}
+
+script_main () {
+  $(grab '( variables )' from "$1"); shift
+
+  # consume positional arguments
+  while (( $# )); do
+    case $1 in
+      [something] )
+        [process this case]
+        ;;
+      * ) usage; exit;;
+    esac
+    shift
+  done
+}
+
+other_functions () {
+  ...
+}
+
+usage () {
+  echo "A usage message"
+}
+
+sourced && return
+strict_mode on                  # stop on errors and issue traceback
+
+script_globals                  # instantiate globals/constants
+$(parse_options options "$@")   # parse options
+script_main __ "$@"             # run it
+```
+
 Here's a slightly more interesting version of `myscript` with some
 additions. I've brought `hello` back in for conciseness:
 
 ``` bash
 #!/usr/bin/env bash
 
-mymain () {
+myscript_globals () {
+  get_here_str <<'  EOS'
+    myscript OPTIONS [name...name...]
+
+      Outputs "Hello, world!" when run without options.
+
+      Outputs "Hello, [name]!" when provided with a name.
+
+      Multiple names result in multiple greetings, one per line.
+
+      Options:
+        --mellow        Don't use an exclamation mark
+        -g GREETING     Use GREETING instead of "Hello"
+  EOS
+  printf -v usage '\n%s\n' "$__"
+
+  get_here_ary <<'  EOS'
+    ( '' --mellow ''        "don't use an exclamation mark (flag)")
+    ( -g ''       greeting  "an alternative greeting to 'Hello'"  )
+  EOS
+  options=$__
+}
+
+myscript_main () {
   $(grab '( greeting mellow_flag )' from "$1"); shift
   local argh
   local name
+  local punctuation
 
   (( mellow_flag )) && punctuation=.          # flags are boolean and can be evaluated in arithmetic context
   stuff '( greeting punctuation )' into '()'  # return a hash literal with the keys/values of the named variables
@@ -936,7 +1006,7 @@ mymain () {
 }
 
 hello () {
-  $(grab '( greeting name punctuation )' from "$1") # receive arguments from a keyword hash
+  $(grab '( greeting name punctuation )' from "$1")
 
   # defaults if blank
   : ${greeting:=Hello}
@@ -945,33 +1015,14 @@ hello () {
   echo "$greeting, $name$punctuation"
 }
 
-usage () {
-  get_here_str <<'  EOS'
-    myscript OPTIONS [name...name...]
-
-    Outputs "Hello, world!" when run without options.
-
-    Outputs "Hello, [name]!" when provided with a name.
-
-    Multiple names result in multiple greetings, one per line.
-
-    Options:
-      --mellow        Don't use an exclamation mark
-      -g GREETING     Use GREETING instead of "Hello"
-  EOS
-  printf '\n\n%s\n' "$__"
-}
+usage () { echo "$usage" ;}
 
 sourced && return
-strict_mode on      # stop on errors and issue a traceback
+strict_mode on
 
-get_here_ary <<'EOS'
-  ( '' --mellow ''        "don't use an exclamation mark (flag)")
-  ( -g ''       greeting  "an alternative greeting to 'Hello'"  )
-EOS
-
-$(parse_options __ "$@")
-mymain __ "$@"
+myscript_globals
+$(parse_options options "$@")
+myscript_main __ "$@"
 ```
 
 API
