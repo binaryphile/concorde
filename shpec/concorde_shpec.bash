@@ -194,6 +194,91 @@ describe grab
   end
 end
 
+describe is_set
+  it "is false if the variable is not set"; (
+    unset -v sample
+    is_set sample
+    assert unequal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "is true if the variable is empty"; (
+    sample=''
+    is_set sample
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "is true if the variable has a value"; (
+    sample=example
+    is_set sample
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "is false if the variable is an element of an unset array"; (
+    unset -v sample_ary
+    is_set sample_ary[0]
+    assert unequal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "is false if the variable is an unset array element"; (
+    unset -v sample_ary
+    sample_ary=()
+    is_set sample_ary[0]
+    assert unequal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "is true if the variable is an empty array element"; (
+    unset -v sample_ary
+    sample_ary=( '' )
+    is_set sample_ary[0]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "is true if the variable is an array element with a value"; (
+    unset -v sample_ary
+    sample_ary=( 'a value' )
+    is_set sample_ary[0]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "is false if the variable is an element of an unset hash"; (
+    unset -v sample_hsh
+    is_set sample_hsh[index]
+    assert unequal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "is false if the variable is an unset hash element"; (
+    unset -v sample_hsh
+    declare -A sample_hsh=()
+    is_set sample_hsh[zero]
+    assert unequal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "is true if the variable is an empty array element"; (
+    unset -v sample_hsh
+    declare -A sample_hsh=( [zero]='' )
+    is_set sample_hsh[zero]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "is true if the variable is an array element with a value"; (
+    unset -v sample_hsh
+    declare -A sample_hsh=( [zero]=0 )
+    is_set sample_hsh[zero]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+end
+
 describe local_hsh
   it "creates a local hash"; (
     result=$(local_hsh sample_hsh='( [zero]=0 )')

@@ -112,6 +112,8 @@ grab () {
 
 instantiate () { printf -v "$1" %s "$(eval "echo ${!1}")" ;}
 
+is_set () { [[ -n ${!1+x} ]] ;}
+
 feature () {
   local feature_name=$1; shift
   local depth=1
