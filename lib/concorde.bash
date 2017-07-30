@@ -105,7 +105,7 @@ grab () {
   local statement
 
   for var in "${var_ary[@]}"; do
-    printf -v statement '%sdeclare %s=%q\n' "${statement:-}" "$var" "${arg_hsh[$var]:-}"
+    is_set arg_hsh["$var"] && printf -v statement '%sdeclare %s=%q\n' "${statement:-}" "$var" "${arg_hsh[$var]:-}"
   done
   emit "$statement"
 }

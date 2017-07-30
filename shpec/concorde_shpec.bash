@@ -192,6 +192,21 @@ describe grab
     assert unequal 0 $?
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
   end
+
+  it "doesn't create the variable if not in the hash and doesn't exist"; (
+    unset -v sample
+    $(grab sample from '()')
+    declare -p sample >/dev/null 2>&1
+    assert unequal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
+
+  it "doesn't set the variable if not in the hash"; (
+    sample=example
+    $(grab sample from '()')
+    assert equal example "$sample"
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
 end
 
 describe is_set
