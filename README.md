@@ -917,26 +917,21 @@ Here's a template I might start with for a script:
 ``` bash
 #!/usr/bin/env bash
 
-script_globals () {
-  # declare globals/constants in function so you can
-  # short-circuit or redefine easily during tests
+get_here_str <<'EOS'
+  Usage message
+EOS
+printf -v usage '\n%s\n' "$__"
 
-  get_here_ary <<'  EOS'
-    ( -o --option myoption "an option")
-  EOS
-  options=$__
-}
+usage () { echo "$usage" ;}
 
 script_main () {
-  $(grab '( variables )' from "$1"); shift
+  $(grab '*' from "$1"); shift
 
   # consume positional arguments
   while (( $# )); do
     case $1 in
-      [something] )
-        [process this case]
-        ;;
-      * ) usage; exit;;
+      [something] ) [process this case] ;;
+      *           ) usage; exit         ;;
     esac
     shift
   done
@@ -946,16 +941,15 @@ other_functions () {
   ...
 }
 
-usage () {
-  echo "A usage message"
-}
-
 sourced && return
-strict_mode on                  # stop on errors and issue traceback
+strict_mode on              # stop on errors and issue traceback
 
-script_globals                  # instantiate globals/constants
-$(parse_options options "$@")   # parse options
-script_main __ "$@"             # run it
+get_here_ary <<'EOS'
+  ( -o --option myoption "an option")
+EOS
+
+$(parse_options __ "$@")    # parse options
+script_main     __ "$@"     # run it
 ```
 
 Here's a slightly more interesting version of `myscript` with some
@@ -964,54 +958,41 @@ additions. I've brought `hello` back in for conciseness:
 ``` bash
 #!/usr/bin/env bash
 
-myscript_globals () {
-  get_here_str <<'  EOS'
-    myscript OPTIONS [name...name...]
+get_here_str <<'EOS'
+  myscript OPTIONS [name...name...]
 
-      Outputs "Hello, world!" when run without options.
+    Outputs "Hello, world!" when run without options.
 
-      Outputs "Hello, [name]!" when provided with a name.
+    Outputs "Hello, [name]!" when provided with a name.
 
-      Multiple names result in multiple greetings, one per line.
+    Multiple names result in multiple greetings, one per line.
 
-      Options:
-        --mellow        Don't use an exclamation mark
-        -g GREETING     Use GREETING instead of "Hello"
-  EOS
-  printf -v usage '\n%s\n' "$__"
-
-  get_here_ary <<'  EOS'
-    ( '' --mellow ''        "don't use an exclamation mark (flag)")
-    ( -g ''       greeting  "an alternative greeting to 'Hello'"  )
-  EOS
-  options=$__
-}
+    Options:
+      --mellow        Don't use an exclamation mark
+      -g GREETING     Use GREETING instead of "Hello"
+EOS
+printf -v usage '\n%s\n' "$__"
 
 myscript_main () {
-  $(grab '( greeting mellow_flag )' from "$1"); shift
-  local argh
-  local name
+  $(grab '*' from "$1"); shift
   local punctuation
 
-  (( mellow_flag )) && punctuation=.          # flags are boolean and can be evaluated in arithmetic context
-  stuff '( greeting punctuation )' into '()'  # return a hash literal with the keys/values of the named variables
-  argh=$__                                    # save it
-  (( ! $# )) && { hello argh; exit ;}         # run this and bail if no positional args provided
-  while (( $# )); do                          # consume positional args
-    name=$1
-    stuff name into argh                      # add name variable into earlier hash literal
-    hello __                                  # use double-underscore but don't save it
-    shift                                     # next arg
+  (( mellow_flag )) && punctuation=. || punctuation=''
+
+  hello "${greeting:-}" "${1:-}" "$punctuation"
+  (( $# )) && shift
+
+  while (( $# )); do
+    hello "${greeting:-}" "$1" "$punctuation"
+    shift
   done
 }
 
 hello () {
-  $(grab '( greeting name punctuation )' from "$1")
+  local    greeting=${1:-Hello}
+  local        name=${2:-world}
+  local punctuation=${3:-!}
 
-  # defaults if blank
-  : ${greeting:=Hello}
-  : ${name:=world}
-  : ${punctuation:=!}
   echo "$greeting, $name$punctuation"
 }
 
@@ -1020,9 +1001,13 @@ usage () { echo "$usage" ;}
 sourced && return
 strict_mode on
 
-myscript_globals
-$(parse_options options "$@")
-myscript_main __ "$@"
+get_here_ary <<'EOS'
+  ( '' --mellow ''        "don't use an exclamation mark (flag)")
+  ( -g ''       greeting  "an alternative greeting to 'Hello'"  )
+EOS
+
+$(parse_options __ "$@")
+myscript_main   __ "$@"
 ```
 
 API
