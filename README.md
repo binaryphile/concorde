@@ -922,8 +922,6 @@ get_here_str <<'EOS'
 EOS
 printf -v usage '\n%s\n' "$__"
 
-usage () { echo "$usage" ;}
-
 script_main () {
   $(grab '*' from "$1"); shift
 
@@ -931,7 +929,7 @@ script_main () {
   while (( $# )); do
     case $1 in
       [something] ) [process this case] ;;
-      *           ) usage; exit         ;;
+                * ) echo "$usage"; exit ;;
     esac
     shift
   done
@@ -995,8 +993,6 @@ hello () {
 
   echo "$greeting, $name$punctuation"
 }
-
-usage () { echo "$usage" ;}
 
 sourced && return
 strict_mode on
