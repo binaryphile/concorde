@@ -569,9 +569,11 @@ Arguments vs Options and Command-line Parsing
 
 So a user's positional argument to the script works but that isn't
 really option parsing. I'd like to use a real command-line option with
-dashes. How about a short option of `-n` and a long option of `--name`.
-I'll want the name stored in the variable "name" when all is said and
-done.
+dashes.
+
+How about a new option which lets us specify the greeting, something
+other than "Hello"? We'll use a short option of `-g`. I'll want the
+greeting stored in the variable "greeting" when all is said and done.
 
 I'll be using concorde's option parser, which means I'll need to know a
 bit about how it provides options to `mymain`.
@@ -609,7 +611,7 @@ If we were just defining a single option as an array, it would look
 like:
 
 ``` bash
-option=(-n --name name 'a name to say hello to')
+option=( -g '' greeting "an alternative greeting to 'Hello'" )
 ```
 
 However, the option parser needs to take multiple such definitions,
@@ -727,12 +729,12 @@ Now we're ready to feed the options to the parser.
 sourced && return
 
 get_here_ary <<'EOS'
-  ( -n --name name 'the name to say hello to' )
+  ( -g --greeting greeting "an alternative greeting to 'Hello'" )
 EOS
 
-$(parse_options  __ "$@")
-$(grab name from __     )
-mymain "$name"
+$(parse_options __ "$@" )
+$(grab greeting from __ )
+mymain "$greeting" "$@"
 ```
 
 `parse_options` takes the option definition from `get_here_ary`, as well
@@ -756,17 +758,18 @@ contains the user-specified value that we will be saying "hello" to.
 If we run it, we see that it works:
 
 ``` bash
-> bin/myscript -n Clive
-Hello, Clive!
+> bin/myscript -g Hola
+Hola, world!
 
-> bin/myscript --name Jenny
-Hello, Jenny!
+> bin/myscript --greeting Hola Clive
+Hola, Clive!
 
-> bin/myscript --name=Ella
-Hello, Ella!
+> bin/myscript --greeting=Hola Jenny
+Hola, Jenny!
 ```
 
-Notice that all three forms of GNU-style options are covered.
+Notice that both GNU-style long options are acceptable, with and without
+equals sign.
 
 `parse_options` Again
 ---------------------
@@ -778,10 +781,11 @@ $(parse_options __ "$@")
 ```
 
 Above, I said that the first argument was the option literal stored in
-`__`. However, that would be `"$__"`. I've only given `__` here instead.
+`__`. However, that would be represented as `"$__"`, which isn't what
+I've done here. I've only given `__` instead.
 
-That's because `parse_options` has a special method of receiving its
-first argument, the option definition array.
+That's because `parse_options` has a special method of receiving the
+option definition array, because it is an array literal.
 
 We could have used `"$__"` in the call like:
 
@@ -789,51 +793,57 @@ We could have used `"$__"` in the call like:
 $(parse_options "$__" "$@")
 ```
 
-and `parse_options` will get the string value as a normal positional
-argument.
+and `parse_options` will get the array literal as a normal argument.
 
 However, concorde has another rule to make things more readable.
 Wherever concorde's functions expect an array or hash literal as an
-argument, they also accept the variable name which holds the string as
+argument, they also accept the variable name which holds the literal as
 an alternative. In this case, that's `__`.
 
 They can do this because there's no ambiguity between the two kinds of
-string. Literals always begin and end with parentheses, while variable
-names can't contain parentheses at all. Concorde's functions use its
-`local_ary` and `local_hsh` functions to detect the difference and store
-the correct value.
+string, variables and array literals. Variable names follow a strict,
+single-word format. By contrast, array and hash literals have characters
+which variable names can't, like parentheses and spaces.
+
+Concorde's functions use its `local_ary` and `local_hsh` functions to
+detect the difference and store the correct value.
 
 After the definitions, `parse_options` also expects the arguments passed
 to the script. That's the `"$@"` at the end of the call. These are all
-of the command-line arguments, including the option flags themselves as
-well as the values.
+of the command-line arguments as typed by the user, including the option
+flags themselves as well as the values.
 
 When `parse_options` returns, it sets `__` to the hash of all of the
-named arguments as well as flag arguments. The named arguments are keys
-with their values stored in the hash.
+options. In the case of options which store values the hash key is the
+name in the option definition.
 
-The flags are also keys, but with "\_flag" appended to their name. For
-example, if a flag option had a long name of "--option", its key in the
-hash would be "option\_flag". The same would be true of a short option
-(e.g. "o\_flag"), but if both a short and long name are provided for the
-same option, then it receives the long name as the key prefix.
+In the case of flag options, the hash key is the option itself but with
+"\_flag" appended to it. For example, if a flag option had a long name
+of "--option", its key in the hash would be "option\_flag". The same
+would be true of a short option (e.g. "o\_flag"), but if both a short
+and long name are provided for the same option, then it receives the
+long name as the key prefix.
 
 Flags are set to "1" if they are present, otherwise they are unset and
-not in the hash.
+not in the hash. Same with named options, if they aren't provided by the
+user, then the key is not in the hash.
 
 Either when all defined options are exhausted, or when the special
 option "--" is encountered, then option processing stops and the
 remainder of the arguments (if any) are treated as positional arguments.
 
-When `parse_options` returns, it resets the positional arguments (`$1`,
-etc.) to only contain the positional arguments determined by the parsing
-process. That is, it removes the flag and named options from the
-script's positional arguments. That's why the positional arguments may
-be passed to `mymain` if they are needed, like so:
+When `parse_options` returns, it resets the positional arguments of the
+caller (`$1`, etc.) to contain just the positional arguments left over
+from the parsing process. That is, it removes the flag and named options
+from the script's positional arguments. That's why the positional
+arguments must be passed to `mymain` if they are needed, like so:
 
 ``` bash
-mymain "$name" "$@"
+mymain "$greeting" "$@"
 ```
+
+The `"$@"` passed to `mymain` is no longer the same set of arguments
+which went into `$(parse_options __ "$@")` the line before.
 
 Reworking `mymain`
 ------------------
@@ -852,9 +862,9 @@ Let's do that. Of course, we'll need to update the test script first:
 describe mymain
   [...]
 
-  it "outputs 'Hello, [arg]!' if given an option"
-    result=$(mymain name=myname)
-    assert equal "Hello, myname!" "$result"
+  it "outputs '[Greeting], world!' if given an option"
+    result=$(mymain greeting=Hola)
+    assert equal "Hola, world!" "$result"
   end
 end
 ```
@@ -863,21 +873,22 @@ Ok, I'm cheating here again. Here's another idiom, that of the succinct
 hash literal. "Succinct hash literal" is only a name of my own invention
 and has no broader meaning, fyi.
 
-See that `mymain name=myname`? That's a function call, followed by a
+See that `mymain greeting=Hola`? That's a function call, followed by a
 hash literal. Normally the hash literal would look like:
 
 ``` bash
-'( [name]=myname )'
+'( [greeting]=Hola )'
 ```
 
 However, because hash literals require indices, they are a bit more
 unambiguous than array literals. Concorde's functions use this to be
 more succinct in what they accept for hash literals. The succinct form
 does away with the parentheses as well as the brackets around the key
-name. So the following is a valid succinct hash literal:
+name. So the following is a valid succinct hash literal (note the fact
+that it is in quotes so that it is a single string):
 
 ``` bash
-'name=myname other_key="other value"'
+'greeting=Hola other_key="other value"'
 ```
 
 Back to `bin/myscript`:
@@ -886,9 +897,9 @@ Back to `bin/myscript`:
 [...]
 
 mymain () {
-  $(grab name from "$1")
+  $(grab greeting from "$1"); shift
 
-  hello "$name"
+  hello "$greeting" "$@"
 }
 
 [...]
@@ -902,15 +913,15 @@ This passes the option hash and remaining positional arguments into
 responsibilty.
 
 `mymain` uses `grab` to get the only value it cares about from the
-passed hash and passes that to `hello`. If no name was provided by the
-user, `$name` will exist but be empty.
+passed hash and passes that to `hello`. If no greeting was provided by
+the user, `$greeting` will exist but be empty.
 
 A Last Couple Points - or - TL;DR
 ---------------------------------
 
 So we've got a pretty good skeleton for a script that can be TDD'd, has
-basic option parsing and can make use of libraries which don't clutter
-its global variable namespace.
+basic option parsing and can make use of libraries designed to keep our
+global namespace clean.
 
 Here's a template I might start with for a script:
 
@@ -918,12 +929,13 @@ Here's a template I might start with for a script:
 #!/usr/bin/env bash
 
 get_here_str <<'EOS'
-  Usage message
+  Detailed usage message goes here
 EOS
 printf -v usage '\n%s\n' "$__"
 
 script_main () {
-  $(grab '*' from "$1"); shift
+  local opt1="default value for opt1"
+  $(grab '( opt1 opt2_flag )' from "$1"); shift
 
   # consume positional arguments
   while (( $# )); do
@@ -943,15 +955,17 @@ sourced && return
 strict_mode on              # stop on errors and issue traceback
 
 get_here_ary <<'EOS'
-  ( -o --option myoption "an option")
+  ( -o --opt1   opt1     "an option")
+  ( '' --opt2   ''       "a flag"   )
 EOS
 
 $(parse_options __ "$@")    # parse options
 script_main     __ "$@"     # run it
 ```
 
-Here's a slightly more interesting version of `myscript` with some
-additions. I've brought `hello` back in for conciseness:
+For a more concrete example, here's a slightly more interesting version
+of `myscript` with some additions. I've brought `hello` back in for
+conciseness:
 
 ``` bash
 #!/usr/bin/env bash
@@ -974,16 +988,16 @@ EOS
 printf -v usage '\n%s\n' "$__"
 
 myscript_main () {
-  $(grab '*' from "$1"); shift
+  $(grab '( greeting mellow_flag )' from "$1"); shift
   local punctuation
 
   (( mellow_flag )) && punctuation=. || punctuation=''
 
-  hello "${greeting:-}" "${1:-}" "$punctuation"
+  hello "$greeting" "${1:-}" "$punctuation"
   (( $# )) && shift
 
   while (( $# )); do
-    hello "${greeting:-}" "$1" "$punctuation"
+    hello "$greeting" "$1" "$punctuation"
     shift
   done
 }

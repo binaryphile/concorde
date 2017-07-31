@@ -329,7 +329,7 @@ require_relative () {
   emit "source $file $@"
 }
 
-sourced () { [[ ${FUNCNAME[@]: -1} == 'source' ]] ;}
+sourced () { [[ ${FUNCNAME[1]} == 'source' ]] ;}
 
 strict_mode () {
   local status=$1
