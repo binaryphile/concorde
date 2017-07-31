@@ -195,25 +195,31 @@ describe grab
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
   end
 
-  it "creates the variable if not in the hash"; (
-    unset -v sample
-    $(grab sample from '()')
-    declare -p sample >/dev/null 2>&1
-    assert equal 0 $?
-    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-  end
-
   it "generates nothing if given '*' on an empty hash"; (
     result=$(grab '*' from '()')
     assert equal '' "$result"
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
   end
+
+  it "doesn't set the variable if not in the hash and the variable is set locally"; (
+    declare sample=example
+    $(grab sample from '()')
+    assert equal example "$sample"
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
+
+  it "creates the variable if not in the hash and the variable is not set locally"; (
+    unset -v sample
+    $(grab sample from '()')
+    is_set sample
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
 end
 
-describe is_local
+describe in_scope
   it "doesn't set a global"; (
-    unset -v sample
-    sample_func () { local sample=one; $(is_local sample) ;}
+    sample_func () { local sample=one; $(in_scope sample) ;}
     ! is_set sample
     assert equal 0 $?
     return "$_shpec_failures"); : $(( _shpec_failures += $? ))
@@ -221,7 +227,8 @@ describe is_local
 
   it "doesn't change a global"; (
     declare -g sample=blah
-    sample_func () { local sample=one; $(is_local sample) ;}
+    [[ $sample == 'blah' ]]
+    sample_func () { local sample=one; $(in_scope sample) ;}
     sample_func
     assert equal blah "$sample"
     return "$_shpec_failures"); : $(( _shpec_failures += $? ))
@@ -229,7 +236,8 @@ describe is_local
 
   it "returns true if the variable is a local and there is a global"; (
     declare -g sample=blah
-    sample_func () { local sample=one; $(is_local sample) ;}
+    [[ $sample == 'blah' ]]
+    sample_func () { local sample=one; $(in_scope sample) ;}
     sample_func
     assert equal 0 $?
     return "$_shpec_failures"); : $(( _shpec_failures += $? ))
@@ -237,23 +245,24 @@ describe is_local
 
   it "returns false if the variable is not a local and there is a global"; (
     declare -g sample=blah
-    sample_func () { $(is_local sample) ;}
+    [[ $sample == 'blah' ]]
+    sample_func () { $(in_scope sample) ;}
     sample_func && result=$? || result=$?
     assert unequal 0 "$result"
     return "$_shpec_failures"); : $(( _shpec_failures += $? ))
   end
 
   it "returns true if the variable is a local and there is no global"; (
-    unset -v sample
-    sample_func () { local sample=one; $(is_local sample) ;}
+    ! is_set sample
+    sample_func () { local sample=one; $(in_scope sample) ;}
     sample_func
     assert equal 0 $?
     return "$_shpec_failures"); : $(( _shpec_failures += $? ))
   end
 
   it "returns false if the variable is not a local and there is no global"; (
-    unset -v sample
-    sample_func () { $(is_local sample) ;}
+    ! is_set sample
+    sample_func () { $(in_scope sample) ;}
     sample_func && result=$? || result=$?
     assert unequal 0 "$result"
     return "$_shpec_failures"); : $(( _shpec_failures += $? ))
@@ -262,9 +271,9 @@ describe is_local
   it "returns true if the variable is a global and executed in global scope"; (
     get_here_str <<'    EOS'
       source concorde.bash
-      unset -v sample
+      ! is_set sample
       sample=one
-      $(is_local sample)
+      $(in_scope sample)
     EOS
     bash -c "$__"
     assert equal 0 $?

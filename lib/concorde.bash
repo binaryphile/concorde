@@ -101,19 +101,19 @@ grab () {
     '*'     ) local -a var_ary=( "${!arg_hsh[@]}" ) ;;
     *       ) local -a var_ary=( "$1"             ) ;;
   esac
-  local var
   local statement
+  local var
 
   (( ${#var_ary[@]} )) || return 0
   for var in "${var_ary[@]}"; do
-    printf -v statement '%sdeclare %s=%q\n' "${statement:-}" "$var" "${arg_hsh[$var]:-}"
+    is_set arg_hsh["$var"] && \
+      printf -v statement '%sdeclare %s=%q\n'                   "${statement:-}" "$var"         "${arg_hsh[$var]:-}" || \
+      printf -v statement '%s$(in_scope %s) || declare %s=%q\n' "${statement:-}" "$var" "$var"  "${arg_hsh[$var]:-}"
   done
   emit "$statement"
 }
 
-instantiate () { printf -v "$1" %s "$(eval "echo ${!1}")" ;}
-
-is_local () {
+in_scope () {
   get_here_str <<'  EOS'
     is_set %s                         && \
       {
@@ -131,6 +131,8 @@ is_local () {
   printf -v __ "$__" "$1" "$1" "$1" "$1" "$1"
   emit "$__"
 }
+
+instantiate () { printf -v "$1" %s "$(eval "echo ${!1}")" ;}
 
 is_set () {
   set -- "$1" "${1%%[*}"
