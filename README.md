@@ -317,7 +317,7 @@ parsing, even though they aren't currently needed.
 
 Now we could test `mymain` in `myscript_shpec.bash`, but I think we'll
 hold off until it does something more than just call `hello`. We've
-already got testing `hello` covered.
+already got `hello`'s tests covered.
 
 Sourcing Features Correctly
 ---------------------------
@@ -572,8 +572,9 @@ really option parsing. I'd like to use a real command-line option with
 dashes.
 
 How about a new option which lets us specify the greeting, something
-other than "Hello"? We'll use a short option of `-g`. I'll want the
-greeting stored in the variable "greeting" when all is said and done.
+other than "Hello"? We'll use a short option of `-g` and a long option
+of `--greeting`. I'll want the greeting stored in the variable
+"greeting" when all is said and done.
 
 I'll be using concorde's option parser, which means I'll need to know a
 bit about how it provides options to `mymain`.
@@ -611,7 +612,7 @@ If we were just defining a single option as an array, it would look
 like:
 
 ``` bash
-option=( -g '' greeting "an alternative greeting to 'Hello'" )
+option=( -g --greeting greeting "an alternative greeting to 'Hello'" )
 ```
 
 However, the option parser needs to take multiple such definitions,
@@ -739,8 +740,8 @@ mymain "$greeting" "$@"
 
 `parse_options` takes the option definition from `get_here_ary`, as well
 as the arguments provided on the command line. It generates a hash with
-the name of our option, "name", as a key and the user-supplied input for
-that option as its value.
+the name of our option, "greeting", as a key and the user-supplied input
+for that option as its value.
 
 Of course, since it's being returned by `parse_options`, the hash is
 returned as a hash literal (like an array literal, but keys are strings
@@ -752,8 +753,9 @@ our key and gets it from the hash. By "getting", I mean that it creates
 a local variable of the same name as the key, with the key's value as
 its own value.
 
-As you can see, the local variable "name" is then passed to `mymain`. It
-contains the user-specified value that we will be saying "hello" to.
+As you can see, the local variable "greeting" is then passed to
+`mymain`. It contains the user-specified value that we will be saying
+"hello" to.
 
 If we run it, we see that it works:
 
@@ -801,9 +803,10 @@ argument, they also accept the variable name which holds the literal as
 an alternative. In this case, that's `__`.
 
 They can do this because there's no ambiguity between the two kinds of
-string, variables and array literals. Variable names follow a strict,
-single-word format. By contrast, array and hash literals have characters
-which variable names can't, like parentheses and spaces.
+string, variable name and array literal. Variable names follow a strict,
+single-word format, limited to underscores and alphanumerics. By
+contrast, array and hash literals have characters which variable names
+can't, like parentheses and spaces.
 
 Concorde's functions use its `local_ary` and `local_hsh` functions to
 detect the difference and store the correct value.
