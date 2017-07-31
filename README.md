@@ -956,6 +956,8 @@ additions. I've brought `hello` back in for conciseness:
 ``` bash
 #!/usr/bin/env bash
 
+source concorde.bash
+
 get_here_str <<'EOS'
   myscript OPTIONS [name...name...]
 

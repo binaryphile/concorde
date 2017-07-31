@@ -45,7 +45,7 @@ bring () { (
   emit "$__"
 ) }
 
-die () { [[ -n $1 ]] && puterr "$1"; exit "${2:-1}" ;}
+die () { [[ -n ${1:-} ]] && puterr "$1"; exit "${2:-1}" ;}
 
 emit () { printf 'eval eval %q\n' "$1" ;}
 
@@ -104,15 +104,34 @@ grab () {
   local var
   local statement
 
+  (( ${#var_ary[@]} )) || return 0
   for var in "${var_ary[@]}"; do
-    is_set arg_hsh["$var"] && printf -v statement '%sdeclare %s=%q\n' "${statement:-}" "$var" "${arg_hsh[$var]:-}"
+    printf -v statement '%sdeclare %s=%q\n' "${statement:-}" "$var" "${arg_hsh[$var]:-}"
   done
   emit "$statement"
 }
 
 instantiate () { printf -v "$1" %s "$(eval "echo ${!1}")" ;}
 
-is_set () { [[ -n ${!1+x} ]] ;}
+is_local () {
+  get_here_str <<'  EOS'
+    is_set %s || return
+    (
+      declare -g %s=$'sigil\037'
+      [[ $%s != $'sigil\037' ]] || return
+      unset -v %s
+      ! is_set %s
+    )
+  EOS
+  printf -v __ "$__" "$1" "$1" "$1" "$1" "$1"
+  emit "$__"
+}
+
+is_set () {
+  set -- "$1" "${1%%[*}"
+  declare -p "$2" >/dev/null 2>&1 || return
+  [[ -n ${!1+x} ]]
+}
 
 feature () {
   local feature_name=$1; shift
@@ -157,7 +176,9 @@ local_hsh () {
 
   name=${first%%=*}
   (( $# )) && value="${first#*=} $*" || value=${first#*=}
-  [[ $value =~ ^[_[:alpha:]][_[:alnum:]]*(\[.+])?$ ]] && value=${!value}
+  [[ $value =~ ^[_[:alpha:]][_[:alnum:]]*(\[.+])?$ ]] && {
+    is_set "$value" && value=${!value} || value=''
+  }
   [[ $value == '('*')' ]] && { emit "declare -A $name=$value"; return ;}
   for item in $value; do
     [[ $item == *?=* ]] || return
@@ -340,6 +361,7 @@ stuff () {
 }
 
 traceback () {
+  set +o xtrace
   local frame
   local val
 

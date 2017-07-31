@@ -2,10 +2,12 @@ library=../lib/concorde.bash
 source "$library" 2>/dev/null || source "${BASH_SOURCE%/*}/$library"
 unset -v library
 
+strict_mode on
+
 describe assign
   it "errors if \$2 isn't 'to'"
-    $(assign one two three)
-    assert unequal $? 0
+    $(assign one two three) && result=$? || result=$?
+    assert unequal 0 "$result"
   end
 
   it "accepts array literals"; (
@@ -37,8 +39,8 @@ end
 
 describe bring
   it "errors if \$2 isn't 'from'"
-    $(bring one two three)
-    assert unequal $? 0
+    $(bring one two three) && result=$? || result=$?
+    assert unequal 0 "$result"
   end
 
   it "accepts a literal list of functions"; (
@@ -80,26 +82,26 @@ end
 
 describe die
   it "exits without an error message"; (
-    result=$(die 2>&1)
+    result=$(die 2>&1) ||:
     assert equal '' "$result"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
   it "exits with a default error code of 1"; (
-    (die 2>&1)
-    assert equal 1 $?
+    (die 2>&1) && result=$? || result=$?
+    assert equal 1 "$result"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
   it "exits with an error message"; (
-    result=$(die 'aaaaagh' 2>&1)
+    result=$(die 'aaaaagh' 2>&1) ||:
     assert equal 'Error: aaaaagh' "$result"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
   it "exits with an error code"; (
-    (die '' 2 2>&1)
-    assert equal 2 $?
+    (die '' 2 2>&1) && result=$? || result=$?
+    assert equal 2 "$result"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 end
@@ -141,79 +143,128 @@ end
 
 describe grab
   it "instantiates a key/value pair from a hash literal as a local"; (
-    $(grab one from '([one]=1)')
+    $(grab one from '( [one]=1 )')
     assert equal 1 "$one"
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
   end
 
   it "instantiates more than one key/value pair from a hash literal"; (
-    $(grab '(one two)' from '([one]=1 [two]=2)')
+    $(grab '( one two )' from '( [one]=1 [two]=2 )')
     assert equal '1 2' "$one $two"
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
   end
 
   it "instantiates all key/value pairs from a hash literal"; (
-    $(grab '*' from '([one]=1 [two]=2 [three]=3)')
+    $(grab '*' from '( [one]=1 [two]=2 [three]=3 )')
     assert equal '1 2 3' "$one $two $three"
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
   end
 
   it "instantiates a key/value pair from a hash literal reference"; (
-    sample='([one]=1)'
+    sample='( [one]=1 )'
     $(grab one from sample)
     assert equal 1 "$one"
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
   end
 
   it "instantiates more than one key/value pair from a hash literal reference"; (
-    sample='([one]=1 [two]=2)'
-    $(grab '(one two)' from sample)
+    sample='( [one]=1 [two]=2 )'
+    $(grab '( one two )' from sample)
     assert equal '1 2' "$one $two"
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
   end
 
   it "instantiates all key/value pairs from a hash literal reference"; (
-    sample='([one]=1 [two]=2 [three]=3)'
+    sample='( [one]=1 [two]=2 [three]=3 )'
     $(grab '*' from sample)
     assert equal '1 2 3' "$one $two $three"
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
   end
 
-  it "errors if \$3 isn't 'from'"; (
-    grab one two
-    assert unequal 0 $?
+  it "errors if \$2 isn't 'from'"; (
+    grab one two && result=$? || result=$?
+    assert unequal 0 "$result"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
   it "doesn't work if the first argument is a reference"; (
     sample=one
     result=$(grab sample from '([one]=1)')
-    declare -p one >/dev/null 2>&1
-    assert unequal 0 $?
+    declare -p one >/dev/null 2>&1 && result=$? || result=$?
+    assert unequal 0 "$result"
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
   end
 
-  it "doesn't create the variable if not in the hash and doesn't exist"; (
+  it "creates the variable if not in the hash"; (
     unset -v sample
     $(grab sample from '()')
     declare -p sample >/dev/null 2>&1
-    assert unequal 0 $?
+    assert equal 0 $?
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
   end
 
-  it "doesn't set the variable if not in the hash"; (
-    sample=example
-    $(grab sample from '()')
-    assert equal example "$sample"
+  it "generates nothing if given '*' on an empty hash"; (
+    result=$(grab '*' from '()')
+    assert equal '' "$result"
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
+end
+
+describe is_local
+  it "doesn't set a global"; (
+    unset -v sample
+    sample_func () { local sample=one; $(is_local sample) ;}
+    ! is_set sample
+    assert equal 0 $?
+    return "$_shpec_failures"); : $(( _shpec_failures += $? ))
+  end
+
+  it "doesn't change a global"; (
+    declare -g sample=blah
+    sample_func () { local sample=one; $(is_local sample) ;}
+    sample_func
+    assert equal blah "$sample"
+    return "$_shpec_failures"); : $(( _shpec_failures += $? ))
+  end
+
+  it "returns true if the variable is a local and there is a global"; (
+    declare -g sample=blah
+    sample_func () { local sample=one; $(is_local sample) ;}
+    sample_func
+    assert equal 0 $?
+    return "$_shpec_failures"); : $(( _shpec_failures += $? ))
+  end
+
+  it "returns false if the variable is not a local and there is a global"; (
+    declare -g sample=blah
+    sample_func () { $(is_local sample) ;}
+    sample_func && result=$? || result=$?
+    assert unequal 0 "$result"
+    return "$_shpec_failures"); : $(( _shpec_failures += $? ))
+  end
+
+  it "returns true if the variable is a local and there is no global"; (
+    unset -v sample
+    sample_func () { local sample=one; $(is_local sample) ;}
+    sample_func
+    assert equal 0 $?
+    return "$_shpec_failures"); : $(( _shpec_failures += $? ))
+  end
+
+  it "returns false if the variable is not a local and there is no global"; (
+    unset -v sample
+    sample_func () { $(is_local sample) ;}
+    sample_func && result=$? || result=$?
+    assert unequal 0 "$result"
+    return "$_shpec_failures"); : $(( _shpec_failures += $? ))
   end
 end
 
 describe is_set
   it "is false if the variable is not set"; (
     unset -v sample
-    is_set sample
-    assert unequal 0 $?
+    is_set sample && result=$? || result=$?
+    assert unequal 0 "$result"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
@@ -233,16 +284,16 @@ describe is_set
 
   it "is false if the variable is an element of an unset array"; (
     unset -v sample_ary
-    is_set sample_ary[0]
-    assert unequal 0 $?
+    is_set sample_ary[0] && result=$? || result=$?
+    assert unequal 0 "$result"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
   it "is false if the variable is an unset array element"; (
     unset -v sample_ary
     sample_ary=()
-    is_set sample_ary[0]
-    assert unequal 0 $?
+    is_set sample_ary[0] && result=$? || result=$?
+    assert unequal 0 "$result"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
@@ -264,16 +315,16 @@ describe is_set
 
   it "is false if the variable is an element of an unset hash"; (
     unset -v sample_hsh
-    is_set sample_hsh[index]
-    assert unequal 0 $?
+    is_set sample_hsh[index] && result=$? || result=$?
+    assert unequal 0 "$result"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
   it "is false if the variable is an unset hash element"; (
     unset -v sample_hsh
     declare -A sample_hsh=()
-    is_set sample_hsh[zero]
-    assert unequal 0 $?
+    is_set sample_hsh[zero] && result=$? || result=$?
+    assert unequal 0 "$result"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
