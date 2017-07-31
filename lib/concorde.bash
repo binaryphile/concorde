@@ -115,13 +115,18 @@ instantiate () { printf -v "$1" %s "$(eval "echo ${!1}")" ;}
 
 is_local () {
   get_here_str <<'  EOS'
-    is_set %s || return
-    (
-      declare -g %s=$'sigil\037'
-      [[ $%s != $'sigil\037' ]] || return
-      unset -v %s
-      ! is_set %s
-    )
+    is_set %s                         && \
+      {
+        (( ! ${#FUNCNAME[@]} ))       || \
+          (
+            declare -g %s=$'sigil\037'
+            [[ $%s != $'sigil\037' ]] && \
+              {
+                unset -v %s
+                ! is_set %s
+              }
+          )
+      }
   EOS
   printf -v __ "$__" "$1" "$1" "$1" "$1" "$1"
   emit "$__"

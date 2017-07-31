@@ -258,6 +258,18 @@ describe is_local
     assert unequal 0 "$result"
     return "$_shpec_failures"); : $(( _shpec_failures += $? ))
   end
+
+  it "returns true if the variable is a global and executed in global scope"; (
+    get_here_str <<'    EOS'
+      source concorde.bash
+      unset -v sample
+      sample=one
+      $(is_local sample)
+    EOS
+    bash -c "$__"
+    assert equal 0 $?
+    return "$_shpec_failures"); : $(( _shpec_failures += $? ))
+  end
 end
 
 describe is_set
