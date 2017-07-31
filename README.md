@@ -853,7 +853,8 @@ Reworking `mymain`
 
 Usually, I will pass the option hash as well as the positional arguments
 for `mymain` to handle, since `mymain` will usually have several options
-to deal with, and that's easier than passing them onesy-twosy.
+to deal with, and that's easier than passing them onesy-twosy. It also
+keeps the global namespace cleaner.
 
 Let's do that. Of course, we'll need to update the test script first:
 
@@ -873,8 +874,8 @@ end
 ```
 
 Ok, I'm cheating here again. Here's another idiom, that of the succinct
-hash literal. "Succinct hash literal" is only a name of my own invention
-and has no broader meaning, fyi.
+hash literal. "Succinct hash literal" is a descriptive name of my own
+and has no broader meaning, by the way.
 
 See that `mymain greeting=Hola`? That's a function call, followed by a
 hash literal. Normally the hash literal would look like:
@@ -926,7 +927,8 @@ So we've got a pretty good skeleton for a script that can be TDD'd, has
 basic option parsing and can make use of libraries designed to keep our
 global namespace clean.
 
-Here's a template I might start with for a script:
+Here's a template I might start with for a script. Much of it is
+pseudo-code and meant to be descriptive rather than taken literally:
 
 ``` bash
 #!/usr/bin/env bash
