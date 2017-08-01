@@ -110,7 +110,7 @@ end
 ```
 
 Don't worry about the shpec syntax for the moment. It's just regular
-bash. Shpec tries to make itself look like ruby by providing ruby-like
+bash. shpec tries to make itself look like ruby by providing ruby-like
 function names as well as encouraging ruby-like indentation. However,
 bash doesn't care about the indentation.
 
@@ -190,7 +190,7 @@ Treating the Same File as Both Script and Library
 A script runs and accomplishes a task. A library provides functions for
 scripts but doesn't usually do anything itself.
 
-Shpec needs to treat the script as a library however. Can we have a
+shpec needs to treat the script as a library however. Can we have a
 script that acts like a library too? (Spoiler: yes)
 
 I'll add concorde and call one of its functions:
@@ -457,8 +457,10 @@ hello () {
 ```
 
 This is actually already useful for our example, since both `myscript`
-and `hello.bash` load concorde. Concorde employs its own feature
-protection to make sure it is not loaded multiple times itself.
+and `hello.bash` load concorde. Since `myscript` loads `hello.bash`, it
+has the effect of loading concorde twice. Concorde employs its own
+feature protection to make sure it is not actually loaded multiple
+times.
 
 Hello, name!
 ------------
@@ -564,17 +566,60 @@ I run:
 
 and the test passes.
 
+Going Mulitlingual
+------------------
+
+In prep for our next step, let's add another argument to `hello`, the
+ability to specify a greeting instead of "Hello".
+
+First, the test. I'll have to modify the prior test to make room for the
+new argument:
+
+`shpec/hello_shpec.bash`:
+
+``` bash
+[...]
+
+describe hello
+  [...]
+
+  it "outputs 'Hello, [arg]!' if an argument"
+    result=$(hello '' myname)
+    assert equal "Hello, myname!" "$result"
+  end
+
+  it "outputs 'Hola, world!' if given a greeting"
+    result=$(hello Hola)
+    assert equal "Hola, world!" "$result"
+  end
+end
+```
+
+`lib/hello.bash`:
+
+``` bash
+[...]
+
+hello () {
+  local greeting=${1:-Hello}
+  local     name=${2:-world}
+
+  echo "$greeting, $name!"
+}
+```
+
+Now we're ready for the next step.
+
 Arguments vs Options and Command-line Parsing
 ---------------------------------------------
 
-So a user's positional argument to the script works but that isn't
-really option parsing. I'd like to use a real command-line option with
-dashes.
+So a "name" argument to the script works, but that isn't really option
+parsing. I'd like to use a real command-line option with dashes.
 
-How about a new option which lets us specify the greeting, something
-other than "Hello"? We'll use a short option of `-g` and a long option
-of `--greeting`. I'll want the greeting stored in the variable
-"greeting" when all is said and done.
+How about a new option which lets us specify the greeting we just
+implemented. We'll use a short option of `-g` and a long option of
+`--greeting`. I'll want the greeting stored in the variable "greeting"
+when all is said and done.
 
 I'll be using concorde's option parser, which means I'll need to know a
 bit about how it provides options to `mymain`.
@@ -763,11 +808,11 @@ If we run it, we see that it works:
 > bin/myscript -g Hola
 Hola, world!
 
-> bin/myscript --greeting Hola Clive
-Hola, Clive!
+> bin/myscript --greeting Bonjour Clive
+Bonjour, Clive!
 
-> bin/myscript --greeting=Hola Jenny
-Hola, Jenny!
+> bin/myscript --greeting=Hallo Jenny
+Hallo, Jenny!
 ```
 
 Notice that both GNU-style long options are acceptable, with and without
@@ -817,15 +862,15 @@ of the command-line arguments as typed by the user, including the option
 flags themselves as well as the values.
 
 When `parse_options` returns, it sets `__` to the hash of all of the
-options. In the case of options which store values the hash key is the
-name in the option definition.
+options. In the case of options which store values, the hash keys are
+the variable names given in the option definitions.
 
-In the case of flag options, the hash key is the option itself but with
-"\_flag" appended to it. For example, if a flag option had a long name
-of "--option", its key in the hash would be "option\_flag". The same
-would be true of a short option (e.g. "o\_flag"), but if both a short
-and long name are provided for the same option, then it receives the
-long name as the key prefix.
+In the case of flag options, the returned hash key is the option name
+itself but with "\_flag" appended to it. For example, if a flag option
+had a long name of "--option", its key in the hash would be
+"option\_flag". The same would be true of a short option (e.g.
+"o\_flag"). If both a short and long name are provided for the same
+option, then the long name is the key prefix.
 
 Flags are set to "1" if they are present, otherwise they are unset and
 not in the hash. Same with named options, if they aren't provided by the
@@ -838,8 +883,10 @@ remainder of the arguments (if any) are treated as positional arguments.
 When `parse_options` returns, it resets the positional arguments of the
 caller (`$1`, etc.) to contain just the positional arguments left over
 from the parsing process. That is, it removes the flag and named options
-from the script's positional arguments. That's why the positional
-arguments must be passed to `mymain` if they are needed, like so:
+from the script's positional arguments.
+
+That's why the positional arguments must be passed to `mymain` if they
+are needed, like so:
 
 ``` bash
 mymain "$greeting" "$@"
@@ -851,10 +898,10 @@ which went into `$(parse_options __ "$@")` the line before.
 Reworking `mymain`
 ------------------
 
-Usually, I will pass the option hash as well as the positional arguments
-for `mymain` to handle, since `mymain` will usually have several options
-to deal with, and that's easier than passing them onesy-twosy. It also
-keeps the global namespace cleaner.
+Usually, I will pass the option hash as well as the remaining positional
+arguments for `mymain` to handle. `mymain` will usually have several
+options to deal with, and that's easier than passing them onesy-twosy.
+It also keeps the global namespace clean.
 
 Let's do that. Of course, we'll need to update the test script first:
 
@@ -886,10 +933,11 @@ hash literal. Normally the hash literal would look like:
 
 However, because hash literals require indices, they are a bit more
 unambiguous than array literals. Concorde's functions use this to be
-more succinct in what they accept for hash literals. The succinct form
-does away with the parentheses as well as the brackets around the key
-name. So the following is a valid succinct hash literal (note the fact
-that it is in quotes so that it is a single string):
+more succinct in what they accept for hash literals.
+
+The succinct form does away with the parentheses as well as the brackets
+around the key name. So the following is a valid succinct hash literal
+(note the fact that it is in quotes so that it is a single string):
 
 ``` bash
 'greeting=Hola other_key="other value"'
@@ -927,7 +975,7 @@ So we've got a pretty good skeleton for a script that can be TDD'd, has
 basic option parsing and can make use of libraries designed to keep our
 global namespace clean.
 
-Here's a template I might start with for a script. Much of it is
+Here's a template I might start with for a script. Some of it is
 pseudo-code and meant to be descriptive rather than taken literally:
 
 ``` bash
