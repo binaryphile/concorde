@@ -964,9 +964,9 @@ This passes the option hash and remaining positional arguments into
 `mymain` for processing. Usually that will be `mymain`'s primary
 responsibilty.
 
-`mymain` uses `grab` to get the only value it cares about from the
-passed hash and passes that to `hello`. If no greeting was provided by
-the user, `$greeting` will exist but be empty.
+`mymain` uses `grab` to get the value it cares about from the passed
+hash and passes that to `hello`. If no greeting was provided by the
+user, `$greeting` will exist but be empty.
 
 A Last Couple Points - or - TL;DR
 ---------------------------------
