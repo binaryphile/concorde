@@ -1177,3 +1177,4 @@ options_new __
   [entr]: http://entrproject.org/
   [command substitution]: http://wiki.bash-hackers.org/syntax/expansion/cmdsubst
   [here document]: http://wiki.bash-hackers.org/syntax/redirection#here_documents
+
