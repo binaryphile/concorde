@@ -893,7 +893,8 @@ mymain "$greeting" "$@"
 ```
 
 The `"$@"` passed to `mymain` is no longer the same set of arguments
-which went into `$(parse_options __ "$@")` the line before.
+which went into `$(parse_options __ "$@")` the line before, it is only
+the arguments not consumed by the options parser.
 
 Reworking `mymain`
 ------------------
