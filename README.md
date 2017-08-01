@@ -981,6 +981,8 @@ pseudo-code and meant to be descriptive rather than taken literally:
 ``` bash
 #!/usr/bin/env bash
 
+source concorde.bash
+
 get_here_str <<'EOS'
   Detailed usage message goes here
 EOS
