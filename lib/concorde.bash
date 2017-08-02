@@ -28,7 +28,7 @@ assign () {
 
 bring () { (
   [[ $2 == 'from'   ]] || return
-  [[ $1 == '('*')'  ]] && local -a function_ary=$1 || local -a function_ary=( "$1" )
+  [[ $1 == '('*')'  ]] && eval "local -a function_ary=$1" || local -a function_ary=( "$1" )
   local spec=$3
   local feature
 
@@ -357,7 +357,7 @@ strict_mode () {
 
 stuff () {
   [[ $2 == 'into'   ]] || return
-  [[ $1 == '('*')'  ]] && local -a ref_ary=$1 || local -a ref_ary=( "$1" )
+  [[ $1 == '('*')'  ]] && eval "local -a ref_ary=$1" || local -a ref_ary=( "$1" )
   $(local_hsh result_hsh=$3)
   local ref
 
