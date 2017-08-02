@@ -184,7 +184,7 @@ local_hsh () {
   name=${first%%=*}
   (( $# )) && value="${first#*=} $*" || value=${first#*=}
   [[ $value =~ ^[_[:alpha:]][_[:alnum:]]*(\[.+])?$ ]] && {
-    is_set "$value" && value=${!value} || return
+    is_set "$value" && value=${!value} || value=''
   }
   [[ $value == '('*')' ]] && { emit "declare -A $name=$value"; return ;}
   for item in $value; do
