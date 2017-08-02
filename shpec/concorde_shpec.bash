@@ -4,6 +4,7 @@ unset -v library
 
 strict_mode on
 
+set -x
 declare -a 'vars=( one two )'
 declare -p vars
 echo ${#vars[@]}
