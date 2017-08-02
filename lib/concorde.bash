@@ -170,7 +170,8 @@ local_ary () {
 
   name=${first%%=*}
   (( $# )) && value="${first#*=} $*" || value=${first#*=}
-  [[ $value == '('*')' ]] && emit "declare -a $name=$value" || emit 'declare -a '"$name"'=${'"$value"'}'
+  [[ $value != '('*')' ]] && { is_set "$value" && value=${!value} ;}
+  emit "eval declare -a $name=$value"
 }
 
 local_hsh () {
@@ -186,14 +187,14 @@ local_hsh () {
   [[ $value =~ ^[_[:alpha:]][_[:alnum:]]*(\[.+])?$ ]] && {
     is_set "$value" && value=${!value} || value=''
   }
-  [[ $value == '('*')' ]] && { emit "declare -A $name=$value"; return ;}
+  [[ $value == '('*')' ]] && { emit "eval declare -A $name=$value"; return ;}
   for item in $value; do
     [[ $item == *?=* ]] || return
     key=${item%%=*}
     result+="[$key]=${item#*=} "
   done
   result="( $result )"
-  emit "declare -A $name=$result"
+  emit "eval declare -A $name=$result"
 }
 
 log () { put "$@" ;}
