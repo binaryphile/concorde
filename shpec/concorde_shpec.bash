@@ -2,7 +2,7 @@ library=../lib/concorde.bash
 source "$library" 2>/dev/null || source "${BASH_SOURCE%/*}/$library"
 unset -v library
 
-strict_mode on
+# strict_mode on
 
 describe assign
   it "errors if \$2 isn't 'to'"
