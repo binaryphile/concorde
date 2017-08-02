@@ -1,8 +1,11 @@
 language: sh
 dist:     trusty
 sudo:     false
+before_install:
+  - apt-get -qq update
+  - apt-get upgrade -y bash
 install:
-  - git clone git://github.com/rylnd/shpec        --branch  0.2.2 --depth 1 "$HOME"/shpec
+  - git clone git://github.com/rylnd/shpec --branch  0.2.2 --depth 1 "$HOME"/shpec
   - export PATH=$HOME/shpec/bin:$TRAVIS_BUILD_DIR/lib:$PATH
 script:   ./all-shpecs
 git:
