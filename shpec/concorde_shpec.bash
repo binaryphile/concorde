@@ -47,7 +47,9 @@ describe bring
     $(grab root from_feature concorde)
     temp=$root/lib/temp.bash
     echo $'one () { :;}\ntwo () { :;}' >"$temp"
+    set -x
     $(bring '( one two )' from "$temp")
+    set +x
     assert equal $'one\ntwo' "$(declare -F one two)"
     rm "$temp"
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
