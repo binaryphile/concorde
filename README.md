@@ -1,4 +1,4 @@
-Message For You, Sir
+Message For You, Sir [![Build Status](https://travis-ci.org/binaryphile/concorde.svg?branch=master)](https://travis-ci.org/binaryphile/concorde)
 ====================
 
 Bash scripting in my own particular...\[sigh\]...
