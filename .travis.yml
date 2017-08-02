@@ -1,17 +1,12 @@
 language: sh
 dist:     trusty
-sudo:     false
-addons:
-  apt:
-    packages:
-      - build-essential
 before_install:
-  - wget http://ftp.gnu.org/gnu/bash/bash-4.3.30.tar.gz
+  - wget https://ftp.gnu.org/gnu/bash/bash-4.3.30.tar.gz
   - tar xf bash-4.3.30.tar.gz
   - cd bash-4.3.30
   - ./configure
   - make
-  - make install
+  - sudo make install
 install:
   - git clone git://github.com/rylnd/shpec --branch  0.2.2 --depth 1 "$HOME"/shpec
   - export PATH=$HOME/shpec/bin:$TRAVIS_BUILD_DIR/lib:$PATH
