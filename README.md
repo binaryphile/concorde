@@ -62,7 +62,9 @@ Features
 Prerequisites
 =============
 
--   GNU readlink in your PATH, as `readlink`
+-   Bash 4.3.30+ (sorry, no trusty ubuntu)
+
+-   GNU readlink in your PATH (as `readlink`, not `greadlink`)
 
 -   `sed` in your PATH
 
@@ -1177,4 +1179,3 @@ options_new __
   [entr]: http://entrproject.org/
   [command substitution]: http://wiki.bash-hackers.org/syntax/expansion/cmdsubst
   [here document]: http://wiki.bash-hackers.org/syntax/redirection#here_documents
-
