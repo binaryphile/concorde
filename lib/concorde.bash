@@ -97,7 +97,7 @@ grab () {
   [[ $2 == 'from_feature' || $2 == 'from' ]] || return
   [[ $2 == 'from_feature' ]] && $(local_hsh arg_hsh=__feature_hsh[$3]) || $(local_hsh arg_hsh=$3)
   case $1 in
-    '('*')' ) local -a var_ary=$1                   ;;
+    '('*')' ) eval local -a var_ary=$1              ;;
     '*'     ) local -a var_ary=( "${!arg_hsh[@]}" ) ;;
     *       ) local -a var_ary=( "$1"             ) ;;
   esac
