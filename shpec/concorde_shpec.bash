@@ -149,7 +149,9 @@ describe grab
   end
 
   it "instantiates more than one key/value pair from a hash literal"; (
+    set -x
     $(grab '( one two )' from '( [one]=1 [two]=2 )')
+    set +x
     assert equal '1 2' "$one $two"
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
   end
@@ -169,7 +171,9 @@ describe grab
 
   it "instantiates more than one key/value pair from a hash literal reference"; (
     sample='( [one]=1 [two]=2 )'
+    set -x
     $(grab '( one two )' from sample)
+    set +x
     assert equal '1 2' "$one $two"
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
   end
