@@ -97,7 +97,7 @@ grab () {
   [[ $2 == 'from_feature' || $2 == 'from' ]] || return
   [[ $2 == 'from_feature' ]] && $(local_hsh arg_hsh=__feature_hsh[$3]) || $(local_hsh arg_hsh=$3)
   case $1 in
-    '('*')' ) eval local -a var_ary=$1              ;;
+    '('*')' ) eval "local -a var_ary=$1"            ;;
     '*'     ) local -a var_ary=( "${!arg_hsh[@]}" ) ;;
     *       ) local -a var_ary=( "$1"             ) ;;
   esac
@@ -170,8 +170,7 @@ local_ary () {
 
   name=${first%%=*}
   (( $# )) && value="${first#*=} $*" || value=${first#*=}
-  [[ $value != '('*')' ]] && { is_set "$value" && value=${!value} ;}
-  emit "eval declare -a $name=$value"
+  [[ $value == '('*')' ]] && emit "eval 'declare -a $name=$value'" || emit 'eval "declare -a '"$name"'=${'"$value"'}"'
 }
 
 local_hsh () {
@@ -187,14 +186,14 @@ local_hsh () {
   [[ $value =~ ^[_[:alpha:]][_[:alnum:]]*(\[.+])?$ ]] && {
     is_set "$value" && value=${!value} || value=''
   }
-  [[ $value == '('*')' ]] && { emit "eval declare -A $name=$value"; return ;}
+  [[ $value == '('*')' ]] && { emit "eval 'declare -A $name=$value'"; return ;}
   for item in $value; do
     [[ $item == *?=* ]] || return
     key=${item%%=*}
     result+="[$key]=${item#*=} "
   done
   result="( $result )"
-  emit "eval declare -A $name=$result"
+  emit "eval 'declare -A $name=$result'"
 }
 
 log () { put "$@" ;}
