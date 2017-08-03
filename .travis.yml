@@ -2,7 +2,6 @@ language: sh
 dist:     trusty
 sudo:     true
 install:
-  - "$HOME"/nix-1.11.9-x86_64-linux/install
   - source "$HOME"/.nix-profile/etc/profile.d/nix.sh
   - nix-env -ib -f "$HOME"/nix/default.nix bash
   - export PATH="$HOME"/shpec/bin:$TRAVIS_BUILD_DIR/lib:"$PATH"
