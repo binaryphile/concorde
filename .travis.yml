@@ -8,12 +8,13 @@ install:
   - git checkout 2ed5c2b
   - cd -
   - wget -P ~ https://nixos.org/releases/nix/nix-1.11.9/nix-1.11.9-x86_64-linux.tar.bz2
-  - tar xjf ~/nix-1.11.9-x86_64-linux.tar.bz2 -C "$HOME"
+  - tar xjf ~/nix-1.11.9-x86_64-linux.tar.bz2 -C ~
   - ~/nix-1.11.9-x86_64-linux/install
   - source ~/.nix-profile/etc/profile.d/nix.sh
-  - nix-env -ib -f ~/nix/default.nix bash
-  - export PATH=~/shpec/bin:$TRAVIS_BUILD_DIR/lib:~
+  - export PATH=~/shpec/bin:$TRAVIS_BUILD_DIR/lib:"$PATH"
 script:
+  - ./all-shpecs
+  - nix-env -ib -f ~/nix/default.nix bash
   - ./all-shpecs
   - nix-env -ibA nixpkgs.bash
   - ./all-shpecs
