@@ -4,6 +4,9 @@ sudo:     true
 install:
   - git clone git://github.com/rylnd/shpec --branch=0.2.2 --depth=1 "$HOME"/shpec
   - git clone git://github.com/nixos/nixpkgs-channels --single-branch --branch=nixpkgs-unstable "$HOME"/nix
+  - cd "$HOME"/nix
+  - git checkout 2ed5c2b
+  - cd -
   - wget -P "$HOME" https://nixos.org/releases/nix/nix-1.11.9/nix-1.11.9-x86_64-linux.tar.bz2
   - tar xjf "$HOME"/nix-1.11.9-x86_64-linux.tar.bz2 -C "$HOME"
   - ~/nix-1.11.9-x86_64-linux/install
