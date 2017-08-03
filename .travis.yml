@@ -2,7 +2,6 @@ language: sh
 dist:     trusty
 sudo:     true
 install:
-  - tar xjf "$HOME"/nix-1.11.9-x86_64-linux.tar.bz2 -C "$HOME"
   - "$HOME"/nix-1.11.9-x86_64-linux/install
   - source "$HOME"/.nix-profile/etc/profile.d/nix.sh
   - nix-env -ib -f "$HOME"/nix/default.nix bash
