@@ -402,7 +402,7 @@ wed () {
   $(local_ary original_ary=$1)
   local IFS=$3
 
-  __=${original_ary[*]}
+  __="${original_ary[*]}"
 }
 
 with () { repr "$1"; grab '*' from "$__" ;}

@@ -2,7 +2,13 @@ language: sh
 dist:     trusty
 sudo:     false
 install:
-  - git clone git://github.com/rylnd/shpec --branch  0.2.2 --depth 1 "$HOME"/shpec
+  - wget https://nixos.org/releases/nix/nix-1.11.9/nix-1.11.9-x86_64-linux.tar.bz2
+  - tar xjf nix-1.11.9-x86_64-linux.tar.bz2
+  - nix-1.11.9-x86_64-linux/install
+  - source "$HOME"/.nix-profile/etc/profile.d/nix.sh
+  - git archive --format=tar.gz git://github.com/nixos/nixpkgs-channels --branch 2ed5c2b | tar xzf -
+  - nix-env -ib -f default.nix bash
+  - git archive --format=tar.gz git://github.com/rylnd/shpec --branch 0.2.2 | tar xzf -
   - export PATH=$HOME/shpec/bin:$TRAVIS_BUILD_DIR/lib:$PATH
 script:   ./all-shpecs
 git:
