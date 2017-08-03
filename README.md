@@ -62,7 +62,7 @@ Features
 Prerequisites
 =============
 
--   Bash 4.3.30+ (sorry, no trusty ubuntu)
+-   Bash 4.3.11 or higher
 
 -   GNU readlink in your PATH (as `readlink`, not `greadlink`)
 
