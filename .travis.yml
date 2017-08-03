@@ -2,17 +2,20 @@ language: sh
 dist:     trusty
 sudo:     true
 install:
-  - git clone git://github.com/rylnd/shpec --branch=0.2.2 --depth=1 "$HOME"/shpec
-  - git clone git://github.com/nixos/nixpkgs-channels --single-branch --branch=nixpkgs-unstable "$HOME"/nix
-  - cd "$HOME"/nix
+  - git clone git://github.com/rylnd/shpec --branch=0.2.2 --depth=1 ~/shpec
+  - git clone git://github.com/nixos/nixpkgs-channels --single-branch --branch=nixpkgs-unstable ~/nix
+  - cd ~/nix
   - git checkout 2ed5c2b
   - cd -
-  - wget -P "$HOME" https://nixos.org/releases/nix/nix-1.11.9/nix-1.11.9-x86_64-linux.tar.bz2
-  - tar xjf "$HOME"/nix-1.11.9-x86_64-linux.tar.bz2 -C "$HOME"
+  - wget -P ~ https://nixos.org/releases/nix/nix-1.11.9/nix-1.11.9-x86_64-linux.tar.bz2
+  - tar xjf ~/nix-1.11.9-x86_64-linux.tar.bz2 -C "$HOME"
   - ~/nix-1.11.9-x86_64-linux/install
-  - source "$HOME"/.nix-profile/etc/profile.d/nix.sh
-  - nix-env -ib -f "$HOME"/nix/default.nix bash
-  - export PATH="$HOME"/shpec/bin:$TRAVIS_BUILD_DIR/lib:"$PATH"
-script:   ./all-shpecs
+  - source ~/.nix-profile/etc/profile.d/nix.sh
+  - nix-env -ib -f ~/nix/default.nix bash
+  - export PATH=~/shpec/bin:$TRAVIS_BUILD_DIR/lib:~
+script:
+  - ./all-shpecs
+  - nix-env -ibA nixpkgs.bash
+  - ./all-shpecs
 git:
   depth:  1
