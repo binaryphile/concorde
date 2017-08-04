@@ -1,7 +1,7 @@
 declare -Ag __feature_hsh
-[[ -n ${__feature_hsh[concorde.root]:-} && ${1:-} != 'reload' ]] && return
+[[ -n ${__feature_hsh[concorde]:-} && ${1:-} != 'reload' ]] && return
 [[ ${1:-} == 'reload' ]] && shift
-__feature_hsh[concorde.root]=$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"/..)
+__feature_hsh[concorde]="( [root]=$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"/..) )"
 
 unset -v CDPATH
 
@@ -28,16 +28,16 @@ assign () {
 
 bring () { (
   [[ $2 == 'from'   ]] || return
-  [[ $1 == '('*')'  ]] && local -a function_ary=$1 || local -a function_ary=( "$1" )
+  [[ $1 == '('*')'  ]] && eval "local -a function_ary=$1" || local -a function_ary=( "$1" )
   local spec=$3
   local feature
 
   $(require "$spec")
   feature=${spec##*/}
   feature=${feature%.*}
-  $(grab dependencies from "${__feature_hsh[$feature]}")
+  $(grab dependencies from_feature "$feature")
   [[ -n $dependencies ]] && {
-    local -a dependency_ary=$dependencies
+    $(local_ary dependency_ary=$dependencies)
     function_ary+=( "${dependency_ary[@]}" )
   }
   repr function_ary
@@ -45,7 +45,7 @@ bring () { (
   emit "$__"
 ) }
 
-die () { [[ -n $1 ]] && puterr "$1"; exit "${2:-1}" ;}
+die () { [[ -n ${1:-} ]] && puterr "$1"; exit "${2:-1}" ;}
 
 emit () { printf 'eval eval %q\n' "$1" ;}
 
@@ -94,36 +94,65 @@ get_here_str () {
 get_str () { IFS=$'\n' read -rd '' __ ||:         ;}
 
 grab () {
-  [[ $2 == 'from' ]] || return
-  $(local_hsh arg_hsh=$3)
+  [[ $2 == 'from_feature' || $2 == 'from' ]] || return
+  [[ $2 == 'from_feature' ]] && $(local_hsh arg_hsh=__feature_hsh[$3]) || $(local_hsh arg_hsh=$3)
   case $1 in
-    '('*')' ) local -a var_ary=$1                   ;;
+    '('*')' ) eval "local -a var_ary=$1"            ;;
     '*'     ) local -a var_ary=( "${!arg_hsh[@]}" ) ;;
     *       ) local -a var_ary=( "$1"             ) ;;
   esac
-  local var
   local statement
+  local var
 
+  (( ${#var_ary[@]} )) || return 0
   for var in "${var_ary[@]}"; do
-    printf -v statement '%sdeclare %s=%q\n' "${statement:-}" "$var" "${arg_hsh[$var]:-}"
+    is_set arg_hsh["$var"] && \
+      printf -v statement '%sdeclare %s=%q\n'                   "${statement:-}" "$var"         "${arg_hsh[$var]:-}" || \
+      printf -v statement '%s$(in_scope %s) || declare %s=%q\n' "${statement:-}" "$var" "$var"  "${arg_hsh[$var]:-}"
   done
   emit "$statement"
 }
 
+in_scope () {
+  get_here_str <<'  EOS'
+    is_set %s                         && \
+      {
+        (( ! ${#FUNCNAME[@]} ))       || \
+          (
+            declare -g %s=$'sigil\037'
+            [[ $%s != $'sigil\037' ]] && \
+              {
+                unset -v %s
+                ! is_set %s
+              }
+          )
+      }
+  EOS
+  printf -v __ "$__" "$1" "$1" "$1" "$1" "$1"
+  emit "$__"
+}
+
 instantiate () { printf -v "$1" %s "$(eval "echo ${!1}")" ;}
 
+is_set () {
+  set -- "$1" "${1%%[*}"
+  declare -p "$2" >/dev/null 2>&1 || return
+  [[ -n ${!1+x} ]]
+}
+
 feature () {
-  local feature_name=$1
-  local depth=${2:-1}
+  local feature_name=$1; shift
+  local depth=1
+  (( $# )) && $(grab depth from "$*")
   local i
   local path
   local statement
 
   get_here_str <<'  EOS'
     declare -Ag __feature_hsh
-    [[ -n ${__feature_hsh[%s.root]:-} && $1 != 'reload' ]] && return
+    [[ -n ${__feature_hsh[%s]:-} && $1 != 'reload' ]] && return
     [[ ${1:-} == 'reload' ]]  && shift
-    __feature_hsh[%s.root]=$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"%s)
+    __feature_hsh[%s]="( [root]=$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"%s) )"
   EOS
   statement=$__
   path=''
@@ -141,17 +170,30 @@ local_ary () {
 
   name=${first%%=*}
   (( $# )) && value="${first#*=} $*" || value=${first#*=}
-  [[ $value == '('*')' ]] && emit "declare -a $name=$value" || emit 'declare -a '"$name"'=${'"$value"'}'
+  [[ $value == '('*')' ]] && emit "eval 'declare -a $name=$value'" || emit 'eval "declare -a '"$name"'=${'"$value"'}"'
 }
 
 local_hsh () {
   local first=$1; shift
+  local item
+  local key
   local name
+  local result=''
   local value
 
   name=${first%%=*}
   (( $# )) && value="${first#*=} $*" || value=${first#*=}
-  [[ $value == '('*')' ]] && emit "declare -A $name=$value" || emit 'declare -A '"$name"'=${'"$value"'}'
+  [[ $value =~ ^[_[:alpha:]][_[:alnum:]]*(\[.+])?$ ]] && {
+    is_set "$value" && value=${!value} || value=''
+  }
+  [[ $value == '('*')' ]] && { emit "eval 'declare -A $name=$value'"; return ;}
+  for item in $value; do
+    [[ $item == *?=* ]] || return
+    key=${item%%=*}
+    result+="[$key]=${item#*=} "
+  done
+  result="( $result )"
+  emit "eval 'declare -A $name=$result'"
 }
 
 log () { put "$@" ;}
@@ -261,7 +303,7 @@ require () {
   done
   file=$item/$spec$extension
   [[ -e $file ]] || return
-  emit "source $file $@"
+  (( $# )) && emit "source $file $*" || emit "source $file"
 }
 
 require_relative () {
@@ -284,10 +326,10 @@ require_relative () {
   done
   file=$file$extension
   [[ -e $file ]] || return
-  emit "source $file $@"
+  (( $# )) && emit "source $file $*" || emit "source $file"
 }
 
-sourced () { [[ ${FUNCNAME[@]: -1} == 'source' ]] ;}
+sourced () { [[ ${FUNCNAME[1]} == 'source' ]] ;}
 
 strict_mode () {
   local status=$1
@@ -315,7 +357,7 @@ strict_mode () {
 
 stuff () {
   [[ $2 == 'into'   ]] || return
-  [[ $1 == '('*')'  ]] && local -a ref_ary=$1 || local -a ref_ary=( "$1" )
+  [[ $1 == '('*')'  ]] && eval "local -a ref_ary=$1" || local -a ref_ary=( "$1" )
   $(local_hsh result_hsh=$3)
   local ref
 
@@ -326,6 +368,7 @@ stuff () {
 }
 
 traceback () {
+  set +o xtrace
   local frame
   local val
 
@@ -359,7 +402,7 @@ wed () {
   $(local_ary original_ary=$1)
   local IFS=$3
 
-  __=${original_ary[*]}
+  __="${original_ary[*]}"
 }
 
 with () { repr "$1"; grab '*' from "$__" ;}

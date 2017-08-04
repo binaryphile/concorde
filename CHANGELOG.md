@@ -7,6 +7,25 @@ The format is based on [Keep a Changelog] and this project adheres to
 Latest Changes
 ==============
 
+[v0.0.4] - 2017-08-01
+---------------------
+
+### Added
+
+-   succinct hash literals for `local_hsh` et. al.
+
+-   `grab` has `from_feature` argument
+
+### Refactored
+
+-   "\_\_feature\_hsh" implementation
+
+-   use `local_ary` and `local_hsh` where appropriate
+
+### Documented
+
+-   readme tutorial
+
 [v0.0.3] - 2017-07-25
 ---------------------
 
@@ -55,15 +74,15 @@ Latest Changes
 
 -   implementation of `return_if_sourced`, now `sourced`
 
+Older Changes
+=============
+
 [v0.0.1] - 2017-07-19
 ---------------------
 
 ### Changed
 
 -   refactored option parsing
-
-Older Changes
-=============
 
 [v0.0.0] - 2017-07-18
 ---------------------
@@ -74,6 +93,7 @@ Older Changes
 
   [Keep a Changelog]: http://keepachangelog.com/
   [Semantic Versioning]: http://semver.org/
+  [v0.0.4]: https://github.com/binaryphile/concorde/compare/v0.0.3...v0.0.4
   [v0.0.3]: https://github.com/binaryphile/concorde/compare/v0.0.2...v0.0.3
   [v0.0.2]: https://github.com/binaryphile/concorde/compare/v0.0.1...v0.0.2
   [v0.0.1]: https://github.com/binaryphile/concorde/compare/v0.0.0...v0.0.1
