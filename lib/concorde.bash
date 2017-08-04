@@ -303,7 +303,7 @@ require () {
   done
   file=$item/$spec$extension
   [[ -e $file ]] || return
-  emit "source $file $@"
+  (( $# )) && emit "source $file $*" || emit "source $file"
 }
 
 require_relative () {
