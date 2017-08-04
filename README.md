@@ -62,7 +62,7 @@ Features
 Prerequisites
 =============
 
--   Bash 4.3.30 or higher
+-   Bash 4.3 or 4.4
 
 -   GNU readlink in your PATH (as `readlink`, not `greadlink`)
 
@@ -979,7 +979,23 @@ basic option parsing and can make use of libraries designed to keep our
 global namespace clean.
 
 Here's a template I might start with for a script. Some of it is
-pseudo-code and meant to be descriptive rather than taken literally:
+pseudo-code and meant to be descriptive rather than taken literally.
+
+I've added a couple of refinements and examples of how to do certain
+things:
+
+-   set a default value for an item grabbed from a hash
+
+-   save a here document to a string variable (a usage message here)
+
+-   loop through and process positional arguments
+
+-   turn on [strict mode], which stops execution on most errors and
+    issues a traceback
+
+-   issue a usage message and exit if option parsing returns an error
+
+The template:
 
 ``` bash
 #!/usr/bin/env bash
@@ -995,12 +1011,13 @@ script_main () {
   local opt1="default value for opt1"
   $(grab '( opt1 opt2_flag )' from "$1"); shift
 
+  do_something_with_option "$opt1"
+
+  (( opt2_flag )) && do_something_with_flag
+
   # consume positional arguments
   while (( $# )); do
-    case $1 in
-      [something] ) [process this case] ;;
-                * ) echo "$usage"; exit ;;
-    esac
+    do_something_with_args
     shift
   done
 }
@@ -1013,12 +1030,12 @@ sourced && return
 strict_mode on              # stop on errors and issue traceback
 
 get_here_ary <<'EOS'
-  ( -o --opt1   opt1     "an option")
-  ( '' --opt2   ''       "a flag"   )
+  ( -o --opt1   opt1     "a named argument" )
+  ( '' --opt2   ''       "a long flag"      )
 EOS
 
-$(parse_options __ "$@")    # parse options
-script_main     __ "$@"     # run it
+$(parse_options __ "$@") || { echo "$usage"; exit ;}
+script_main     __ "$@"
 ```
 
 For a more concrete example, here's a slightly more interesting version
@@ -1072,11 +1089,11 @@ sourced && return
 strict_mode on
 
 get_here_ary <<'EOS'
-  ( '' --mellow ''        "don't use an exclamation mark (flag)")
-  ( -g ''       greeting  "an alternative greeting to 'Hello'"  )
+  ( '' --mellow ''        "don't use an exclamation mark"     )
+  ( -g ''       greeting  "an alternative greeting to 'Hello'")
 EOS
 
-$(parse_options __ "$@")
+$(parse_options __ "$@") || { echo "$usage"; exit ;}
 myscript_main   __ "$@"
 ```
 
@@ -1179,3 +1196,4 @@ options_new __
   [entr]: http://entrproject.org/
   [command substitution]: http://wiki.bash-hackers.org/syntax/expansion/cmdsubst
   [here document]: http://wiki.bash-hackers.org/syntax/redirection#here_documents
+  [strict mode]: http://redsymbol.net/articles/unofficial-bash-strict-mode/

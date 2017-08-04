@@ -41,5 +41,5 @@ get_here_ary <<'EOS'
   ( -g ''       greeting  "an alternative greeting to 'Hello'"  )
 EOS
 
-$(parse_options __ "$@")
+$(parse_options __ "$@") || { echo "$usage"; exit ;}
 myscript_main   __ "$@"
