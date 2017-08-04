@@ -1,6 +1,8 @@
 source concorde.bash
 $(require_relative ../lib/hello)
 
+set -o nounset
+
 describe hello
   it "outputs 'Hello, world!' when called with no arguments"
     result=$(hello)

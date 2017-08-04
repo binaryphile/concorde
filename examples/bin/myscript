@@ -19,7 +19,7 @@ EOS
 printf -v usage '\n%s\n' "$__"
 
 myscript_main () {
-  $(grab '( greeting mellow_flag )' from "$1"); shift
+  $(grab '( greeting mellow_flag )' from "${1:-}"); shift
   local punctuation
 
   (( mellow_flag )) && punctuation=. || punctuation=''

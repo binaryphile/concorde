@@ -1,6 +1,8 @@
 source concorde.bash
 $(require_relative ../bin/myscript)
 
+set -o nounset
+
 describe myscript_main
   it "outputs 'Hello, world!' when called with no arguments"
     result=$(myscript_main)
