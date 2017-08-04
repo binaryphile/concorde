@@ -326,7 +326,7 @@ require_relative () {
   done
   file=$file$extension
   [[ -e $file ]] || return
-  emit "source $file $@"
+  (( $# )) && emit "source $file $*" || emit "source $file"
 }
 
 sourced () { [[ ${FUNCNAME[1]} == 'source' ]] ;}
