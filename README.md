@@ -272,8 +272,9 @@ script_main     __ "$@"
 
 A few points for understanding the template:
 
--   the first half only defines functions, up until `sourced && return`
-    -   this is so the test framework can test those functions
+-   the first half only defines functions, up until `sourced && return`;
+    this is so the test framework can test those functions
+
 -   strict mode is only enabled when the script is not sourced, i.e.
     when the script is run from the command line, since it comes after
     `sourced && return`
@@ -282,8 +283,8 @@ A few points for understanding the template:
     which places the defined options in a hash stored in `$__`, which is
     in turn fed to `script_main`
 
--   `parse_options` also removes those parsed options from the script's
-    positional arguments, so the "$@" in \`script\_main \_\_ "$@"\` only
+-   `parse_options` also removes the parsed options from the script's
+    positional arguments, so the "$@" in `script_main __ "$@"` only
     contains unparsed positional arguments
 
 -   the first thing `script_main` does is create local variables of the
