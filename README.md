@@ -19,7 +19,7 @@ Make it easy to:
 -   get started writing a script with the familiar command-line
     interface
 
--   write reusable bash libraries
+-   write reusable bash libraries (naysaying curmudgeons be damned)
 
 -   do [test-driven development] on bash code
 
