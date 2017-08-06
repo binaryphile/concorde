@@ -272,4 +272,4 @@ script_main     __ "$@"
   [Strict Mode]: http://redsymbol.net/articles/unofficial-bash-strict-mode/
   [here]: http://fvue.nl/wiki/Bash:_Error_handling
   [this explanation]: https://unix.stackexchange.com/questions/65803/why-is-printf-better-than-echo
-  [tutorial]: TUTORIAL.md
+  [tutorial]: share/doc/tutorial.md
