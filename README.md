@@ -306,7 +306,8 @@ A few points for understanding the template:
 -   "opt2\_flag" is a flag from the "opt2" definition, which
     automatically has "\_flag" appended to its name by `parse_options`
 
--   if "opt2\_flag" is *true*, then `(( opt2_flag ))` evaluates as true
+-   if "opt2\_flag" is *true*, then `(( opt2_flag ))` evaluates as true;
+    this is the standard way to test a flag
 
 -   `(( $# ))` is true so long as the number of positional arguments is
     greater than 0 - `shift` removes the first positional argument, so
