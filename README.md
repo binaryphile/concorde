@@ -143,10 +143,10 @@ Array Operations
 String Operations
 -----------------
 
--   `get_here_str` - get a string from stdin and strip leading
-    whitespace indentation
+-   `get_here_str` - get a string from stdin (usually a heredoc) and
+    strip leading whitespace indentation
 
--   `get_str` - get a string from stdin
+-   `get_str` - get a string from stdin (usually a heredoc)
 
 -   `part` - split a string into an array with the specified delimiter
 
