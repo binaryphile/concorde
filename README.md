@@ -107,6 +107,8 @@ provided on the command-line.
 -   automatic shortening of long option names to minimal unambiguous
     prefixes
 
+-   built-in `--help` or `--version` implementations
+
 [Strict Mode] With Tracebacks
 -----------------------------
 
@@ -157,6 +159,9 @@ Hash Operations
 
 -   `grab` - create local variables from key/values in a hash
 
+-   `local_hsh` - create a local hash from a hash literal or variable
+    reference
+
 -   `stuff` - add key/values to a hash using local variables
 
 -   `update` - update a hash with the contents of another hash
@@ -171,6 +176,9 @@ Array Operations
 -   `get_here_ary` - get a (usually multiline) string from stdin and
     strip leading whitespace indentation, then assign each line to an
     element of an array
+
+-   `local_ary` - create a local array from an array literal or variable
+    reference
 
 -   `wed` - join array elements into a string with the specified
     delimiter
@@ -196,12 +204,6 @@ Contextual Operations
     references in order to interpolate them
 
 -   `is_set` - determine whether the named variable is set or not
-
--   `local_ary` - create a local array from an array literal or variable
-    reference
-
--   `local_hsh` - create a local hash from a hash literal or variable
-    reference
 
 -   `sourced` - determine whether the current file is being sourced or
     not
@@ -267,6 +269,38 @@ EOS
 $(parse_options __ "$@") || die "$usage" 0
 script_main     __ "$@"
 ```
+
+A few points for understanding the template:
+
+-   the first half only defines functions, up until `sourced && return`
+    -   this is so the test framework can test those functions
+-   strict mode is only enabled when the script is not sourced, i.e.
+    when the script is run from the command line, since it comes after
+    `sourced && return`
+
+-   the option definitions at the bottom are fed to `parse_options`,
+    which places the defined options in a hash stored in `$__`, which is
+    in turn fed to `script_main`
+
+-   `parse_options` also removes those parsed options from the script's
+    positional arguments, so the "$@" in \`script\_main \_\_ "$@"\` only
+    contains unparsed positional arguments
+
+-   the first thing `script_main` does is create local variables of the
+    keys "opt1" (a named argument) and "opt2\_flag" (a flag) from the
+    hash passed in the first argument
+
+-   "opt1" is a named argument holding a value from the user's
+    invocation
+
+-   "opt2\_flag" is a flag from the "opt2" definition, which
+    automatically has "\_flag" appended to its name by `parse_options`
+
+-   if "opt2\_flag" is *true*, then `(( opt2_flag ))` evaluates as true
+
+-   `(( $# ))` is true so long as the number of positional arguments is
+    greater than 0 - `shift` removes the first positional argument, so
+    the loop will eventually end
 
   [StackOverflow]: https://stackoverflow.com/
   [Bash Hacker's Wiki]: http://wiki.bash-hackers.org/
