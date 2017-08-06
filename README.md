@@ -157,9 +157,9 @@ Hash Operations
 
 -   `grab` - create local variables from key/values in a hash
 
--   `merge` - update a hash with the contents of another hash
-
 -   `stuff` - add key/values to a hash using local variables
+
+-   `update` - update a hash with the contents of another hash
 
 -   `with` - extract all hash keys into local variables
 
