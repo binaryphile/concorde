@@ -260,7 +260,7 @@ get_here_ary <<'EOS'
   (  ''   --opt2      ''         "a long flag"      )
 EOS
 
-$(parse_options __ "$@") || { echo "$usage"; exit ;}
+$(parse_options __ "$@") || die "$usage" 0
 script_main     __ "$@"
 ```
 
