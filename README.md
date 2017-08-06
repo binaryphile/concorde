@@ -91,6 +91,9 @@ Strict mode does require more careful coding style to avoid
 unintentional errors, so it is suggested that you have practice with it
 before enabling it on existing code.
 
+I will add some recommended coding hygeine when working with strict
+mode, but until I do, you can learn more [here].
+
 Ruby-style "Features" a.k.a. Libraries
 --------------------------------------
 
@@ -246,5 +249,6 @@ script_main     __ "$@"
   [GreyCat's Wiki]: http://mywiki.wooledge.org/
   [enhanced getopt]: https://linux.die.net/man/1/getopt
   [Strict Mode]: http://redsymbol.net/articles/unofficial-bash-strict-mode/
+  [here]: http://fvue.nl/wiki/Bash:_Error_handling
   [this explanation]: https://unix.stackexchange.com/questions/65803/why-is-printf-better-than-echo
   [tutorial]: TUTORIAL.md
