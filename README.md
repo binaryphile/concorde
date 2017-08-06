@@ -7,10 +7,9 @@ Concorde: "Idiom, sir?"
 
 Idiom!
 
-Concorde is a distillation of some useful things I've done in bash.
-It synthesizes a lot of techniques I've picked up from StackOverflow and
-other sites, so it may look a bit unfamiliar to most.  It's heavily
-idiomatic of my own personal style, so apologies in advance.
+Concorde is a distillation of techniques I've picked up from
+[StackOverflow] and the [Bash Hacker's Wiki] (and to a lesser extent
+[GreyCat's Wiki]) as well as my own personal stylings with bash.
 
 Prerequisites
 =============
@@ -42,7 +41,7 @@ Features:
 
 -   double-dash long options - e.g. `--option`
 
--   boolean flag options - e.g. `-f` or `--flag` - true or unset
+-   boolean flag options - e.g. `-f` or `--flag` - *true* or unset
 
 -   named arguments (a.k.a. option arguments) - e.g. `-a <value>` or
     `--argument <value>` - stored in named variable
@@ -53,24 +52,26 @@ Features:
 -   named argument allowed at the end of condensed options - e.g. for
     named argument `-d <value>`: `-abcd "d's value"`
 
--   long named arguments with or without equals sign - e.g. `--option
-    <value>` or `--option=<value>`
+-   long named arguments with or without equals sign - e.g.
+    `--option <value>` or `--option=<value>`
 
 -   automatic removal of options and values processed by the parser from
     the calling script's own positional arguments (`$1`, etc.)
 
-It notably doesn't provide:
+Variables which store boolean flags always hold *true* when the flag is
+provided on the command-line.
+
+`parse_options` notably **doesn't** provide:
+
+-   the ability to specify a flag that sets a value of *false*
 
 -   concatenation of an option argument to its short option - e.g.
-    `-o<value>` is not allowed, a space is required as in `-o <value>`
+    `-o<value>` is not allowed, a space is required as in `-o <value>`
 
--   the automatic `--no-<flag>` form of flag negation
+-   an automatic `--no-<flag>` form of long flag negation
 
--   the automatic shortening of long option names to minimally
-    unambiguous prefixes
-
-Variables which store boolean flags always hold true when the flag is
-provided on the command-line.
+-   automatic shortening of long option names to minimal unambiguous
+    prefixes
 
 [Strict Mode] With Tracebacks
 -----------------------------
@@ -80,7 +81,11 @@ provided on the command-line.
 -   can be turned on and off
 
 -   issues ruby-style tracebacks of the call stack, including file and
-    line numbers, as well as echoing the offending line of code
+    line numbers, as well as the offending line of code such as:
+
+        Traceback:  my_intentionally_erroring_function "$my_argument"
+          bin/myscript:193:in erroring_function_caller
+          bin/myscript:1:in main
 
 Strict mode does require more careful coding style to avoid
 unintentional errors, so it is suggested that you have practice with it
@@ -90,23 +95,24 @@ Ruby-style "Features" a.k.a. Libraries
 --------------------------------------
 
 Libraries are written so that they are not unintentionally loaded more
-than once, even if sourced multiple times.  Concorde also allows the
-extension for library files to be left off with its `require*`
-functions.
+than once, even if sourced multiple times. Concorde also allows the file
+extension (e.g. `.sh`) for library files to be left off with its
+`require*` functions.
 
 -   `bring` - python-style import of only specified functions from a
-    library
+    library to keep function namespace uncluttered
 
 -   `feature` - protect a library file from being loaded multiple times
+    and register its metadata
 
 -   `load` - source a filename even if it has been loaded already -
     searches PATH but not current directory
 
 -   `require` - like `source` but only searches PATH, not current
-    directory
+    directory, and does not require file extension
 
 -   `require_relative` - source a file relative to the location of the
-    sourcing file
+    sourcing file and does not require file extension
 
 Hash Operations
 ---------------
@@ -115,7 +121,7 @@ Hash Operations
 
 -   `merge` - update a hash with the contents of another hash
 
--   `stuff` - add key/values to hash from local variables
+-   `stuff` - add key/values to a hash using local variables
 
 -   `with` - extract all hash keys into local variables
 
@@ -124,10 +130,9 @@ Array Operations
 
 -   `assign` - multiple assignment from array values to local variables
 
--   `get_here_ary` - get a string from stdin and strip leading
-    whitespace indentation, then assign lines to elements of an array
-
--   `instantiate` - evaluate a string to interpolate variable references
+-   `get_here_ary` - get a (usually multiline) string from stdin and
+    strip leading whitespace indentation, then assign each line to an
+    element of an array
 
 -   `wed` - join array elements into a string with the specified
     delimiter
@@ -147,9 +152,10 @@ String Operations
 Contextual Operations
 ---------------------
 
--   `die` - exit with a message
-
 -   `in_scope` - determine whether the named variable is local or not
+
+-   `instantiate` - evaluate a string containing unevaluated variable
+    references in order to interpolate them
 
 -   `is_set` - determine whether the named variable is set or not
 
@@ -165,9 +171,12 @@ Contextual Operations
 Input/Output
 ------------
 
--   `log` - log some output
+-   `die` - exit with a message
 
--   `put` - replacement for `echo` which uses printf
+-   `log` - log output (currently just goes to stdout)
+
+-   `put` - replacement for `echo` which uses printf, behaves like ruby
+    `puts` - see [this explanation] for why you might want to use it
 
 -   `puterr` - output message on stderr
 
@@ -182,14 +191,60 @@ Concorde reserves the following global variables for its own use:
 
 -   `__instance_hsh` - a hash for holding object-like data structures
 
-Tutorial
-========
+Sample Script Template
+======================
 
-See the [tutorial] file for details.
+See the [tutorial] for a walkthrough on the thought process behind this
+example:
 
-  [strict mode]: http://redsymbol.net/articles/unofficial-bash-strict-mode/
+``` bash
+#!/usr/bin/env bash
+
+source concorde.bash
+
+get_here_str <<'EOS'
+  Detailed usage message goes here
+EOS
+printf -v usage '\n%s\n' "$__"
+
+script_main () {
+  $(grab '( opt1 opt2_flag )' from "$1"); shift
+
+  do_something_with_option "$opt1"
+
+  (( opt2_flag )) && do_something_with_flag
+
+  # consume positional arguments
+  while (( $# )); do
+    do_something_with_args
+    shift
+  done
+}
+
+other_functions () {
+  ...
+}
+
+sourced && return   # stop here if testing with shpec
+strict_mode on      # stop on errors and issue traceback
+
+# option fields:
+#
+# short     long      var name                 help
+# -----   ------      --------   ------------------
+get_here_ary <<'EOS'
+  (  -o   --opt1      opt1       "a named argument" )
+  (  ''   --opt2      ''         "a long flag"      )
+EOS
+
+$(parse_options __ "$@") || { echo "$usage"; exit ;}
+script_main     __ "$@"
+```
+
+  [StackOverflow]: https://stackoverflow.com/
+  [Bash Hacker's Wiki]: http://wiki.bash-hackers.org/
+  [GreyCat's Wiki]: http://mywiki.wooledge.org/
   [enhanced getopt]: https://linux.die.net/man/1/getopt
-  [test-driven]: https://www.agilealliance.org/glossary/tdd
-  [command substitution]: http://wiki.bash-hackers.org/syntax/expansion/cmdsubst
-  [here document]: http://wiki.bash-hackers.org/syntax/redirection#here_documents
+  [Strict Mode]: http://redsymbol.net/articles/unofficial-bash-strict-mode/
+  [this explanation]: https://unix.stackexchange.com/questions/65803/why-is-printf-better-than-echo
   [tutorial]: TUTORIAL.md

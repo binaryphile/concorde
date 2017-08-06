@@ -626,10 +626,11 @@ values, you'd get:
 --------------
 
 There is also a concorde function to help define the our option array,
-`get_here_ary` (the "ary" stands for "array"). `get_here_ary` takes a
-bash [here document] and returns an array composed of each line of the
-heredoc. It's as if you split the heredoc on newlines, then put each
-line into an array element (because that's what it does).
+`get_here_ary` (the "ary" stands for "array"). `get_here_ary` usually
+takes a bash [here document] (actually anything on stdin) and returns an
+array composed of each line of the heredoc. It's as if you split the
+heredoc on newlines, then put each line into an array element (because
+that's what it does).
 
 Another Message for You, Sir
 ----------------------------
@@ -902,7 +903,7 @@ things:
 
 -   loop through and process positional arguments
 
--   turn on strict mode, which stops execution on most errors and
+-   turn on [strict mode], which stops execution on most errors and
     issues a traceback
 
 -   issue a usage message and exit if option parsing returns an error
@@ -1011,3 +1012,5 @@ myscript_main   __ "$@"
 
   [shpec]: https://github.com/rylnd/shpec
   [entr]: http://entrproject.org/
+  [strict mode]: http://redsymbol.net/articles/unofficial-bash-strict-mode/
+  [command substitution]: http://wiki.bash-hackers.org/syntax/expansion/cmdsubst
