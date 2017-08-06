@@ -9,7 +9,26 @@ Idiom!
 
 Concorde is a distillation of techniques I've picked up from
 [StackOverflow] and the [Bash Hacker's Wiki] (and to a lesser extent
-[GreyCat's Wiki]) as well as my own personal stylings with bash.
+[GreyCats Wiki]) as well as my own personal stylings with bash.
+
+Goals
+=====
+
+Make it easy to:
+
+-   get started writing a script with the familiar command-line
+    interface
+
+-   write reusable bash libraries
+
+-   do [test-driven development] on bash code
+
+-   work with hashes and arrays
+
+-   write self-contained functions without reference to global variables
+
+-   keep global variable and function namespaces as uncluttered as
+    possible
 
 Prerequisites
 =============
@@ -165,7 +184,7 @@ Contextual Operations
 -   `local_ary` - create a local array from an array literal or variable
     reference
 
--   `local_hsh` - create a local hash from an hash literal or variable
+-   `local_hsh` - create a local hash from a hash literal or variable
     reference
 
 -   `sourced` - determine whether the current file is being sourced or
@@ -246,7 +265,8 @@ script_main     __ "$@"
 
   [StackOverflow]: https://stackoverflow.com/
   [Bash Hacker's Wiki]: http://wiki.bash-hackers.org/
-  [GreyCat's Wiki]: http://mywiki.wooledge.org/
+  [GreyCats Wiki]: http://mywiki.wooledge.org/
+  [test-driven development]: https://www.agilealliance.org/glossary/tdd
   [enhanced getopt]: https://linux.die.net/man/1/getopt
   [Strict Mode]: http://redsymbol.net/articles/unofficial-bash-strict-mode/
   [here]: http://fvue.nl/wiki/Bash:_Error_handling
