@@ -111,7 +111,8 @@ unintentional errors, so it is suggested that you have practice with it
 before enabling it on existing code.
 
 I will add some recommended coding hygeine when working with strict
-mode, but until I do, you can learn more [here].
+mode, but until I do, you can learn more [here] and at [Aaron Maxwell's
+page][Strict Mode].
 
 Ruby-style "Features" a.k.a. Libraries
 --------------------------------------
