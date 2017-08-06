@@ -8,8 +8,8 @@ Concorde: "Idiom, sir?"
 Idiom!
 
 Concorde is a distillation of techniques I've picked up from
-[StackOverflow] and the [Bash Hacker's Wiki] (and to a lesser extent
-[GreyCats Wiki]) as well as my own personal stylings with bash.
+[StackOverflow] and the [Bash Hacker's Wiki], and to a lesser extent
+[GreyCat's Wiki], as well as my own personal stylings with bash.
 
 Goals
 =====
@@ -266,7 +266,7 @@ script_main     __ "$@"
 
   [StackOverflow]: https://stackoverflow.com/
   [Bash Hacker's Wiki]: http://wiki.bash-hackers.org/
-  [GreyCats Wiki]: http://mywiki.wooledge.org/
+  [GreyCat's Wiki]: http://mywiki.wooledge.org/
   [test-driven development]: https://www.agilealliance.org/glossary/tdd
   [enhanced getopt]: https://linux.die.net/man/1/getopt
   [Strict Mode]: http://redsymbol.net/articles/unofficial-bash-strict-mode/
