@@ -35,9 +35,24 @@ Prerequisites
 
 -   Bash 4.3 or 4.4
 
--   GNU readlink in your PATH as `readlink`
+-   GNU `readlink` in your PATH - for Mac users, `greadlink` is also
+    acceptable
 
 -   `sed` in your PATH
+
+Reserved Variables
+==================
+
+Concorde reserves the following global variables for its own use:
+
+-   `__` - double-underscore, used for returning strings from functions
+
+-   `__features` - a hash for feature (i.e. library) meta-data
+
+-   `__instances` - a hash for holding object-like data structures
+
+-   `__macros` - a hash for holding safer versions of commonly-used
+    commands
 
 Installation
 ============
@@ -202,17 +217,6 @@ Input/Output
     `puts` - see [this explanation] for why you might want to use it
 
 -   `puterr` - output message on stderr
-
-Reserved Variables
-==================
-
-Concorde reserves the following global variables for its own use:
-
--   `__` - double-underscore, used for returning strings from functions
-
--   `__feature_hsh` - a hash for feature (i.e. library) meta-data
-
--   `__instance_hsh` - a hash for holding object-like data structures
 
 Sample Script Template
 ======================

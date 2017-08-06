@@ -67,8 +67,8 @@ describe bring
     $(grab root from_feature concorde)
     temp=$root/lib/temp.bash
     get_here_str <<'    EOS'
-      declare -Ag __feature_hsh
-      __feature_hsh[temp]='( [dependencies]="( two )")'
+      declare -Ag __features
+      __features[temp]='( [dependencies]="( two )")'
       one () { :;}
       two () { :;}
     EOS
@@ -107,10 +107,10 @@ describe die
 end
 
 describe feature
-  it "creates the __feature_hsh as a global"; (
-    while declare -p __feature_hsh >/dev/null 2>&1; do unset -v __feature_hsh; done
+  it "creates the __features as a global"; (
+    while declare -p __features >/dev/null 2>&1; do unset -v __features; done
     $(feature sample)
-    declare -p __feature_hsh >/dev/null 2>&1
+    declare -p __features >/dev/null 2>&1
     assert equal 0 $?
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end

@@ -1,7 +1,9 @@
-declare -Ag __feature_hsh
-[[ -n ${__feature_hsh[concorde]:-} && ${1:-} != 'reload' ]] && return
+declare -Ag __macros
+declare -Ag __features
+[[ -n ${__features[concorde]:-} && ${1:-} != 'reload' ]] && return
 [[ ${1:-} == 'reload' ]] && shift
-__feature_hsh[concorde]="( [root]=$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"/..) )"
+__macros[readlink]=$(type greadlink >/dev/null 2>&1 && echo 'greadlink -f --' || echo 'readlink -f --')
+__features[concorde]="( [root]=$(${__macros[readlink]} "$(dirname "$(${__macros[readlink]} "${BASH_SOURCE[0]}")")"/..) )"
 
 unset -v CDPATH
 
@@ -95,7 +97,7 @@ get_str () { IFS=$'\n' read -rd '' __ ||:         ;}
 
 grab () {
   [[ $2 == 'from_feature' || $2 == 'from' ]] || return
-  [[ $2 == 'from_feature' ]] && $(local_hsh arg_hsh=__feature_hsh[$3]) || $(local_hsh arg_hsh=$3)
+  [[ $2 == 'from_feature' ]] && $(local_hsh arg_hsh=__features[$3]) || $(local_hsh arg_hsh=$3)
   case $1 in
     '('*')' ) eval "local -a var_ary=$1"            ;;
     '*'     ) local -a var_ary=( "${!arg_hsh[@]}" ) ;;
@@ -149,10 +151,10 @@ feature () {
   local statement
 
   get_here_str <<'  EOS'
-    declare -Ag __feature_hsh
-    [[ -n ${__feature_hsh[%s]:-} && $1 != 'reload' ]] && return
-    [[ ${1:-} == 'reload' ]]  && shift
-    __feature_hsh[%s]="( [root]=$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"%s) )"
+    declare -Ag __features
+    [[ -n ${__features[%s]:-} && ${1:-} != 'reload' ]] && return
+    [[ ${1:-} == 'reload' ]] && shift
+    __features[%s]="( [root]=$(${__macros[readlink]} "$(dirname "$(${__macros[readlink]} "${BASH_SOURCE[0]}")")"%s) )"
   EOS
   statement=$__
   path=''
@@ -313,13 +315,15 @@ require_relative () {
   local extension_ary=()
   local file
 
+  $(with __macros)
+
   extension_ary=(
     .bash
     .sh
     ''
   )
   [[ $spec != /* && $spec == *?/* ]] || return
-  caller_dir=$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[1]}")")")
+  caller_dir=$($readlink "$(dirname "$($readlink "${BASH_SOURCE[1]}")")")
   file=$caller_dir/$spec
   for extension in "${extension_ary[@]}"; do
     [[ -e $file$extension ]] && break
