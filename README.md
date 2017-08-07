@@ -342,8 +342,8 @@ design though.
     -   global variables are, for the most part, not employed or
         modified ("__" being one notable exception)
 
-    -   parameters are, for the most part, values not references to
-        outside variables
+    -   parameters are values and not references to outside variables
+        (for the most part)
 
     -   where references are allowed, they are dereferenced and used as
         values
@@ -353,7 +353,8 @@ design though.
 
     Bash is much better at working with strings as arguments than other data
     structures.  The prior rules mean that you really have to use strings
-    for arrays and hashes.
+    for arrays and hashes since you want to pass them and they can only
+    be passed as strings.
 
     While this sounds like extra work, it actually ends up being fairly
     convenient since they don't need to be converted back to array form most
@@ -365,6 +366,9 @@ design though.
     by spaces.  Quotes are used to put spaces in values:
 
         "( zero \"item one\" 'item two' )"
+
+    I call these array and hash literals, even though they are normally
+    restricted to only assignment statements.
 
 1.  **return values (other than return codes) are put in the global
     variable "__" (double-underscore)**
