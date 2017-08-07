@@ -30,6 +30,8 @@ Make it easy to:
 -   keep global variable and function namespaces as uncluttered as
     possible
 
+-   reduce visual clutter from special characters
+
 Prerequisites
 =============
 
@@ -313,6 +315,90 @@ A few points for understanding the template:
     greater than 0 - `shift` removes the first positional argument, so
     the loop will eventually end
 
+Rules in Concorde
+=================
+
+These are the rules which concorde's functions follow.  I try to use
+the same rules in my other bash programming, and they certainly aren't
+required for a consumer of concorde.  They will help you understand its
+design though.
+
+1.  **test**
+
+    Write tests for bash functions.  Employ [red-green-refactor].  Keep
+    functions focused on a single task.
+
+1.  **minimize [side-effects]**
+
+    Side-effects are changes to variables outside of scope or other
+    observable interactions with calling functions, other than returning
+    a value.
+
+    This means a lot of things, but for functions, it specifically means
+    that they are self-contained to as great an extent as possible:
+
+    -   all variables are declared local
+
+    -   global variables are, for the most part, not employed or
+        modified ("__" being one notable exception)
+
+    -   parameters are, for the most part, values not references to
+        outside variables
+
+    -   where references are allowed, they are dereferenced and used as
+        values
+
+1.  **arrays and hashes are passed and returned as string
+    representations**
+
+    Bash is much better at working with strings as arguments than other data
+    structures.  The prior rules mean that you really have to use strings
+    for arrays and hashes.
+
+    While this sounds like extra work, it actually ends up being fairly
+    convenient since they don't need to be converted back to array form most
+    of the time. If simply being passed to another function, that function
+    already expects the array in string form, so no conversion is necessary.
+
+    The string representations are simply the text format used in array
+    assignments, with parentheses on the outside and array items separated
+    by spaces.  Quotes are used to put spaces in values:
+
+        "( zero \"item one\" 'item two' )"
+
+1.  **return values (other than return codes) are put in the global
+    variable "__" (double-underscore)**
+
+    Rather than relying on [command substitution] to save returned
+    strings in a variable, concorde prefers to store them in a global
+    variable.  This has a couple benefits:
+
+    -   no subshell is required, improving performance
+
+    -   unintentional output is rarely captured (a hazard with command
+        substitution)
+
+    -   intermediate values in a chain of string operations don't
+        usually require a temporary or accumulator variable to be
+        declared, since they are already stored in "__"
+
+    There are a couple downsides as well, however:
+
+    -   "__", much like "$?", can't be relied on to stay the same from
+        function call to function call, so any value that needs to be
+        saved must *immediately* be assigned - e.g. `myvalue=$__`
+
+    -   therefore most one-line assignments using command substitution
+        now require two lines, one for the call and one for the
+        assignment
+
+    -   functions following this rule can't be used in pipelines, since
+        they are automatically run in a subshell and the global context
+        is thrown away when the function ends (rarely a problem,
+        however)
+
+    -   the code looks strange if you aren't used to the concept
+
   [StackOverflow]: https://stackoverflow.com/
   [Bash Hacker's Wiki]: http://wiki.bash-hackers.org/
   [GreyCat's Wiki]: http://mywiki.wooledge.org/
@@ -322,3 +408,6 @@ A few points for understanding the template:
   [here]: http://fvue.nl/wiki/Bash:_Error_handling
   [this explanation]: https://unix.stackexchange.com/questions/65803/why-is-printf-better-than-echo
   [tutorial]: share/doc/tutorial.md
+  [red-green-refactor]: http://www.jamesshore.com/Blog/Red-Green-Refactor.html
+  [side-effects]: https://en.wikipedia.org/wiki/Side_effect_%28computer_science%29
+  [command substitution]: http://wiki.bash-hackers.org/syntax/expansion/cmdsubst
