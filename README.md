@@ -286,19 +286,19 @@ A few points for understanding the template:
 
     -   define and parse options
 
-    -   call the main function of the script
+    -   call the main function of the script with an options hash and
+        the remaining positional arguments
 
--   the option definitions at the bottom are fed to `parse_options`,
-    which places the defined options in a hash stored in `$__`, which is
-    in turn fed to `script_main`
+-   `parse_options` places the options in a hash stored in `$__`, which
+    is in turn fed to `script_main`
 
--   `parse_options` also removes the parsed options from the script's
-    positional arguments, so the "$@" in `script_main __ "$@"` only
-    contains unparsed positional arguments
+-   `parse_options` also removes from the script's positional arguments
+    those options which it parses, so the "$@" in `script_main __ "$@"`
+    only contains the remaining unparsed positional arguments
 
--   the first thing `script_main` does is create local variables of the
-    keys "opt1" (a named argument) and "opt2\_flag" (a flag) from the
-    hash passed in the first argument
+-   the first thing `script_main` does is use `grab` to create local
+    variables of the keys "opt1" (a named argument) and "opt2\_flag" (a
+    flag) from the hash passed in the first argument
 
 -   "opt1" is a named argument holding a value from the user's
     invocation
