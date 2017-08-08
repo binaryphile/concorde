@@ -315,11 +315,8 @@ A few points for understanding the template:
     greater than 0 - `shift` removes the first positional argument, so
     the loop will eventually end
 
-Using Concorde
-==============
-
 Concorde's Internal Rules
--------------------------
+=========================
 
 These are the rules which concorde's functions follow. Although I try to
 use the same rules for the rest of my bash coding, you are certainly not
