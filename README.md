@@ -388,8 +388,8 @@ interact with concorde.
     The reason for this is that it results in fewer quotes and dollar
     signs, which makes things more readable.
 
-5.  \*\*return values, aside from return codes, are put in the global
-    variable "\_\_" (double-underscore)\*\*
+5.  **return values, aside from return codes, are put in the global
+    variable "\_\_" (double-underscore)**
 
     Rather than relying on [command substitution] to save returned
     strings in a variable, concorde prefers to store them in a global
@@ -406,8 +406,9 @@ interact with concorde.
 
     There are a couple downsides as well, however:
 
-    -   "**", much like
-        "$?", can't be relied on to stay the same from function call to function call, so any value that needs to be saved must \*immediately\* be assigned - e.g. \`myvalue=$**\`
+    -   "\_\_", much like "$?", can't be relied on to stay the same from
+        function call to function call, so any value that needs to be
+        saved must *immediately* be assigned - e.g. `myvalue=$**`
 
     -   therefore most assignments which were one line when using
         command substitution now require two lines, one for the call and
