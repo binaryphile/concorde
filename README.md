@@ -315,20 +315,23 @@ A few points for understanding the template:
     greater than 0 - `shift` removes the first positional argument, so
     the loop will eventually end
 
-Rules in Concorde
-=================
+Using Concorde
+==============
 
-These are the rules which concorde's functions follow.  I try to use
-the same rules in my other bash programming, and they certainly aren't
-required for a consumer of concorde.  They will help you understand its
-design though.
+Concorde's Internal Rules
+-------------------------
+
+These are the rules which concorde's functions follow. Although I try to
+use the same rules for the rest of my bash coding, you are certainly not
+required to follow them yourself, except insofar as to know how to
+interact with concorde.
 
 1.  **test**
 
-    Write tests for bash functions.  Employ [red-green-refactor].  Keep
+    Write tests for bash functions. Employ [red-green-refactor]. Keep
     functions focused on a single task.
 
-1.  **minimize [side-effects]**
+2.  **minimize [side-effects]**
 
     Side-effects are changes to variables outside of scope or other
     observable interactions with calling functions, other than returning
@@ -340,42 +343,60 @@ design though.
     -   all variables are declared local
 
     -   global variables are, for the most part, not employed or
-        modified ("__" being one notable exception)
+        modified ("\_\_" being one notable exception)
 
-    -   parameters are values and not references to outside variables
-        (for the most part)
+    -   arguments should be values, not references (with some
+        exceptions)
 
     -   where references are allowed, they are dereferenced and used as
         values
 
-1.  **arrays and hashes are passed and returned as string
+3.  **arrays and hashes are passed and returned as string
     representations**
 
-    Bash is much better at working with strings as arguments than other data
-    structures.  The prior rules mean that you really have to use strings
-    for arrays and hashes since you want to pass them and they can only
-    be passed as strings.
+    Bash is much better at working with strings as arguments than other
+    data structures. The prior rules mean that you really have to use
+    strings for arrays and hashes since you want to pass them and they
+    can only be passed as strings.
 
     While this sounds like extra work, it actually ends up being fairly
-    convenient since they don't need to be converted back to array form most
-    of the time. If simply being passed to another function, that function
-    already expects the array in string form, so no conversion is necessary.
+    convenient since they don't need to be converted back to array form
+    most of the time. If simply being passed to another function, that
+    function already expects the array in string form, so no conversion
+    is necessary.
 
     The string representations are simply the text format used in array
-    assignments, with parentheses on the outside and array items separated
-    by spaces.  Quotes are used to put spaces in values:
+    assignments, with parentheses on the outside and array items
+    separated by spaces. Quotes are used to put spaces in values:
 
         "( zero \"item one\" 'item two' )"
 
     I call these array and hash literals, even though they are normally
     restricted to only assignment statements.
 
-1.  **return values (other than return codes) are put in the global
-    variable "__" (double-underscore)**
+    In many places, this documentation refers to "passing an array" or a
+    hash. This is simply shorthand for "passing an array literal".
+
+4.  **arrays and hashes may be passed by variable name as well**
+
+    Functions which expect an array or hash literal can use the
+    functions `local_ary` or `local_hsh`, which create a local
+    array/hash from the literal.
+
+    Because array/hash literal strings are unambiguously distinct from
+    variable names (which are restricted to single-word
+    underscore/alphanumerics), those functions can tell the difference
+    and will automatically dereference a variable name.
+
+    The reason for this is that it results in fewer quotes and dollar
+    signs, which makes things more readable.
+
+5.  \*\*return values, aside from return codes, are put in the global
+    variable "\_\_" (double-underscore)\*\*
 
     Rather than relying on [command substitution] to save returned
     strings in a variable, concorde prefers to store them in a global
-    variable.  This has a couple benefits:
+    variable. This has a couple benefits:
 
     -   no subshell is required, improving performance
 
@@ -384,24 +405,36 @@ design though.
 
     -   intermediate values in a chain of string operations don't
         usually require a temporary or accumulator variable to be
-        declared, since they are already stored in "__"
+        declared, since they are already stored in "\_\_"
 
     There are a couple downsides as well, however:
 
-    -   "__", much like "$?", can't be relied on to stay the same from
-        function call to function call, so any value that needs to be
-        saved must *immediately* be assigned - e.g. `myvalue=$__`
+    -   "**", much like
+        "$?", can't be relied on to stay the same from function call to function call, so any value that needs to be saved must \*immediately\* be assigned - e.g. \`myvalue=$**\`
 
-    -   therefore most one-line assignments using command substitution
-        now require two lines, one for the call and one for the
-        assignment
+    -   therefore most assignments which were one line when using
+        command substitution now require two lines, one for the call and
+        one for the assignment
 
     -   functions following this rule can't be used in pipelines, since
-        they are automatically run in a subshell and the global context
-        is thrown away when the function ends (rarely a problem,
-        however)
+        pipelines automatically run them in a subshell and the global
+        context is thrown away when the function ends
 
     -   the code looks strange if you aren't used to the concept
+
+6.  **functions use positional parameters for required arguments and a
+    keyword hash for optional arguments**
+
+    Optional arguments are ones that have defaults. An example:
+
+          my_function () {
+            local mandatory=$1; shift
+            local optional="default value"
+            $(grab optional from "$1")
+            [...]
+          }
+
+          my_function "required string" optional="optional value"
 
   [StackOverflow]: https://stackoverflow.com/
   [Bash Hacker's Wiki]: http://wiki.bash-hackers.org/
