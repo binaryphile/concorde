@@ -351,20 +351,24 @@ interact with concorde.
 3.  **arrays and hashes are passed and returned as string
     representations**
 
-    Bash is much better at working with strings as arguments than other
-    data structures. The prior rules mean that you really have to use
-    strings for arrays and hashes since you want to pass them and they
-    can only be passed as strings.
+    Bash is much better at working with strings as arguments than with
+    other data structures. The rules explained so far mean that you
+    really have to use strings for arrays and hashes, since you want to
+    pass them rather than rely on globals, and they can only be passed
+    as strings.
 
-    While this sounds like extra work, it actually ends up being fairly
-    convenient since they don't need to be converted back to array form
-    most of the time. If simply being passed to another function, that
-    function already expects the array in string form, so no conversion
-    is necessary.
+    While this sounds like extra work, it actually ends up being
+    convenient when coupled with the other functions in concorde.  You
+    don't often need to work with native hashes when you can extract
+    keys directly into your namespace, and multiple assignment makes
+    array items available as locals as well.  And the rest of concorde's
+    functions expect arrays as strings in the first place, so once
+    converted, the arrays rarely need to be converted back to native
+    form.
 
-    The string representations are simply the text format used in array
-    assignments, with parentheses on the outside and array items
-    separated by spaces. Quotes are used to put spaces in values:
+    The format of the string representations is simply the text format
+    used in array assignments, with parentheses on the outside and array
+    items separated by spaces. Quotes are used to put spaces in values:
 
         "( zero \"item one\" 'item two' )"
 
@@ -373,6 +377,18 @@ interact with concorde.
 
     In many places, this documentation refers to "passing an array" or a
     hash. This is simply shorthand for "passing an array literal".
+
+    For hashes, the format always includes indices, which looks like:
+
+        "( [zero]=0 [one]=1 [two]='et cetera' )"
+
+    Hashes also have a succinct format which can be used instead.  It
+    drops the parentheses and brackets:
+
+        "zero=0 one=1 two='et cetera'"
+
+    Notice that quotes are still needed around it as a whole, since it
+    is a string.
 
 4.  **arrays and hashes may be passed by variable name as well**
 
