@@ -178,24 +178,28 @@ local_ary () {
 local_hsh () {
   local first=$1; shift
   local item
-  local key
   local name
   local result=''
   local value
 
   name=${first%%=*}
-  (( $# )) && value="${first#*=} $*" || value=${first#*=}
+  value=${first#*=}
   [[ $value =~ ^[_[:alpha:]][_[:alnum:]]*(\[.+])?$ ]] && {
-    is_set "$value" && value=${!value} || value=''
+    ! (( $# )) || return
+    is_set "$value" && value=${!value} || { emit "eval 'declare -A $name=()'"; return ;}
+    [[ $value != '('*')' ]] && $(local_ary value_ary="( $value )")
   }
-  [[ $value == '('*')' ]] && { emit "eval 'declare -A $name=$value'"; return ;}
-  for item in $value; do
+  [[ $value == '('*')' ]] && {
+    ! (( $# )) || return
+    emit "eval 'declare -A $name=$value'"
+    return
+  }
+  in_scope value_ary && set -- "${value_ary[@]}" || set -- "$value" "$@"
+  for item in "$@"; do
     [[ $item == *?=* ]] || return
-    key=${item%%=*}
-    result+="[$key]=${item#*=} "
+    printf -v result '%s [%s]=%q' "$result" "${item%%=*}" "${item#*=}"
   done
-  result="( $result )"
-  emit "eval 'declare -A $name=$result'"
+  emit "eval 'declare -A $name=( $result )'"
 }
 
 log () { put "$@" ;}
