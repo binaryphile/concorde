@@ -1,8 +1,8 @@
-declare -Ag __macros
 declare -Ag __features
 [[ -n ${__features[concorde]:-} && ${1:-} != 'reload' ]] && return
 [[ ${1:-} == 'reload' ]] && shift
-__macros[readlink]=$(type greadlink >/dev/null 2>&1 && echo 'greadlink -f --' || echo 'readlink -f --')
+declare -Ag __macros
+type -P greadlink >/dev/null 2>&1 && __macros[readlink]='greadlink -f --' || __macros[readlink]='readlink -f --'
 __features[concorde]="( [root]=$(${__macros[readlink]} "$(dirname "$(${__macros[readlink]} "${BASH_SOURCE[0]}")")"/..) )"
 
 unset -v CDPATH
@@ -29,16 +29,16 @@ assign () {
 }
 
 bring () { (
-  [[ $2 == 'from'   ]] || return
-  [[ $1 == '('*')'  ]] && eval "local -a function_ary=$1" || local -a function_ary=( "$1" )
+  [[ $2 == 'from' ]]  || return
+  is_literal "$1"     && eval "local -a function_ary=$1" || local -a function_ary=( "$1" )
   local spec=$3
   local feature
 
   $(require "$spec")
   feature=${spec##*/}
   feature=${feature%.*}
-  $(grab dependencies from_feature "$feature")
-  [[ -n $dependencies ]] && {
+  is_feature "$feature" && $(grab dependencies from_feature "$feature")
+  [[ -n ${dependencies:-} ]] && {
     $(local_ary dependency_ary=$dependencies)
     function_ary+=( "${dependency_ary[@]}" )
   }
@@ -47,9 +47,9 @@ bring () { (
   emit "$__"
 ) }
 
-die () { [[ -n ${1:-} ]] && puterr "$1"; exit "${2:-1}" ;}
-
-emit () { printf 'eval eval %q\n' "$1" ;}
+die           () { [[ -n ${1:-} ]] && puterr "$1"; exit "${2:-1}" ;}
+emit          () { printf 'eval eval %q\n' "$1"         ;}
+escape_items  () { printf -v __ '%q ' "$@"; __=${__% }  ;}
 
 _extract_function () {
   local function=$1
@@ -134,7 +134,10 @@ in_scope () {
   emit "$__"
 }
 
-instantiate () { printf -v "$1" %s "$(eval "echo ${!1}")" ;}
+instantiate   () { printf -v "$1" %s "$(eval "echo ${!1}")" ;}
+is_feature    () { is_set __features["$1"]                  ;}
+is_identifier () { [[ $1 =~ ^[_[:alpha:]][_[:alnum:]]*$ ]]  ;}
+is_literal    () { [[ $1 == '('*')' ]] ;}
 
 is_set () {
   set -- "$1" "${1%%[*}"
@@ -172,34 +175,37 @@ local_ary () {
 
   name=${first%%=*}
   (( $# )) && value="${first#*=} $*" || value=${first#*=}
-  [[ $value == '('*')' ]] && emit "eval 'declare -a $name=$value'" || emit 'eval "declare -a '"$name"'=${'"$value"'}"'
+  is_literal "$value" && emit "eval 'declare -a $name=$value'" || emit 'eval "declare -a '"$name"'=${'"$value"'}"'
 }
 
 local_hsh () {
-  local first=$1; shift
   local item
   local name
   local result=''
   local value
 
-  name=${first%%=*}
-  value=${first#*=}
-  [[ $value =~ ^[_[:alpha:]][_[:alnum:]]*(\[.+])?$ ]] && {
-    ! (( $# )) || return
-    is_set "$value" && value=${!value} || { emit "eval 'declare -A $name=()'"; return ;}
-    [[ $value != '('*')' ]] && $(local_ary value_ary="( $value )")
-  }
-  [[ $value == '('*')' ]] && {
+  (( $# )) || return
+  name=${1%%=*}
+  value=${1#*=}
+  shift
+  set -- "$value" "$@"
+  case $# in
+    1 )
+      is_set "$value" && value=${!value}
+      shift
+      ;;
+    * ) is_literal "$*" && { value=$*; set -- ;};;
+  esac
+  is_literal "$value" && {
     ! (( $# )) || return
     emit "eval 'declare -A $name=$value'"
     return
   }
-  in_scope value_ary && set -- "${value_ary[@]}" || set -- "$value" "$@"
-  for item in "$@"; do
+  for item in "$value" "$@"; do
     [[ $item == *?=* ]] || return
     printf -v result '%s [%s]=%q' "$result" "${item%%=*}" "${item#*=}"
   done
-  emit "eval 'declare -A $name=( $result )'"
+  emit "eval 'declare -A $name=($result )'"
 }
 
 log () { put "$@" ;}
@@ -254,8 +260,8 @@ parse_options () {
   case ${#arg_ary[@]} in
     '0' ) statement='set --';;
     *   )
-      printf -v statement '%q ' "${arg_ary[@]}"
-      printf -v statement 'set -- %s' "$statement"
+      escape_items "${arg_ary[@]}"
+      printf -v statement 'set -- %s' "$__"
       ;;
   esac
   repr result_hsh
@@ -364,8 +370,8 @@ strict_mode () {
 }
 
 stuff () {
-  [[ $2 == 'into'   ]] || return
-  [[ $1 == '('*')'  ]] && eval "local -a ref_ary=$1" || local -a ref_ary=( "$1" )
+  [[ $2 == 'into' ]]  || return
+  is_literal "$1"     && eval "local -a ref_ary=$1" || local -a ref_ary=( "$1" )
   $(local_hsh result_hsh=$3)
   local ref
 

@@ -35,7 +35,13 @@ Make it easy to:
 Prerequisites
 =============
 
--   Bash 4.3 or 4.4
+-   Bash 4.3 or 4.4 - verified with:
+
+    -   4.3.11
+
+    -   4.3.33
+
+    -   4.4.12
 
 -   GNU `readlink` in your PATH - for Mac users, `greadlink` is also
     acceptable
