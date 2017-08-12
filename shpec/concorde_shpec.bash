@@ -150,6 +150,20 @@ describe feature
 end
 
 describe grab
+  it "errors if \$2 isn't 'from'"; (
+    grab one two && result=$? || result=$?
+    assert unequal 0 "$result"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "doesn't work if the first argument is a reference"; (
+    sample=one
+    result=$(grab sample from '([one]=1)')
+    declare -p one >/dev/null 2>&1 && result=$? || result=$?
+    assert unequal 0 "$result"
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
+
   it "instantiates a key/value pair from a hash literal as a local"; (
     $(grab one from '( [one]=1 )')
     assert equal 1 "$one"
@@ -189,23 +203,9 @@ describe grab
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
   end
 
-  it "errors if \$2 isn't 'from'"; (
-    grab one two && result=$? || result=$?
-    assert unequal 0 "$result"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "doesn't work if the first argument is a reference"; (
-    sample=one
-    result=$(grab sample from '([one]=1)')
-    declare -p one >/dev/null 2>&1 && result=$? || result=$?
-    assert unequal 0 "$result"
-    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-  end
-
   it "generates nothing if given '*' on an empty hash"; (
     result=$(grab '*' from '()')
-    assert equal '' "$result"
+    assert equal 0 "$?$result"
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
   end
 
@@ -217,8 +217,25 @@ describe grab
   end
 
   it "creates the variable if not in the hash and the variable is not set locally"; (
+    declare sample=''
     unset -v sample
     $(grab sample from '()')
+    is_set sample
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
+
+  it "doesn't set the variable if the hash doesn't exist and the variable is set locally"; (
+    declare sample=example
+    $(grab sample from '')
+    assert equal example "$sample"
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
+
+  it "creates the variable the hash doesn't exist and the variable is not set locally"; (
+    declare sample=''
+    unset -v sample
+    $(grab sample from '')
     is_set sample
     assert equal 0 $?
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))

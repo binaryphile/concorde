@@ -196,7 +196,7 @@ local_hsh () {
       ;;
     * ) is_literal "$*" && { value=$*; set -- ;};;
   esac
-  is_literal "$value" && {
+  { [[ -z $value ]] || is_literal "$value" ;} && {
     ! (( $# )) || return
     emit "eval 'declare -A $name=$value'"
     return
