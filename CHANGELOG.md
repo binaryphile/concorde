@@ -7,6 +7,47 @@ The format is based on [Keep a Changelog] and this project adheres to
 Latest Changes
 ==============
 
+[v0.0.5] - 2017-08-13
+---------------------
+
+### Removed
+
+-   succinct literals
+
+### Changed
+
+-   `die` exits with the last return code by default instead of 1
+
+-   renamed global hashes to be simpler since user-visible and could be
+    used much
+
+-   `local_hsh` accepts blank as empty literal `()`
+
+### Added
+
+-   keyword arguments in place of succinct hash literals
+
+-   `escape_items` to escape strings
+
+-   `raise` - like `die` but `return` instead of `exit`
+
+-   macros for commands in `__macros`
+
+-   `greadlink` compatibility for macs
+
+-   `is_literal`, `is_feature` functions
+
+### Refactored
+
+-   use `escape_items` instead of `printf` where appropriate
+
+### Documented
+
+-   tutorial is its own document
+
+-   readme updated with better description of features, sample template
+    script
+
 [v0.0.4] - 2017-08-01
 ---------------------
 
@@ -93,6 +134,7 @@ Older Changes
 
   [Keep a Changelog]: http://keepachangelog.com/
   [Semantic Versioning]: http://semver.org/
+  [v0.0.5]: https://github.com/binaryphile/concorde/compare/v0.0.4...v0.0.5
   [v0.0.4]: https://github.com/binaryphile/concorde/compare/v0.0.3...v0.0.4
   [v0.0.3]: https://github.com/binaryphile/concorde/compare/v0.0.2...v0.0.3
   [v0.0.2]: https://github.com/binaryphile/concorde/compare/v0.0.1...v0.0.2
