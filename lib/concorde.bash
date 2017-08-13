@@ -47,7 +47,13 @@ bring () { (
   emit "$__"
 ) }
 
-die           () { [[ -n ${1:-} ]] && puterr "$1"; exit "${2:-1}" ;}
+die () {
+  local rc=$?
+
+  [[ -n ${1:-} ]] && puterr "$1"
+  exit "${2:-$rc}"
+}
+
 emit          () { printf 'eval eval %q\n' "$1"         ;}
 escape_items  () { printf -v __ '%q ' "$@"; __=${__% }  ;}
 
@@ -280,6 +286,13 @@ part () {
 
 put     () { printf '%s\n' "$@"   ;}
 puterr  () { put "Error: $1" >&2  ;}
+
+raise () {
+  local rc=$?
+
+  [[ -n ${1:-} ]] && puterr "$1"
+  emit "return ${2:-$rc}"
+}
 
 repr () {
   __=$(declare -p "$1" 2>/dev/null) || return

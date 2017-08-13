@@ -83,10 +83,11 @@ Features:
 
 -   double-dash long options - e.g. `--option`
 
--   boolean flag options - e.g. `-f` or `--flag` - *true* or unset
+-   boolean flag options - e.g. `-f` or `--flag` - results in *true* or
+    unset
 
 -   named arguments (a.k.a. option arguments) - e.g. `-a <value>` or
-    `--argument <value>` - stored in named variable
+    `--argument <value>` - result stored in variable named for option
 
 -   multiple short flags condensed to a single dash - e.g. for `-a`,
     `-b` and `-c`: `-abc`
@@ -98,7 +99,8 @@ Features:
     `--option <value>` or `--option=<value>`
 
 -   automatic removal of options and values processed by the parser from
-    the calling script's own positional arguments (`$1`, etc.)
+    the calling script's own positional arguments (`$1`, etc.), leaving
+    just the actual positional arguments from the user
 
 Variables which store boolean flags always hold *true* when the flag is
 provided on the command-line.
@@ -108,7 +110,9 @@ provided on the command-line.
 -   the ability to specify a flag that sets a value of *false*
 
 -   concatenation of an option argument to its short option - e.g.
-    `-o<value>` is not allowed, a space is required as in `-o <value>`
+    `-o<value>` is not allowed, a space is required as in:
+
+        -o <value>
 
 -   an automatic `--no-<flag>` form of long flag negation
 
@@ -133,7 +137,7 @@ provided on the command-line.
 
 Strict mode does require more careful coding style to avoid
 unintentional errors, so it is suggested that you have practice with it
-before enabling it on existing code.
+before enabling it on legacy code.
 
 I will add some recommended coding hygeine when working with strict
 mode, but until I do, you can learn more [here] and at [Aaron Maxwell's
@@ -160,7 +164,7 @@ extension (e.g. `.sh`) for library files to be left off with its
     directory, and does not require file extension
 
 -   `require_relative` - source a file relative to the location of the
-    sourcing file and does not require file extension
+    sourcing file, does not require file extension
 
 Hash Operations
 ---------------
@@ -219,7 +223,7 @@ Contextual Operations
 Input/Output
 ------------
 
--   `die` - exit with a message
+-   `die` - output message on stderr and exit
 
 -   `log` - log output (currently just goes to stdout)
 
@@ -227,6 +231,8 @@ Input/Output
     `puts` - see [this explanation] for why you might want to use it
 
 -   `puterr` - output message on stderr
+
+-   `raise` - output message on stderr and return
 
 Sample Script Template
 ======================
