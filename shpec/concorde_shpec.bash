@@ -87,9 +87,12 @@ describe die
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
-  it "exits with a default error code of 1"; (
+  it "exits with a default error code of the last command"; (
+    false
     (die 2>&1) && result=$? || result=$?
-    assert equal 1 "$result"
+    true
+    (die 2>&1) && result="$result $?" || result="$result $?"
+    assert equal '1 0' "$result"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
