@@ -77,6 +77,21 @@ Option Parser
 
 A basic parser, aimed at the features of [enhanced getopt].
 
+Example:
+
+``` bash
+source concorde.bash
+
+#     short  long     argument  help
+#     -----  ----     --------  ----
+get_here_ary <<'EOS'
+  (   -o      --opt1  ''        "a flag"            )
+  (   -p      --opt2  value     "an option argument")
+EOS
+
+$(parse_options __ "$@") || die "$usage" 0
+```
+
 Features:
 
 -   single-dash short options - e.g. `-o`
@@ -146,6 +161,13 @@ page][Strict Mode].
 Ruby-style "Features" a.k.a. Libraries
 --------------------------------------
 
+At the beginning of each library, for example `my_lib.bash`:
+
+``` bash
+source concorde.bash
+
+$(feature my_lib)
+```
 Libraries are written so that they are not unintentionally loaded more
 than once, even if sourced multiple times. Concorde also allows the file
 extension (e.g. `.sh`) for library files to be left off with its
