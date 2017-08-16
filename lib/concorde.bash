@@ -102,8 +102,9 @@ get_here_str () {
 get_str () { IFS=$'\n' read -rd '' __ ||:         ;}
 
 grab () {
-  [[ $2 == 'from_feature' || $2 == 'from' ]] || return
-  [[ $2 == 'from_feature' ]] && $(local_hsh arg_hsh=__features[$3]) || $(local_hsh arg_hsh=$3)
+  [[ $2 == 'from_ns' || $2 == 'from' ]] || return
+  [[ $2 == 'from_ns' ]] && $(grab "$3" from __ns)
+  $(local_hsh arg_hsh=$3)
   case $1 in
     '('*')' ) eval "local -a var_ary=$1"            ;;
     '*'     ) local -a var_ary=( "${!arg_hsh[@]}" ) ;;
