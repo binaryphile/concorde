@@ -160,18 +160,22 @@ feature () {
   local statement
 
   get_here_str <<'  EOS'
-    declare -Ag __ns
     (
-      $(local_hsh feature_hsh=__ns[features])
-      [[ -n ${feature_hsh[%s]:-} && ${1:-} != 'reload' ]]
+      declare -A ns_hsh=${__ns:-}
+      declare -A features_hsh=${ns_hsh[features]:-}
+      [[ -n ${features_hsh[%s]:-} && ${1:-} != 'reload' ]]
     ) && return
-    [[ ${1:-} == 'reload' ]] && shift
-    __ns[features]=$(
-      $(grab readlink from __ns[macros])
+    __ns=$(
+      declare -A ns_hsh=${__ns:-}
+      type -P greadlink >/dev/null 2>&1 && readlink='greadlink -f --' || readlink='readlink -f --'
       %s="( [root]=\\"$($readlink "$(dirname "$($readlink "$BASH_SOURCE")")"%s)\\" )"
-      stuff %s into __ns[features]
+      [[ -z ${ns_hsh[features]:-} ]] && ns_hsh[features]='()'
+      stuff %s into ns_hsh[features]
+      ns_hsh[features]=$__
+      repr ns_hsh
       echo "$__"
     )
+    [[ ${1:-} == 'reload' ]] && shift
   EOS
   statement=$__
   (( depth )) && for (( i = 0; i < depth; i++ )); do path+=/..; done
