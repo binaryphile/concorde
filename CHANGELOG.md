@@ -7,6 +7,17 @@ The format is based on [Keep a Changelog] and this project adheres to
 Latest Changes
 ==============
 
+[unreleased]
+------------
+
+### Added
+
+-   namespace operations
+
+### Refactored
+
+-   migrated features to use namespaces
+
 [v0.0.5] - 2017-08-13
 ---------------------
 
@@ -134,6 +145,7 @@ Older Changes
 
   [Keep a Changelog]: http://keepachangelog.com/
   [Semantic Versioning]: http://semver.org/
+  [unreleased]: https://github.com/binaryphile/concorde/compare/v0.0.5...v0.1
   [v0.0.5]: https://github.com/binaryphile/concorde/compare/v0.0.4...v0.0.5
   [v0.0.4]: https://github.com/binaryphile/concorde/compare/v0.0.3...v0.0.4
   [v0.0.3]: https://github.com/binaryphile/concorde/compare/v0.0.2...v0.0.3

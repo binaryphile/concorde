@@ -1,9 +1,9 @@
-declare -Ag __features
-[[ -n ${__features[concorde]:-} && ${1:-} != 'reload' ]] && return
+[[ -n ${__ns:-} && ${1:-} != 'reload' ]] && return
 [[ ${1:-} == 'reload' ]] && shift
-declare -Ag __macros
-type -P greadlink >/dev/null 2>&1 && __macros[readlink]='greadlink -f --' || __macros[readlink]='readlink -f --'
-__features[concorde]="( [root]=$(${__macros[readlink]} "$(dirname "$(${__macros[readlink]} "${BASH_SOURCE[0]}")")"/..) )"
+type -P greadlink >/dev/null 2>&1 && __ns=g || __ns=''
+__ns="( [features]=\"( [concorde]=\\\"( [root]=\\\\\\\"$(
+  ${__ns}readlink -f -- "$(dirname "$(${ns}readlink -f -- "$BASH_SOURCE")")"/..
+)\\\\\\\" )\\\" )\" [macros]=\"( [readlink]=\\\"${ns}readlink -f --\\\")\" )"
 
 unset -v CDPATH
 
@@ -154,21 +154,28 @@ is_set () {
 feature () {
   local feature_name=$1; shift
   local depth=1
-  (( $# )) && $(grab depth from "$*")
+  (( $# )) && $(grab depth from "$@")
   local i
-  local path
+  local path=''
   local statement
 
   get_here_str <<'  EOS'
-    declare -Ag __features
-    [[ -n ${__features[%s]:-} && ${1:-} != 'reload' ]] && return
+    declare -Ag __ns
+    (
+      $(local_hsh feature_hsh=__ns[features])
+      [[ -n ${feature_hsh[%s]:-} && ${1:-} != 'reload' ]]
+    ) && return
     [[ ${1:-} == 'reload' ]] && shift
-    __features[%s]="( [root]=$(${__macros[readlink]} "$(dirname "$(${__macros[readlink]} "${BASH_SOURCE[0]}")")"%s) )"
+    __ns[features]=$(
+      $(grab readlink from __ns[macros])
+      %s="( [root]=\\"$($readlink "$(dirname "$($readlink "$BASH_SOURCE")")"%s)\\" )"
+      stuff %s into __ns[features]
+      echo "$__"
+    )
   EOS
   statement=$__
-  path=''
   (( depth )) && for (( i = 0; i < depth; i++ )); do path+=/..; done
-  printf -v statement "$statement" "$feature_name" "$feature_name" "$path"
+  printf -v statement "$statement" "$feature_name" "$feature_name" "$path" "$feature_name"
   emit "$statement"
 }
 

@@ -55,12 +55,7 @@ Concorde reserves the following global variables for its own use:
 
 -   `__` - double-underscore, used for returning strings from functions
 
--   `__features` - a hash for feature (i.e. library) meta-data
-
--   `__instances` - a hash for holding object-like data structures
-
--   `__macros` - a hash for holding safer versions of commonly-used
-    commands
+-   `__ns` - a hash for storing scoped data such as features
 
 Installation
 ============
