@@ -619,14 +619,18 @@ describe feature
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
-  # it "modifies the depth of the root path based on an argument"; (
-  #   $(feature sample)
-  #   $(grab root from_feature sample)
-  #   old_root=$root
-  #   $(feature sample2 depth=2)
-  #   $(grab root from_feature sample2)
-  #   [[ $old_root == $root/* ]]
-  #   assert equal 0 $?
-  #   return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  # end
+  it "modifies the depth of the root path based on an argument"; (
+    $(feature sample)
+    declare -A ns_hsh=$__ns
+    declare -A features_hsh=${ns_hsh[features]}
+    $(grab root from features_hsh[sample])
+    old_root=$root
+    $(feature sample2 depth=2)
+    declare -A ns_hsh=$__ns
+    declare -A features_hsh=${ns_hsh[features]}
+    $(grab root from features_hsh[sample2])
+    [[ $old_root == $root/* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
 end
