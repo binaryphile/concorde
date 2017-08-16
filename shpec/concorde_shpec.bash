@@ -643,4 +643,12 @@ describe grab
     assert equal 0 $?
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
   end
+
+  it "grabs from a hash in a hash"; (
+    _shpec_failures=0
+    sample='( [one]="( [two]=2 )" )'
+    $(grab two from one in sample)
+    assert equal 2 "$two"
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
 end
