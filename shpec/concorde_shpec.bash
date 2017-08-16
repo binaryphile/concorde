@@ -610,13 +610,15 @@ describe feature
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
-  # it "creates a root entry for the feature"; (
-  #   $(feature sample)
-  #   $(grab root from_feature sample)
-  #   assert unequal '' "$root"
-  #   return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  # end
-  #
+  it "creates a root entry for the feature"; (
+    $(feature sample)
+    declare -A ns_hsh=$__ns
+    declare -A features_hsh=${ns_hsh[features]}
+    $(grab root from features_hsh[sample])
+    assert unequal '' "$root"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
   # it "modifies the depth of the root path based on an argument"; (
   #   $(feature sample)
   #   $(grab root from_feature sample)
