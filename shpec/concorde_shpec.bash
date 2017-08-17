@@ -673,6 +673,13 @@ describe grab
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
   end
 
+  it "grabs all keyword arguments"; (
+    _shpec_failures=0
+    $(grab '*' from zero='0 1' one=2)
+    assert equal '0 1 2' "$zero $one"
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
+
   # it "grabs from a hash in a hash"; (
   #   _shpec_failures=0
   #   sample='( [one]="( [two]=2 )" )'
