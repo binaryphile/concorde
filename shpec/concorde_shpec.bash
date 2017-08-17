@@ -117,48 +117,48 @@ set -o nounset
 #   end
 # end
 
-describe feature
-  it "creates namespaces as a global"; (
-    while declare -p __ns >/dev/null 2>&1; do unset -v __ns; done
-    $(feature sample)
-    declare -p __ns >/dev/null 2>&1
-    assert equal 0 $?
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "doesn't interfere with an existing feature entry"; (
-    $(feature sample)
-    declare -A ns_hsh=$__ns
-    declare -A features_hsh=${ns_hsh[features]}
-    [[ -n ${features_hsh[concorde]} ]]
-    assert equal 0 $?
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "creates a root entry for the feature"; (
-    $(feature sample)
-    declare -A ns_hsh=$__ns
-    declare -A features_hsh=${ns_hsh[features]}
-    $(grab root from features_hsh[sample])
-    assert unequal '' "$root"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "modifies the depth of the root path based on an argument"; (
-    $(feature sample)
-    declare -A ns_hsh=$__ns
-    declare -A features_hsh=${ns_hsh[features]}
-    $(grab root from features_hsh[sample])
-    old_root=$root
-    $(feature sample2 depth=2)
-    declare -A ns_hsh=$__ns
-    declare -A features_hsh=${ns_hsh[features]}
-    $(grab root from features_hsh[sample2])
-    [[ $old_root == $root/* ]]
-    assert equal 0 $?
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-end
+# describe feature
+#   it "creates namespaces as a global"; (
+#     while declare -p __ns >/dev/null 2>&1; do unset -v __ns; done
+#     $(feature sample)
+#     declare -p __ns >/dev/null 2>&1
+#     assert equal 0 $?
+#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+#   end
+#
+#   it "doesn't interfere with an existing feature entry"; (
+#     $(feature sample)
+#     declare -A ns_hsh=$__ns
+#     declare -A features_hsh=${ns_hsh[features]}
+#     [[ -n ${features_hsh[concorde]} ]]
+#     assert equal 0 $?
+#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+#   end
+#
+#   it "creates a root entry for the feature"; (
+#     $(feature sample)
+#     declare -A ns_hsh=$__ns
+#     declare -A features_hsh=${ns_hsh[features]}
+#     $(grab root from features_hsh[sample])
+#     assert unequal '' "$root"
+#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+#   end
+#
+#   it "modifies the depth of the root path based on an argument"; (
+#     $(feature sample)
+#     declare -A ns_hsh=$__ns
+#     declare -A features_hsh=${ns_hsh[features]}
+#     $(grab root from features_hsh[sample])
+#     old_root=$root
+#     $(feature sample2 depth=2)
+#     declare -A ns_hsh=$__ns
+#     declare -A features_hsh=${ns_hsh[features]}
+#     $(grab root from features_hsh[sample2])
+#     [[ $old_root == $root/* ]]
+#     assert equal 0 $?
+#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+#   end
+# end
 
 describe grab
 end
@@ -349,46 +349,52 @@ end
 # end
 #
 # describe local_hsh
-#   it "creates a hash from a literal"; (
-#     $(local_hsh result_hsh='( [zero]="0 1" )')
-#     assert equal '0 1' "${result_hsh[zero]}"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "creates a hash from a string reference"; (
-#     sampleh='( [zero]="0 1" )'
-#     $(local_hsh result_hsh=sampleh)
-#     assert equal '0 1' "${result_hsh[zero]}"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "creates a hash from an array reference"; (
-#     sample_ary=( '( [zero]="0 1" )' )
-#     $(local_hsh result_hsh=sample_ary[0])
-#     assert equal '0 1' "${result_hsh[zero]}"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "creates a hash from a hash reference"; (
-#     declare -A sample_hsh=( [item]='( [zero]="0 1" )' )
-#     $(local_hsh result_hsh=sample_hsh[item])
-#     assert equal '0 1' "${result_hsh[zero]}"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "creates a hash from a keyword argument"; (
-#     $(local_hsh result_hsh=zero="0 1")
-#     assert equal '0 1' "${result_hsh[zero]}"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "creates a hash from multiple keyword arguments"; (
-#     $(local_hsh result_hsh=zero="0 1" one=2)
-#     assert equal '0 1 2' "${result_hsh[zero]} ${result_hsh[one]}"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
+  # it "creates a hash from a literal"; (
+  #   _shpec_failures=0
+  #   $(local_hsh result_hsh='( [zero]="0 1" )')
+  #   assert equal '0 1' "${result_hsh[zero]}"
+  #   return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  # end
+  #
+  # it "creates a hash from a string reference"; (
+  #   _shpec_failures=0
+  #   sampleh='( [zero]="0 1" )'
+  #   $(local_hsh result_hsh=sampleh)
+  #   assert equal '0 1' "${result_hsh[zero]}"
+  #   return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  # end
+  #
+  # it "creates a hash from an array reference"; (
+  #   _shpec_failures=0
+  #   sample_ary=( '( [zero]="0 1" )' )
+  #   $(local_hsh result_hsh=sample_ary[0])
+  #   assert equal '0 1' "${result_hsh[zero]}"
+  #   return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  # end
+  #
+  # it "creates a hash from a hash reference"; (
+  #   _shpec_failures=0
+  #   declare -A sample_hsh=( [item]='( [zero]="0 1" )' )
+  #   $(local_hsh result_hsh=sample_hsh[item])
+  #   assert equal '0 1' "${result_hsh[zero]}"
+  #   return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  # end
+  #
+  # it "creates a hash from a keyword argument"; (
+  #   _shpec_failures=0
+  #   $(local_hsh result_hsh=zero="0 1")
+  #   assert equal '0 1' "${result_hsh[zero]}"
+  #   return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  # end
+  #
+  # it "creates a hash from multiple keyword arguments"; (
+  #   _shpec_failures=0
+  #   $(local_hsh result_hsh=zero="0 1" one=2)
+  #   assert equal '0 1 2' "${result_hsh[zero]} ${result_hsh[one]}"
+  #   return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  # end
 # end
-#
+
 # describe options_parse
 #   it "accepts a short flag option"; (
 #     get_here_ary <<'    EOS'
@@ -644,11 +650,18 @@ describe grab
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
   end
 
-  it "grabs from a hash in a hash"; (
+  it "grabs from keyword arguments"; (
     _shpec_failures=0
-    sample='( [one]="( [two]=2 )" )'
-    $(grab two from one in sample)
-    assert equal 2 "$two"
+    $(grab one from zero='0 1' one=2)
+    assert equal 2 "$one"
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
   end
+
+  # it "grabs from a hash in a hash"; (
+  #   _shpec_failures=0
+  #   sample='( [one]="( [two]=2 )" )'
+  #   $(grab two from one in sample)
+  #   assert equal 2 "$two"
+  #   return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  # end
 end

@@ -104,11 +104,13 @@ get_str () { IFS=$'\n' read -rd '' __ ||:         ;}
 grab () {
   [[ $2 == 'from_ns' || $2 == 'from' ]] || return
   [[ $2 == 'from_ns' ]] && $(grab "$3" from __ns)
-  $(local_hsh arg_hsh=$3)
-  case $1 in
-    '('*')' ) eval "local -a var_ary=$1"            ;;
+  local name=$1
+  shift 2
+  $(local_hsh arg_hsh="$@")
+  case $name in
+    '('*')' ) eval "local -a var_ary=$name"         ;;
     '*'     ) local -a var_ary=( "${!arg_hsh[@]}" ) ;;
-    *       ) local -a var_ary=( "$1"             ) ;;
+    *       ) local -a var_ary=( "$name"          ) ;;
   esac
   local statement
   local var
