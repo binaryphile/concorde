@@ -212,8 +212,13 @@ local_hsh () {
   shift
   [[ -z $value ]] && value='()'
   set -- "$value" "$@"
-  is_literal  "$*"      && { value=$*       ; set --  ;}
-  is_set      "$value"  && { value=${!value}; shift   ;}
+  is_literal  "$*"    && { value=$*; set -- ;}
+  [[ $value == *.* ]] && {
+    item=${value%%.*}
+    value=${value#*.}
+    $(grab "$value" from "$item")
+  }
+  is_set "$value" && { value=${!value}; shift   ;}
   [[ -z $value ]] && value='()'
   is_literal "$value" && {
     ! (( $# )) || return
