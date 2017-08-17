@@ -347,52 +347,8 @@ end
 #     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
 #   end
 # end
-#
+
 describe local_hsh
-  it "creates a hash from a literal"; (
-    _shpec_failures=0
-    $(local_hsh result_hsh='( [zero]="0 1" )')
-    assert equal '0 1' "${result_hsh[zero]}"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "creates a hash from a string reference"; (
-    _shpec_failures=0
-    sampleh='( [zero]="0 1" )'
-    $(local_hsh result_hsh=sampleh)
-    assert equal '0 1' "${result_hsh[zero]}"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "creates a hash from an array reference"; (
-    _shpec_failures=0
-    sample_ary=( '( [zero]="0 1" )' )
-    $(local_hsh result_hsh=sample_ary[0])
-    assert equal '0 1' "${result_hsh[zero]}"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "creates a hash from a hash reference"; (
-    _shpec_failures=0
-    declare -A sample_hsh=( [item]='( [zero]="0 1" )' )
-    $(local_hsh result_hsh=sample_hsh[item])
-    assert equal '0 1' "${result_hsh[zero]}"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "creates a hash from a keyword argument"; (
-    _shpec_failures=0
-    $(local_hsh result_hsh=zero="0 1")
-    assert equal '0 1' "${result_hsh[zero]}"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "creates a hash from multiple keyword arguments"; (
-    _shpec_failures=0
-    $(local_hsh result_hsh=zero="0 1" one=2)
-    assert equal '0 1 2' "${result_hsh[zero]} ${result_hsh[one]}"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
 end
 
 # describe options_parse
@@ -630,33 +586,33 @@ describe grab
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
   end
 
-  it "creates the variable the hash doesn't exist and the variable is not set locally"; (
-    _shpec_failures=0
-    declare sample=''
-    unset -v sample
-    $(grab sample from '')
-    is_set sample
-    assert equal 0 $?
-    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-  end
-
-  it "grabs from a namespace"; (
-    _shpec_failures=0
-    concorde=''
-    unset -v concorde
-    $(grab concorde from_ns features)
-    [[ -n $concorde ]]
-    assert equal 0 $?
-    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-  end
-
-  it "grabs from keyword arguments"; (
-    _shpec_failures=0
-    $(grab one from zero='0 1' one=2)
-    assert equal 2 "$one"
-    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-  end
-
+  # it "creates the variable the hash doesn't exist and the variable is not set locally"; (
+  #   _shpec_failures=0
+  #   declare sample=''
+  #   unset -v sample
+  #   $(grab sample from '')
+  #   is_set sample
+  #   assert equal 0 $?
+  #   return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  # end
+  #
+  # it "grabs from a namespace"; (
+  #   _shpec_failures=0
+  #   concorde=''
+  #   unset -v concorde
+  #   $(grab concorde from_ns features)
+  #   [[ -n $concorde ]]
+  #   assert equal 0 $?
+  #   return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  # end
+  #
+  # it "grabs from keyword arguments"; (
+  #   _shpec_failures=0
+  #   $(grab one from zero='0 1' one=2)
+  #   assert equal 2 "$one"
+  #   return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  # end
+  #
   # it "grabs from a hash in a hash"; (
   #   _shpec_failures=0
   #   sample='( [one]="( [two]=2 )" )'
@@ -664,4 +620,67 @@ describe grab
   #   assert equal 2 "$two"
   #   return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
   # end
+end
+
+describe local_hsh
+  it "creates an empty hash from an empty literal"; (
+    _shpec_failures=0
+    $(local_hsh result_hsh='()')
+    declare -p result_hsh >/dev/null 2>&1
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates an empty hash from an empty string"; (
+    _shpec_failures=0
+    $(local_hsh result_hsh='')
+    declare -p result_hsh >/dev/null 2>&1
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates a hash from a literal"; (
+    _shpec_failures=0
+    $(local_hsh result_hsh='( [zero]="0 1" )')
+    assert equal '0 1' "${result_hsh[zero]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates a hash from a string reference"; (
+    _shpec_failures=0
+    sampleh='( [zero]="0 1" )'
+    $(local_hsh result_hsh=sampleh)
+    assert equal '0 1' "${result_hsh[zero]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates a hash from an array reference"; (
+    _shpec_failures=0
+    sample_ary=( '( [zero]="0 1" )' )
+    $(local_hsh result_hsh=sample_ary[0])
+    assert equal '0 1' "${result_hsh[zero]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates a hash from a hash reference"; (
+    _shpec_failures=0
+    declare -A sample_hsh=( [item]='( [zero]="0 1" )' )
+    $(local_hsh result_hsh=sample_hsh[item])
+    assert equal '0 1' "${result_hsh[zero]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates a hash from a keyword argument"; (
+    _shpec_failures=0
+    $(local_hsh result_hsh=zero="0 1")
+    assert equal '0 1' "${result_hsh[zero]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates a hash from multiple keyword arguments"; (
+    _shpec_failures=0
+    $(local_hsh result_hsh=zero="0 1" one=2)
+    assert equal '0 1 2' "${result_hsh[zero]} ${result_hsh[one]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
 end

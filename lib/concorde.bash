@@ -115,11 +115,13 @@ grab () {
   local statement
   local var
 
-  (( ${#var_ary[@]} )) || return 0
+  ! (( ${#var_ary[@]} )) && return
   for var in "${var_ary[@]}"; do
-    is_set arg_hsh["$var"] && \
-      printf -v statement '%sdeclare %s=%q\n'                   "${statement:-}" "$var"         "${arg_hsh[$var]:-}" || \
-      printf -v statement '%s$(in_scope %s) || declare %s=%q\n' "${statement:-}" "$var" "$var"  "${arg_hsh[$var]:-}"
+    if is_set arg_hsh["$var"]; then
+      printf -v statement '%sdeclare %s=%q\n' "${statement:-}" "$var" "${arg_hsh[$var]:-}"
+    else
+      printf -v statement '%s$(in_scope %s) || declare %s=%q\n' "${statement:-}" "$var" "$var" "${arg_hsh[$var]:-}"
+    fi
   done
   emit "$statement"
 }
@@ -207,6 +209,7 @@ local_hsh () {
   (( $# )) || return
   name=${1%%=*}
   value=${1#*=}
+  [[ -z $value ]] && value='()'
   shift
   set -- "$value" "$@"
   is_literal  "$*"      && { value=$*       ; set --  ;}
