@@ -209,12 +209,13 @@ local_hsh () {
   (( $# )) || return
   name=${1%%=*}
   value=${1#*=}
-  [[ -z $value ]] && value='()'
   shift
+  [[ -z $value ]] && value='()'
   set -- "$value" "$@"
   is_literal  "$*"      && { value=$*       ; set --  ;}
   is_set      "$value"  && { value=${!value}; shift   ;}
-  { [[ -z $value ]] || is_literal "$value" ;} && {
+  [[ -z $value ]] && value='()'
+  is_literal "$value" && {
     ! (( $# )) || return
     emit "eval 'declare -A $name=$value'"
     return
@@ -223,7 +224,7 @@ local_hsh () {
     [[ $item == *?=* ]] || return
     printf -v result '%s [%s]=%q' "$result" "${item%%=*}" "${item#*=}"
   done
-  emit "eval 'declare -A $name=($result )'"
+  emit "eval 'declare -A $name=( $result )'"
 }
 
 log () { put "$@" ;}
