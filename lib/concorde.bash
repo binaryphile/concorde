@@ -165,12 +165,12 @@ feature () {
 
   get_here_str <<'  EOS'
     (
-      declare -A ns_hsh=${__ns:-}
-      declare -A features_hsh=${ns_hsh[features]:-}
+      eval declare -A ns_hsh=${__ns:-}
+      eval declare -A features_hsh=${ns_hsh[features]:-}
       [[ -n ${features_hsh[%s]:-} && ${1:-} != 'reload' ]]
     ) && return
     __ns=$(
-      declare -A ns_hsh=${__ns:-}
+      eval declare -A ns_hsh=${__ns:-}
       type -P greadlink >/dev/null 2>&1 && readlink='greadlink -f --' || readlink='readlink -f --'
       %s="( [root]=\\"$($readlink "$(dirname "$($readlink "$BASH_SOURCE")")"%s)\\" )"
       [[ -z ${ns_hsh[features]:-} ]] && ns_hsh[features]='()'
