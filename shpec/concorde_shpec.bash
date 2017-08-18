@@ -40,42 +40,42 @@ end
 describe bring
 end
 
-# describe die
-#   it "exits without an error message"; (
-#     result=$(die 2>&1) ||:
-#     assert equal '' "$result"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "exits with a default error code of the last command"; (
-#     false
-#     (die 2>&1) && result=$? || result=$?
-#     true
-#     (die 2>&1) && result="$result $?" || result="$result $?"
-#     assert equal '1 0' "$result"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "exits with an error message"; (
-#     result=$(die 'aaaaagh' 2>&1) ||:
-#     assert equal 'Error: aaaaagh' "$result"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "exits with an error code"; (
-#     (die '' 2 2>&1) && result=$? || result=$?
-#     assert equal 2 "$result"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-# end
-#
-# describe escape_items
-#   it "creates a quoted string from some items"; (
-#     escape_items 'one two' three
-#     assert equal 'one\ two three' "$__"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-# end
+describe die
+  it "exits without an error message"; (
+    result=$(die 2>&1) ||:
+    assert equal '' "$result"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "exits with a default error code of the last command"; (
+    false
+    (die 2>&1) && result=$? || result=$?
+    true
+    (die 2>&1) && result="$result $?" || result="$result $?"
+    assert equal '1 0' "$result"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "exits with an error message"; (
+    result=$(die 'aaaaagh' 2>&1) ||:
+    assert equal 'Error: aaaaagh' "$result"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "exits with an error code"; (
+    (die '' 2 2>&1) && result=$? || result=$?
+    assert equal 2 "$result"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+end
+
+describe escape_items
+  it "creates a quoted string from some items"; (
+    escape_items 'one two' three
+    assert equal 'one\ two three' "$__"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+end
 
 describe feature
   it "creates namespaces as a global"; (
@@ -266,155 +266,169 @@ describe grab
   end
 end
 
-# describe in_scope
-#   it "doesn't set a global"; (
-#     sample_func () { local sample=one; $(in_scope sample) ;}
-#     ! is_set sample
-#     assert equal 0 $?
-#     return "$_shpec_failures"); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "doesn't change a global"; (
-#     declare -g sample=blah
-#     [[ $sample == 'blah' ]]
-#     sample_func () { local sample=one; $(in_scope sample) ;}
-#     sample_func
-#     assert equal blah "$sample"
-#     return "$_shpec_failures"); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "returns true if the variable is a local and there is a global"; (
-#     declare -g sample=blah
-#     [[ $sample == 'blah' ]]
-#     sample_func () { local sample=one; $(in_scope sample) ;}
-#     sample_func
-#     assert equal 0 $?
-#     return "$_shpec_failures"); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "returns false if the variable is not a local and there is a global"; (
-#     declare -g sample=blah
-#     [[ $sample == 'blah' ]]
-#     sample_func () { $(in_scope sample) ;}
-#     sample_func && result=$? || result=$?
-#     assert unequal 0 "$result"
-#     return "$_shpec_failures"); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "returns true if the variable is a local and there is no global"; (
-#     ! is_set sample
-#     sample_func () { local sample=one; $(in_scope sample) ;}
-#     sample_func
-#     assert equal 0 $?
-#     return "$_shpec_failures"); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "returns false if the variable is not a local and there is no global"; (
-#     ! is_set sample
-#     sample_func () { $(in_scope sample) ;}
-#     sample_func && result=$? || result=$?
-#     assert unequal 0 "$result"
-#     return "$_shpec_failures"); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "returns true if the variable is a global and executed in global scope"; (
-#     get_here_str <<'    EOS'
-#       source concorde.bash
-#       ! is_set sample
-#       sample=one
-#       $(in_scope sample)
-#     EOS
-#     bash -c "$__"
-#     assert equal 0 $?
-#     return "$_shpec_failures"); : $(( _shpec_failures += $? ))
-#   end
-# end
-#
-# describe is_set
-#   it "is false if the variable is not set"; (
-#     unset -v sample
-#     is_set sample && result=$? || result=$?
-#     assert unequal 0 "$result"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "is true if the variable is empty"; (
-#     sample=''
-#     is_set sample
-#     assert equal 0 $?
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "is true if the variable has a value"; (
-#     sample=example
-#     is_set sample
-#     assert equal 0 $?
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "is false if the variable is an element of an unset array"; (
-#     unset -v sample_ary
-#     is_set sample_ary[0] && result=$? || result=$?
-#     assert unequal 0 "$result"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "is false if the variable is an unset array element"; (
-#     unset -v sample_ary
-#     sample_ary=()
-#     is_set sample_ary[0] && result=$? || result=$?
-#     assert unequal 0 "$result"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "is true if the variable is an empty array element"; (
-#     unset -v sample_ary
-#     sample_ary=( '' )
-#     is_set sample_ary[0]
-#     assert equal 0 $?
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "is true if the variable is an array element with a value"; (
-#     unset -v sample_ary
-#     sample_ary=( 'a value' )
-#     is_set sample_ary[0]
-#     assert equal 0 $?
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "is false if the variable is an element of an unset hash"; (
-#     unset -v sample_hsh
-#     is_set sample_hsh[index] && result=$? || result=$?
-#     assert unequal 0 "$result"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "is false if the variable is an unset hash element"; (
-#     unset -v sample_hsh
-#     declare -A sample_hsh=()
-#     is_set sample_hsh[zero] && result=$? || result=$?
-#     assert unequal 0 "$result"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "is true if the variable is an empty array element"; (
-#     unset -v sample_hsh
-#     declare -A sample_hsh=( [zero]='' )
-#     is_set sample_hsh[zero]
-#     assert equal 0 $?
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "is true if the variable is an array element with a value"; (
-#     unset -v sample_hsh
-#     declare -A sample_hsh=( [zero]=0 )
-#     is_set sample_hsh[zero]
-#     assert equal 0 $?
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-# end
-#
+describe in_scope
+  it "doesn't set a global"; (
+    sample_func () { local sample=one; $(in_scope sample) ;}
+    ! is_set sample
+    assert equal 0 $?
+    return "$_shpec_failures"); : $(( _shpec_failures += $? ))
+  end
+
+  it "doesn't change a global"; (
+    declare -g sample=blah
+    [[ $sample == 'blah' ]]
+    sample_func () { local sample=one; $(in_scope sample) ;}
+    sample_func
+    assert equal blah "$sample"
+    return "$_shpec_failures"); : $(( _shpec_failures += $? ))
+  end
+
+  it "returns true if the variable is a local and there is a global"; (
+    declare -g sample=blah
+    [[ $sample == 'blah' ]]
+    sample_func () { local sample=one; $(in_scope sample) ;}
+    sample_func
+    assert equal 0 $?
+    return "$_shpec_failures"); : $(( _shpec_failures += $? ))
+  end
+
+  it "returns false if the variable is not a local and there is a global"; (
+    declare -g sample=blah
+    [[ $sample == 'blah' ]]
+    sample_func () { $(in_scope sample) ;}
+    sample_func && result=$? || result=$?
+    assert unequal 0 "$result"
+    return "$_shpec_failures"); : $(( _shpec_failures += $? ))
+  end
+
+  it "returns true if the variable is a local and there is no global"; (
+    ! is_set sample
+    sample_func () { local sample=one; $(in_scope sample) ;}
+    sample_func
+    assert equal 0 $?
+    return "$_shpec_failures"); : $(( _shpec_failures += $? ))
+  end
+
+  it "returns false if the variable is not a local and there is no global"; (
+    ! is_set sample
+    sample_func () { $(in_scope sample) ;}
+    sample_func && result=$? || result=$?
+    assert unequal 0 "$result"
+    return "$_shpec_failures"); : $(( _shpec_failures += $? ))
+  end
+
+  it "returns true if the variable is a global and executed in global scope"; (
+    get_here_str <<'    EOS'
+      source concorde.bash
+      ! is_set sample
+      sample=one
+      $(in_scope sample)
+    EOS
+    bash -c "$__"
+    assert equal 0 $?
+    return "$_shpec_failures"); : $(( _shpec_failures += $? ))
+  end
+end
+
+describe is_set
+  it "is false if the variable is not set"; (
+    _shpec_failures=0
+    declare sample=''
+    unset -v sample
+    is_set sample && result=$? || result=$?
+    assert unequal 0 "$result"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "is true if the variable is empty"; (
+    _shpec_failures=0
+    sample=''
+    is_set sample
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "is true if the variable has a value"; (
+    _shpec_failures=0
+    sample=example
+    is_set sample
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "is false if the variable is an element of an unset array"; (
+    _shpec_failures=0
+    declare -a sample_ary=()
+    unset -v sample_ary
+    is_set sample_ary[0] && result=$? || result=$?
+    assert unequal 0 "$result"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "is false if the variable is an unset array element"; (
+    _shpec_failures=0
+    declare -a sample_ary=()
+    unset -v sample_ary
+    sample_ary=()
+    is_set sample_ary[0] && result=$? || result=$?
+    assert unequal 0 "$result"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "is true if the variable is an empty array element"; (
+    _shpec_failures=0
+    declare -a sample_ary=()
+    unset -v sample_ary
+    sample_ary=( '' )
+    is_set sample_ary[0]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "is true if the variable is an array element with a value"; (
+    _shpec_failures=0
+    declare -a sample_ary=()
+    unset -v sample_ary
+    sample_ary=( 'a value' )
+    is_set sample_ary[0]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "is false if the variable is an element of an unset hash"; (
+    _shpec_failures=0
+    declare -A sample_hsh=()
+    unset -v sample_hsh
+    is_set sample_hsh[index] && result=$? || result=$?
+    assert unequal 0 "$result"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "is false if the variable is an unset hash element"; (
+    unset -v sample_hsh
+    declare -A sample_hsh=()
+    is_set sample_hsh[zero] && result=$? || result=$?
+    assert unequal 0 "$result"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "is true if the variable is an empty array element"; (
+    unset -v sample_hsh
+    declare -A sample_hsh=( [zero]='' )
+    is_set sample_hsh[zero]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "is true if the variable is an array element with a value"; (
+    unset -v sample_hsh
+    declare -A sample_hsh=( [zero]=0 )
+    is_set sample_hsh[zero]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+end
+
 # describe local_ary
 #   it "creates a local array"; (
 #     result=$(local_ary sample_ary='( zero )')
