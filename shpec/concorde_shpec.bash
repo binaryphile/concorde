@@ -429,41 +429,41 @@ describe is_set
   end
 end
 
-# describe local_ary
-#   it "creates a local array"; (
-#     result=$(local_ary sample_ary='( zero )')
-#     [[ $result == *declare* ]]
-#     assert equal 0 $?
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "creates an array from a literal"; (
-#     $(local_ary result_ary='( zero )')
-#     assert equal zero "${result_ary[0]}"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "creates an array from a string reference"; (
-#     samples='( zero )'
-#     $(local_ary result_ary=samples)
-#     assert equal zero "${result_ary[0]}"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "creates an array from an array reference"; (
-#     sample_ary=( '( zero )' )
-#     $(local_ary result_ary=sample_ary[0])
-#     assert equal zero "${result_ary[0]}"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "creates an array from a hash reference"; (
-#     declare -A sample_hsh=( [item]='( zero )' )
-#     $(local_ary result_ary=sample_hsh[item])
-#     assert equal zero "${result_ary[0]}"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-# end
+describe local_ary
+  it "creates a local array"; (
+    result=$(local_ary sample_ary='( zero )')
+    [[ $result == *declare* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates an array from a literal"; (
+    $(local_ary result_ary='( zero )')
+    assert equal zero "${result_ary[0]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates an array from a string reference"; (
+    samples='( zero )'
+    $(local_ary result_ary=samples)
+    assert equal zero "${result_ary[0]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates an array from an array reference"; (
+    sample_ary=( '( zero )' )
+    $(local_ary result_ary=sample_ary[0])
+    assert equal zero "${result_ary[0]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates an array from a hash reference"; (
+    declare -A sample_hsh=( [item]='( zero )' )
+    $(local_ary result_ary=sample_hsh[item])
+    assert equal zero "${result_ary[0]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+end
 
 describe local_hsh
   it "creates an empty hash from an empty literal"; (
