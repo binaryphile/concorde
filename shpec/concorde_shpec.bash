@@ -5,18 +5,21 @@ unset -v library
 set -o nounset
 
 describe assign
-  it "errors if \$2 isn't 'to'"
+  it "errors if \$2 isn't 'to'"; (
     $(assign one two three) && result=$? || result=$?
     assert unequal 0 "$result"
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
   end
 
   it "accepts array literals"; (
+    _shpec_failures=0
     $(assign '( 1 2 )' to '( one two )')
     assert equal '1 2' "$one $two"
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
   end
 
   it "accepts a reference for the value array literal"; (
+    _shpec_failures=0
     sample='( 1 2 )'
     $(assign sample to '( one two )')
     assert equal '1 2' "$one $two"
@@ -24,6 +27,7 @@ describe assign
   end
 
   it "accepts a reference for the destination variable"; (
+    _shpec_failures=0
     sample='( one two )'
     $(assign '( 1 2 )' to sample)
     assert equal '1 2' "$one $two"
@@ -31,6 +35,7 @@ describe assign
   end
 
   it "makes the last named target an array if there are too many values"; (
+    _shpec_failures=0
     $(assign '( 1 2 3 )' to '( one two )')
     assert equal '1 2 3' "$one ${two[*]}"
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
@@ -42,12 +47,14 @@ end
 
 describe die
   it "exits without an error message"; (
+    _shpec_failures=0
     result=$(die 2>&1) ||:
     assert equal '' "$result"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
   it "exits with a default error code of the last command"; (
+    _shpec_failures=0
     false
     (die 2>&1) && result=$? || result=$?
     true
@@ -57,12 +64,14 @@ describe die
   end
 
   it "exits with an error message"; (
+    _shpec_failures=0
     result=$(die 'aaaaagh' 2>&1) ||:
     assert equal 'Error: aaaaagh' "$result"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
   it "exits with an error code"; (
+    _shpec_failures=0
     (die '' 2 2>&1) && result=$? || result=$?
     assert equal 2 "$result"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
@@ -71,6 +80,7 @@ end
 
 describe escape_items
   it "creates a quoted string from some items"; (
+    _shpec_failures=0
     escape_items 'one two' three
     assert equal 'one\ two three' "$__"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
@@ -79,6 +89,7 @@ end
 
 describe feature
   it "creates namespaces as a global"; (
+    _shpec_failures=0
     while declare -p __ns >/dev/null 2>&1; do unset -v __ns; done
     $(feature sample)
     declare -p __ns >/dev/null 2>&1
@@ -87,6 +98,7 @@ describe feature
   end
 
   it "doesn't interfere with an existing feature entry"; (
+    _shpec_failures=0
     $(feature sample)
     declare -A ns_hsh=$__ns
     declare -A features_hsh=${ns_hsh[features]}
@@ -96,6 +108,7 @@ describe feature
   end
 
   it "creates a root entry for the feature"; (
+    _shpec_failures=0
     $(feature sample)
     declare -A ns_hsh=$__ns
     declare -A features_hsh=${ns_hsh[features]}
@@ -105,6 +118,7 @@ describe feature
   end
 
   it "modifies the depth of the root path based on an argument"; (
+    _shpec_failures=0
     $(feature sample)
     declare -A ns_hsh=$__ns
     declare -A features_hsh=${ns_hsh[features]}
@@ -268,6 +282,7 @@ end
 
 describe in_scope
   it "doesn't set a global"; (
+    _shpec_failures=0
     sample_func () { local sample=one; $(in_scope sample) ;}
     ! is_set sample
     assert equal 0 $?
@@ -275,6 +290,7 @@ describe in_scope
   end
 
   it "doesn't change a global"; (
+    _shpec_failures=0
     declare -g sample=blah
     [[ $sample == 'blah' ]]
     sample_func () { local sample=one; $(in_scope sample) ;}
@@ -284,6 +300,7 @@ describe in_scope
   end
 
   it "returns true if the variable is a local and there is a global"; (
+    _shpec_failures=0
     declare -g sample=blah
     [[ $sample == 'blah' ]]
     sample_func () { local sample=one; $(in_scope sample) ;}
@@ -293,6 +310,7 @@ describe in_scope
   end
 
   it "returns false if the variable is not a local and there is a global"; (
+    _shpec_failures=0
     declare -g sample=blah
     [[ $sample == 'blah' ]]
     sample_func () { $(in_scope sample) ;}
@@ -302,6 +320,7 @@ describe in_scope
   end
 
   it "returns true if the variable is a local and there is no global"; (
+    _shpec_failures=0
     ! is_set sample
     sample_func () { local sample=one; $(in_scope sample) ;}
     sample_func
@@ -310,6 +329,7 @@ describe in_scope
   end
 
   it "returns false if the variable is not a local and there is no global"; (
+    _shpec_failures=0
     ! is_set sample
     sample_func () { $(in_scope sample) ;}
     sample_func && result=$? || result=$?
@@ -318,6 +338,7 @@ describe in_scope
   end
 
   it "returns true if the variable is a global and executed in global scope"; (
+    _shpec_failures=0
     get_here_str <<'    EOS'
       source concorde.bash
       ! is_set sample
@@ -405,6 +426,7 @@ describe is_set
   end
 
   it "is false if the variable is an unset hash element"; (
+    _shpec_failures=0
     unset -v sample_hsh
     declare -A sample_hsh=()
     is_set sample_hsh[zero] && result=$? || result=$?
@@ -413,6 +435,7 @@ describe is_set
   end
 
   it "is true if the variable is an empty array element"; (
+    _shpec_failures=0
     unset -v sample_hsh
     declare -A sample_hsh=( [zero]='' )
     is_set sample_hsh[zero]
@@ -421,6 +444,7 @@ describe is_set
   end
 
   it "is true if the variable is an array element with a value"; (
+    _shpec_failures=0
     unset -v sample_hsh
     declare -A sample_hsh=( [zero]=0 )
     is_set sample_hsh[zero]
@@ -431,6 +455,7 @@ end
 
 describe local_ary
   it "creates a local array"; (
+    _shpec_failures=0
     result=$(local_ary sample_ary='( zero )')
     [[ $result == *declare* ]]
     assert equal 0 $?
@@ -438,12 +463,14 @@ describe local_ary
   end
 
   it "creates an array from a literal"; (
+    _shpec_failures=0
     $(local_ary result_ary='( zero )')
     assert equal zero "${result_ary[0]}"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
   it "creates an array from a string reference"; (
+    _shpec_failures=0
     samples='( zero )'
     $(local_ary result_ary=samples)
     assert equal zero "${result_ary[0]}"
@@ -451,6 +478,7 @@ describe local_ary
   end
 
   it "creates an array from an array reference"; (
+    _shpec_failures=0
     sample_ary=( '( zero )' )
     $(local_ary result_ary=sample_ary[0])
     assert equal zero "${result_ary[0]}"
@@ -458,6 +486,7 @@ describe local_ary
   end
 
   it "creates an array from a hash reference"; (
+    _shpec_failures=0
     declare -A sample_hsh=( [item]='( zero )' )
     $(local_ary result_ary=sample_hsh[item])
     assert equal zero "${result_ary[0]}"
@@ -606,6 +635,7 @@ end
 
 # describe options_parse
 #   it "accepts a short flag option"; (
+#     _shpec_failures=0
 #     get_here_ary <<'    EOS'
 #       ( -o '' '' 'a flag' )
 #     EOS
@@ -616,6 +646,7 @@ end
 #   end
 #
 #   it "accepts a long flag option"; (
+#     _shpec_failures=0
 #     get_here_ary <<'    EOS'
 #       ( '' --option '' 'a flag' )
 #     EOS
@@ -626,6 +657,7 @@ end
 #   end
 #
 #   it "accepts a short argument option"; (
+#     _shpec_failures=0
 #     get_here_ary <<'    EOS'
 #       ( -o '' argument 'an argument' )
 #     EOS
@@ -636,6 +668,7 @@ end
 #   end
 #
 #   it "accepts a long argument option without an equals sign"; (
+#     _shpec_failures=0
 #     get_here_ary <<'    EOS'
 #       ( '' --option argument 'an argument' )
 #     EOS
@@ -646,6 +679,7 @@ end
 #   end
 #
 #   it "accepts a long argument option with an equals sign"; (
+#     _shpec_failures=0
 #     get_here_ary <<'    EOS'
 #       ( '' --option argument 'an argument' )
 #     EOS
@@ -656,6 +690,7 @@ end
 #   end
 #
 #   it "accepts multiple short options in one"; (
+#     _shpec_failures=0
 #     get_here_ary  <<'    EOS'
 #       ( -o '' '' 'a flag' )
 #       ( -p '' '' 'a flag' )
@@ -667,6 +702,7 @@ end
 #   end
 #
 #   it "accepts multiple short options with the last an argument"; (
+#     _shpec_failures=0
 #     get_here_ary <<'    EOS'
 #       ( -o '' '' 'a flag' )
 #       ( -p '' argument 'an argument' )
@@ -678,6 +714,7 @@ end
 #   end
 #
 #   it "accepts a combination of option types"; (
+#     _shpec_failures=0
 #     get_here_ary <<'    EOS'
 #       ( ''  --option1 ''        'flag 1'      )
 #       ( -o  ''        ''        'flag 2'      )
@@ -700,6 +737,7 @@ end
 #   end
 #
 #   it "outputs arguments"; (
+#     _shpec_failures=0
 #     get_here_ary <<'    EOS'
 #       ( -o  '' '' 'a flag' )
 #     EOS
@@ -709,6 +747,7 @@ end
 #   end
 #
 #   it "doesn't output arguments if none are provided"; (
+#     _shpec_failures=0
 #     get_here_ary <<'    EOS'
 #       ( -o  '' '' 'a flag' )
 #     EOS
@@ -719,38 +758,49 @@ end
 # end
 #
 # describe part
-#   it "splits a string on a delimiter"
+#   it "splits a string on a delimiter"; (
+#     _shpec_failures=0
 #     part one@two on @
 #     assert equal '([0]="one" [1]="two")' "$__"
+#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
 #   end
 #
-#   it "doesn't split a string by name with a delimiter"
+#   it "doesn't split a string by name with a delimiter"; (
+#     _shpec_failures=0
 #     sample=one@two
 #     part sample on @
 #     assert equal '([0]="sample")' "$__"
+#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
 #   end
 # end
 #
 # describe wed
-#   it "joins an array literal with a delimiter"
+#   it "joins an array literal with a delimiter"; (
+#     _shpec_failures=0
 #     wed '( one two )' with @
 #     assert equal one@two "$__"
+#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
 #   end
 #
-#   it "joins an array literal by name with a delimiter"
+#   it "joins an array literal by name with a delimiter"; (
+#     _shpec_failures=0
 #     sample='( one two )'
 #     wed sample with @
 #     assert equal one@two "$__"
+#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
 #   end
 # end
 #
 # describe bring
-#   it "errors if \$2 isn't 'from'"
+#   it "errors if \$2 isn't 'from'"; (
+#     _shpec_failures=0
 #     $(bring one two three) && result=$? || result=$?
 #     assert unequal 0 "$result"
+#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
 #   end
 #
 #   it "accepts a literal list of functions"; (
+#     _shpec_failures=0
 #     $(grab root fromns concorde)
 #     temp=$root/lib/temp.bash
 #     echo $'one () { :;}\ntwo () { :;}' >"$temp"
@@ -761,6 +811,7 @@ end
 #   end
 #
 #   it "accepts a single function argument"; (
+#     _shpec_failures=0
 #     $(grab root from_feature concorde)
 #     temp=$root/lib/temp.bash
 #     echo $'one () { :;}' >"$temp"
