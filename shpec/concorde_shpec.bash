@@ -702,9 +702,7 @@ describe local_hsh
   it "creates a hash from a two-level nested hash literal"; (
     _shpec_failures=0
     sample='( [one]="( [two]=\"( [three]=3 )\" )" )'
-    set -x
     $(local_hsh result_hsh=sample.one.two)
-    set +x
     assert equal 3 "${result_hsh[three]}"
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
   end
