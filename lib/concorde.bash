@@ -151,8 +151,7 @@ is_identifier () { [[ $1 =~ ^[_[:alpha:]][_[:alnum:]]*$ ]]  ;}
 is_literal    () { [[ $1 == '('*')' ]] ;}
 
 is_set () {
-  set -- "$1" "${1%%[*}"
-  declare -p "$2" >/dev/null 2>&1 || return
+  declare -p "${1%%[*}" >/dev/null 2>&1 || return
   [[ -n ${!1+x} ]]
 }
 
