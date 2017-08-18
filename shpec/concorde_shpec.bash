@@ -530,6 +530,66 @@ describe local_hsh
   end
 end
 
+describe __ns
+  it "is set"; (
+    _shpec_failures=0
+    declare -p __ns >/dev/null 2>&1
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
+
+  it "is a hash literal"; (
+    _shpec_failures=0
+    [[ $__ns == '('*')' ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
+
+  it "has a features key"; (
+    _shpec_failures=0
+    declare -A ns_hsh=$__ns
+    [[ -n ${ns_hsh[features]} ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
+
+  it "has a concorde feature"; (
+    _shpec_failures=0
+    declare -A ns_hsh=$__ns
+    declare -A features_hsh=${ns_hsh[features]}
+    [[ -n ${features_hsh[concorde]} ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
+
+  it "has a root for the concorde feature"; (
+    _shpec_failures=0
+    declare -A ns_hsh=$__ns
+    declare -A features_hsh=${ns_hsh[features]}
+    declare -A concorde_hsh=${features_hsh[concorde]}
+    [[ -n ${concorde_hsh[root]} ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
+
+  it "has a macros key"; (
+    _shpec_failures=0
+    declare -A ns_hsh=$__ns
+    [[ -n ${ns_hsh[macros]} ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
+
+  it "has a readlink macro"; (
+    _shpec_failures=0
+    declare -A ns_hsh=$__ns
+    declare -A macros_hsh=${ns_hsh[macros]}
+    [[ -n ${macros_hsh[readlink]} ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
+end
+
 # describe options_parse
 #   it "accepts a short flag option"; (
 #     get_here_ary <<'    EOS'
@@ -697,6 +757,7 @@ end
 #   end
 #
 #   it "brings a function with dependencies"; (
+#     _shpec_failures=0
 #     $(grab root from_feature concorde)
 #     temp=$root/lib/temp.bash
 #     get_here_str <<'    EOS'
