@@ -355,7 +355,7 @@ require_relative () {
   local extension_ary=()
   local file
 
-  $(with __macros)
+  $(grab readlink fromns macros)
 
   extension_ary=(
     .bash
