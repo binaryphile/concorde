@@ -699,11 +699,19 @@ describe grab
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
   end
 
-  it "grabs from a hash in a hash"; (
+  it "grabs from a nested hash"; (
     _shpec_failures=0
     sample='( [one]="( [two]=2 )" )'
     $(grab two from sample.one)
     assert equal 2 "$two"
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
+
+  it "grabs from a double nested hash"; (
+    _shpec_failures=0
+    sample='( [one]="( [two]=\"( [three]=3 )\" )" )'
+    $(grab three from sample.one.two)
+    assert equal 3 "$three"
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
   end
 end
