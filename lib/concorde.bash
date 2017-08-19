@@ -37,7 +37,7 @@ bring () { (
   $(require "$spec")
   feature=${spec##*/}
   feature=${feature%.*}
-  is_feature "$feature" && $(grab dependencies from_feature "$feature")
+  is_feature "$feature" && $(grab dependencies fromns features."$feature")
   [[ -n ${dependencies:-} ]] && {
     $(local_ary dependency_ary=$dependencies)
     function_ary+=( "${dependency_ary[@]}" )
@@ -145,8 +145,13 @@ in_scope () {
   emit "$__"
 }
 
-instantiate   () { printf -v "$1" %s "$(eval "echo ${!1}")" ;}
-is_feature    () { is_set __features["$1"]                  ;}
+instantiate () { printf -v "$1" %s "$(eval "echo ${!1}")" ;}
+
+is_feature () {
+  $(grab "$1" fromns features)
+  is_set "$1"
+}
+
 is_identifier () { [[ $1 =~ ^[_[:alpha:]][_[:alnum:]]*$ ]]  ;}
 is_literal    () { [[ $1 == '('*')' ]] ;}
 

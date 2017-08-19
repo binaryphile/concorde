@@ -44,6 +44,50 @@ describe assign
 end
 
 describe bring
+  it "errors if \$2 isn't 'from'"; (
+    _shpec_failures=0
+    $(bring one two three) && result=$? || result=$?
+    assert unequal 0 "$result"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "accepts a literal list of functions"; (
+    _shpec_failures=0
+    $(grab root fromns features.concorde)
+    temp=$root/lib/temp.bash
+    echo $'one () { :;}\ntwo () { :;}' >"$temp"
+    $(bring '( one two )' from "$temp")
+    assert equal $'one\ntwo' "$(declare -F one two)"
+    rm "$temp"
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
+
+  it "accepts a single function argument"; (
+    _shpec_failures=0
+    $(grab root fromns features.concorde)
+    temp=$root/lib/temp.bash
+    echo $'one () { :;}' >"$temp"
+    $(bring one from "$temp")
+    assert equal one "$(declare -F one)"
+    rm "$temp"
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
+
+  it "brings a function with dependencies"; (
+    _shpec_failures=0
+    $(grab root fromns features.concorde)
+    temp=$root/lib/temp.bash
+    get_here_str <<'    EOS'
+      __ns='( [features]="( [temp]=\"( [dependencies]=\\\"( two )\\\" )\" )" )'
+      one () { :;}
+      two () { :;}
+    EOS
+    echo "$__" >"$temp"
+    $(bring one from "$temp")
+    assert equal $'one\ntwo' "$(declare -F one two)"
+    rm "$temp"
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
 end
 
 describe die
@@ -798,53 +842,5 @@ end
 #     wed sample with @
 #     assert equal one@two "$__"
 #     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-# end
-#
-# describe bring
-#   it "errors if \$2 isn't 'from'"; (
-#     _shpec_failures=0
-#     $(bring one two three) && result=$? || result=$?
-#     assert unequal 0 "$result"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "accepts a literal list of functions"; (
-#     _shpec_failures=0
-#     $(grab root fromns features.concorde)
-#     temp=$root/lib/temp.bash
-#     echo $'one () { :;}\ntwo () { :;}' >"$temp"
-#     $(bring '( one two )' from "$temp")
-#     assert equal $'one\ntwo' "$(declare -F one two)"
-#     rm "$temp"
-#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-#   end
-#
-#   it "accepts a single function argument"; (
-#     _shpec_failures=0
-#     $(grab root from_feature concorde)
-#     temp=$root/lib/temp.bash
-#     echo $'one () { :;}' >"$temp"
-#     $(bring one from "$temp")
-#     assert equal one "$(declare -F one)"
-#     rm "$temp"
-#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-#   end
-#
-#   it "brings a function with dependencies"; (
-#     _shpec_failures=0
-#     $(grab root from_feature concorde)
-#     temp=$root/lib/temp.bash
-#     get_here_str <<'    EOS'
-#       declare -Ag __features
-#       __features[temp]='( [dependencies]="( two )")'
-#       one () { :;}
-#       two () { :;}
-#     EOS
-#     echo "$__" >"$temp"
-#     $(bring one from "$temp")
-#     assert equal $'one\ntwo' "$(declare -F one two)"
-#     rm "$temp"
-#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
 #   end
 # end
