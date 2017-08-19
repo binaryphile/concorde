@@ -250,6 +250,16 @@ describe grab
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
   end
 
+  it "grabs from a nested namespace"; (
+    _shpec_failures=0
+    root=''
+    unset -v root
+    $(grab root fromns features.concorde)
+    [[ -n $root ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
+
   it "grabs from keyword arguments"; (
     _shpec_failures=0
     $(grab one from zero='0 1' one=2)
@@ -801,7 +811,7 @@ end
 #
 #   it "accepts a literal list of functions"; (
 #     _shpec_failures=0
-#     $(grab root fromns concorde)
+#     $(grab root fromns features.concorde)
 #     temp=$root/lib/temp.bash
 #     echo $'one () { :;}\ntwo () { :;}' >"$temp"
 #     $(bring '( one two )' from "$temp")
