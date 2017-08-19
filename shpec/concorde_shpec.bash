@@ -89,6 +89,50 @@ describe escape_items
 end
 
 describe feature
+  it "creates namespaces as a global"; (
+    _shpec_failures=0
+    while declare -p __ns >/dev/null 2>&1; do unset -v __ns; done
+    $(feature sample)
+    declare -p __ns >/dev/null 2>&1
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "doesn't interfere with an existing feature entry"; (
+    _shpec_failures=0
+    $(feature sample)
+    declare -A ns_hsh=$__ns
+    declare -A features_hsh=${ns_hsh[features]}
+    [[ -n ${features_hsh[concorde]} ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates a root entry for the feature"; (
+    _shpec_failures=0
+    $(feature sample)
+    declare -A ns_hsh=$__ns
+    declare -A features_hsh=${ns_hsh[features]}
+    $(grab root from features_hsh[sample])
+    assert unequal '' "$root"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "modifies the depth of the root path based on an argument"; (
+    _shpec_failures=0
+    $(feature sample)
+    declare -A ns_hsh=$__ns
+    declare -A features_hsh=${ns_hsh[features]}
+    $(grab root from features_hsh[sample])
+    old_root=$root
+    $(feature sample2 depth=2)
+    declare -A ns_hsh=$__ns
+    declare -A features_hsh=${ns_hsh[features]}
+    $(grab root from features_hsh[sample2])
+    [[ $old_root == $root/* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
 end
 
 describe grab
@@ -697,53 +741,6 @@ end
 #   end
 # end
 
-describe feature
-  # it "creates namespaces as a global"; (
-  #   _shpec_failures=0
-  #   while declare -p __ns >/dev/null 2>&1; do unset -v __ns; done
-  #   $(feature sample)
-  #   declare -p __ns >/dev/null 2>&1
-  #   assert equal 0 $?
-  #   return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  # end
-
-  it "doesn't interfere with an existing feature entry"; (
-    _shpec_failures=0
-    $(feature sample)
-    declare -A ns_hsh=$__ns
-    declare -A features_hsh=${ns_hsh[features]}
-    [[ -n ${features_hsh[concorde]} ]]
-    assert equal 0 $?
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  # it "creates a root entry for the feature"; (
-  #   _shpec_failures=0
-  #   $(feature sample)
-  #   declare -A ns_hsh=$__ns
-  #   declare -A features_hsh=${ns_hsh[features]}
-  #   $(grab root from features_hsh[sample])
-  #   assert unequal '' "$root"
-  #   return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  # end
-  #
-  # it "modifies the depth of the root path based on an argument"; (
-  #   _shpec_failures=0
-  #   $(feature sample)
-  #   declare -A ns_hsh=$__ns
-  #   declare -A features_hsh=${ns_hsh[features]}
-  #   $(grab root from features_hsh[sample])
-  #   old_root=$root
-  #   $(feature sample2 depth=2)
-  #   declare -A ns_hsh=$__ns
-  #   declare -A features_hsh=${ns_hsh[features]}
-  #   $(grab root from features_hsh[sample2])
-  #   [[ $old_root == $root/* ]]
-  #   assert equal 0 $?
-  #   return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  # end
-end
-
 describe is_set
   # it "is false if the variable is not set"; (
   #   _shpec_failures=0
@@ -813,7 +810,9 @@ describe is_set
     _shpec_failures=0
     declare -A sample_hsh=()
     unset -v sample_hsh
+    set -x
     is_set sample_hsh[index] && result=$? || result=$?
+    set +x
     assert unequal 0 "$result"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
