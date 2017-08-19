@@ -111,8 +111,8 @@ describe feature
   it "creates a root entry for the feature"; (
     _shpec_failures=0
     $(feature sample)
-    declare -A ns_hsh=$__ns
-    declare -A features_hsh=${ns_hsh[features]}
+    eval "declare -A ns_hsh=$__ns"
+    eval "declare -A features_hsh=${ns_hsh[features]}"
     $(grab root from features_hsh[sample])
     assert unequal '' "$root"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
@@ -121,13 +121,13 @@ describe feature
   it "modifies the depth of the root path based on an argument"; (
     _shpec_failures=0
     $(feature sample)
-    declare -A ns_hsh=$__ns
-    declare -A features_hsh=${ns_hsh[features]}
+    eval "declare -A ns_hsh=$__ns"
+    eval "declare -A features_hsh=${ns_hsh[features]}"
     $(grab root from features_hsh[sample])
     old_root=$root
     $(feature sample2 depth=2)
-    declare -A ns_hsh=$__ns
-    declare -A features_hsh=${ns_hsh[features]}
+    eval "declare -A ns_hsh=$__ns"
+    eval "declare -A features_hsh=${ns_hsh[features]}"
     $(grab root from features_hsh[sample2])
     [[ $old_root == $root/* ]]
     assert equal 0 $?
