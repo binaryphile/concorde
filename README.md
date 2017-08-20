@@ -8,7 +8,7 @@ Concorde: "Idiom, sir?"
 Idiom!
 
 Concorde is a distillation of techniques I've picked up from
-[StackOverflow] and the [Bash Hacker's Wiki], and to a lesser extent
+[StackOverflow], the [Bash Hacker's Wiki] and to a lesser extent
 [GreyCat's Wiki], as well as my own personal stylings with bash.
 
 Goals
@@ -16,30 +16,44 @@ Goals
 
 Make it easy to:
 
--   get started writing a script with the familiar command-line
+-   get started writing a script with the familiar command-line option
     interface
 
 -   write reusable bash libraries (naysaying curmudgeons be damned)
 
 -   do [test-driven development] on bash code
 
--   work with hashes and arrays
+-   pass and return hashes and arrays to/from functions
 
--   write self-contained functions without reference to global variables
+-   do basic operations with hashes and arrays such as joining and
+    splitting
 
--   keep global variable and function namespaces as uncluttered as
-    possible
+-   nest hashes
+
+-   write self-contained functions with minimal reference to global
+    variables
+
+-   keep the function namespace as uncluttered as possible
+
+-   create namespaces to store groups of variables away from the global
+    namespace
+
+-   bring/send such namespaced variables into and out of the local scope
+
+-   use the safest options for common system commands such as `rm`
 
 -   reduce visual clutter from special characters
 
 Prerequisites
 =============
 
--   Bash 4.3 or 4.4 - verified with:
+-   Bash 4.3 or 4.4 - concorde is tested against:
 
     -   4.3.11
 
     -   4.3.33
+
+    -   4.3.42
 
     -   4.4.12
 
@@ -53,9 +67,9 @@ Reserved Variables
 
 Concorde reserves the following global variables for its own use:
 
--   `__` - double-underscore, used for returning strings from functions
+-   `__` - double-underscore, used for returning values from functions
 
--   `__ns` - a hash for storing scoped data such as features
+-   `__ns` - for storing namespaced data
 
 Installation
 ============
@@ -134,23 +148,35 @@ provided on the command-line.
 [Strict Mode] With Tracebacks
 -----------------------------
 
--   stops on most errors
+Typically enabled when your script is being run as a command (vs
+sourced):
+
+``` bash
+sourced && return
+strict_mode on
+```
 
 -   can be turned on and off
+
+-   stops on most errors
+
+-   stops when encountering an unset variable
 
 -   issues ruby-style tracebacks of the call stack, including file and
     line numbers, as well as the offending line of code such as:
 
-        Traceback:  my_intentionally_erroring_function "$my_argument"
-          bin/myscript:193:in erroring_function_caller
-          bin/myscript:1:in main
+``` bash
+Traceback:  my_intentionally_erroring_function "$my_argument"
+  bin/myscript:193:in erroring_function_caller
+  bin/myscript:1:in main
+```
 
-Strict mode does require more careful coding style to avoid
+Strict mode *does* require more careful coding style to avoid
 unintentional errors, so it is suggested that you have practice with it
 before enabling it on legacy code.
 
 I will add some recommended coding hygeine when working with strict
-mode, but until I do, you can learn more [here] and at [Aaron Maxwell's
+mode, but until then, you can learn more [here] and at [Aaron Maxwell's
 page][Strict Mode].
 
 Ruby-style "Features" a.k.a. Libraries
@@ -195,12 +221,13 @@ Hash Operations
 
 -   `update` - update a hash with the contents of another hash
 
--   `with` - extract all hash keys into local variables
+-   `with` - extract all hash keys into local variables - operates on
+    true hashes rather than literals
 
 Array Operations
 ----------------
 
--   `assign` - multiple assignment from array values to local variables
+-   `assign` - multiple assignment of array values to local variables
 
 -   `get_here_ary` - get a (usually multiline) string from stdin and
     strip leading whitespace indentation, then assign each line to an
@@ -344,13 +371,8 @@ A few points for understanding the template:
     greater than 0 - `shift` removes the first positional argument, so
     the loop will eventually end
 
-Concorde's Internal Rules
-=========================
-
-These are the rules which concorde's functions follow. Although I try to
-use the same rules for the rest of my bash coding, you are certainly not
-required to follow them yourself, except insofar as to know how to
-interact with concorde.
+Rules and Techniques for Using Concorde
+=======================================
 
 1.  **test**
 
@@ -371,8 +393,8 @@ interact with concorde.
     -   global variables are, for the most part, not employed or
         modified ("\_\_" being one notable exception)
 
-    -   arguments should be values, not references (with some
-        exceptions)
+    -   arguments should be values, not references to outside variables
+        (with some exceptions)
 
     -   where references are allowed, they are dereferenced and used as
         values
@@ -387,10 +409,10 @@ interact with concorde.
     as strings.
 
     While this sounds like extra work, it actually ends up being
-    convenient when coupled with the other functions in concorde.  You
+    convenient when coupled with the other functions in concorde. You
     don't often need to work with native hashes when you can extract
     keys directly into your namespace, and multiple assignment makes
-    array items available as locals as well.  And the rest of concorde's
+    array items available as locals as well. And the rest of concorde's
     functions expect arrays as strings in the first place, so once
     converted, the arrays rarely need to be converted back to native
     form.
@@ -411,7 +433,7 @@ interact with concorde.
 
         "( [zero]=0 [one]=1 [two]='et cetera' )"
 
-    Hashes also have a succinct format which can be used instead.  It
+    Hashes also have a succinct format which can be used instead. It
     drops the parentheses and brackets:
 
         "zero=0 one=1 two='et cetera'"
