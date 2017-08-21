@@ -43,7 +43,7 @@ bring () { (
     function_ary+=( "${dependency_ary[@]}" )
   }
   repr function_ary
-  _extract_functions __
+  __extract_functions __
   emit "$__"
 ) }
 
@@ -57,7 +57,7 @@ die () {
 emit          () { printf 'eval eval %q\n' "$1"         ;}
 escape_items  () { printf -v __ '%q ' "$@"; __=${__% }  ;}
 
-_extract_function () {
+__extract_function () {
   local function=$1
   local IFS=$'\n'
 
@@ -66,13 +66,13 @@ _extract_function () {
   printf -v __ '%s\n' "$@"
 }
 
-_extract_functions () {
+__extract_functions () {
   $(local_ary function_ary=$1)
   local function
   local result
 
   for function in "${function_ary[@]}"; do
-    _extract_function "$function"
+    __extract_function "$function"
     result+=$__
   done
   repr result
@@ -471,3 +471,5 @@ wed () {
 }
 
 with () { repr "$1"; grab '*' from "$__" ;}
+
+__macros

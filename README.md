@@ -186,31 +186,33 @@ At the beginning of each library, for example `my_lib.bash`:
 
 ``` bash
 source concorde.bash
-
 $(feature my_lib)
 ```
-Libraries are written so that they are not unintentionally loaded more
-than once, even if sourced multiple times. Concorde also allows the file
-extension (e.g. `.sh`) for library files to be left off with its
-`require*` functions.
+
+Libraries are written so that they are not loaded more than once, even
+if sourced multiple times.
 
 -   `bring` - python-style import of only specified functions from a
     library to keep function namespace uncluttered
 
 -   `feature` - protect a library file from being loaded multiple times
-    and register its metadata
+    and register its metadata, such as its location on the filesystem
 
 -   `load` - source a filename even if it has been loaded already -
     searches PATH but not current directory
 
 -   `require` - like `source` but only searches PATH, not current
-    directory, and does not require file extension
+    directory - does not require file extension, searches for `.bash`,
+    `.sh` and no extension, in that order
 
 -   `require_relative` - source a file relative to the location of the
-    sourcing file, does not require file extension
+    sourcing file - does not require file extension
 
 Hash Operations
 ---------------
+
+Most functions operate on hash \[literals\] rather actual hashes, with
+the exception of `with`.
 
 -   `grab` - create local variables from key/values in a hash
 
@@ -351,7 +353,7 @@ A few points for understanding the template:
     is in turn fed to `script_main`
 
 -   `parse_options` also removes from the script's positional arguments
-    those options which it parses, so the "$@" in `script_main __ "$@"`
+    those options which it parses, so the `$@` in `script_main __ "$@"`
     only contains the remaining unparsed positional arguments
 
 -   the first thing `script_main` does is use `grab` to create local
@@ -475,7 +477,7 @@ Rules and Techniques for Using Concorde
 
     -   "\_\_", much like "$?", can't be relied on to stay the same from
         function call to function call, so any value that needs to be
-        saved must *immediately* be assigned - e.g. `myvalue=$**`
+        saved must *immediately* be assigned - e.g. `myvalue=$__`
 
     -   therefore most assignments which were one line when using
         command substitution now require two lines, one for the call and
