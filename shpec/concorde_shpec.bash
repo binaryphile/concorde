@@ -685,81 +685,6 @@ describe part
 end
 
 describe stuff
-end
-
-describe wed
-  it "joins an array literal with a delimiter"; ( _shpec_failures=0
-    wed '( one two )' with @
-    assert equal one@two "$__"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "joins an array literal by name with a delimiter"; ( _shpec_failures=0
-    sample='( one two )'
-    wed sample with @
-    assert equal one@two "$__"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-end
-
-# describe bring
-#   it "errors if \$2 isn't 'from'"; ( _shpec_failures=0
-#     $(bring one two three) && result=$? || result=$?
-#     assert unequal 0 "$result"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "accepts a literal list of functions"; ( _shpec_failures=0
-#     $(grab root fromns concorde)
-#     temp=$root/lib/temp.bash
-#     echo $'one () { :;}\ntwo () { :;}' >"$temp"
-#     $(bring '( one two )' from "$temp")
-#     assert equal $'one\ntwo' "$(declare -F one two)"
-#     rm "$temp"
-#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-#   end
-#
-#   it "accepts a single function argument"; ( _shpec_failures=0
-#     $(grab root fromns features.concorde)
-#     temp=$root/lib/temp.bash
-#     echo $'one () { :;}' >"$temp"
-#     $(bring one from "$temp")
-#     assert equal one "$(declare -F one)"
-#     rm "$temp"
-#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-#   end
-#
-#   it "brings a function with dependencies"; ( _shpec_failures=0
-#     $(grab root fromns concorde)
-#     temp=$root/lib/temp.bash
-#     get_here_str <<'    EOS'
-#       __ns='( [features]="( [temp]=\"( [dependencies]=\\\"( two )\\\" )\" )" )'
-#       one () { :;}
-#       two () { :;}
-#     EOS
-#     echo "$__" >"$temp"
-#     $(bring one from "$temp")
-#     assert equal $'one\ntwo' "$(declare -F one two)"
-#     rm "$temp"
-#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-#   end
-# end
-
-# describe stuffns
-#   it "inserts into a namespace"; ( _shpec_failures=0
-#     sample=zero
-#     set -x
-#     stuffns sample into concorde
-#     set +x
-#     eval "declare -A ns_hsh=$__ns"
-#     eval "declare -A concorde_hsh=${ns_hsh[concorde]}"
-#     [[ -n ${concorde_hsh[sample]:-} ]]
-#     assert equal 0 $?
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-# end
-
-describe stuff
   it "inserts a local variable as a key into an empty hash literal"; ( _shpec_failures=0
     sample=one
     stuff sample into '()'
@@ -841,3 +766,75 @@ describe stuff
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 end
+
+describe wed
+  it "joins an array literal with a delimiter"; ( _shpec_failures=0
+    wed '( one two )' with @
+    assert equal one@two "$__"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "joins an array literal by name with a delimiter"; ( _shpec_failures=0
+    sample='( one two )'
+    wed sample with @
+    assert equal one@two "$__"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+end
+
+# describe bring
+#   it "errors if \$2 isn't 'from'"; ( _shpec_failures=0
+#     $(bring one two three) && result=$? || result=$?
+#     assert unequal 0 "$result"
+#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+#   end
+#
+#   it "accepts a literal list of functions"; ( _shpec_failures=0
+#     $(grab root fromns concorde)
+#     temp=$root/lib/temp.bash
+#     echo $'one () { :;}\ntwo () { :;}' >"$temp"
+#     $(bring '( one two )' from "$temp")
+#     assert equal $'one\ntwo' "$(declare -F one two)"
+#     rm "$temp"
+#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+#   end
+#
+#   it "accepts a single function argument"; ( _shpec_failures=0
+#     $(grab root fromns features.concorde)
+#     temp=$root/lib/temp.bash
+#     echo $'one () { :;}' >"$temp"
+#     $(bring one from "$temp")
+#     assert equal one "$(declare -F one)"
+#     rm "$temp"
+#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+#   end
+#
+#   it "brings a function with dependencies"; ( _shpec_failures=0
+#     $(grab root fromns concorde)
+#     temp=$root/lib/temp.bash
+#     get_here_str <<'    EOS'
+#       __ns='( [features]="( [temp]=\"( [dependencies]=\\\"( two )\\\" )\" )" )'
+#       one () { :;}
+#       two () { :;}
+#     EOS
+#     echo "$__" >"$temp"
+#     $(bring one from "$temp")
+#     assert equal $'one\ntwo' "$(declare -F one two)"
+#     rm "$temp"
+#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+#   end
+# end
+
+# describe stuffns
+#   it "inserts into a namespace"; ( _shpec_failures=0
+#     sample=zero
+#     set -x
+#     stuffns sample into concorde
+#     set +x
+#     eval "declare -A ns_hsh=$__ns"
+#     eval "declare -A concorde_hsh=${ns_hsh[concorde]}"
+#     [[ -n ${concorde_hsh[sample]:-} ]]
+#     assert equal 0 $?
+#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+#   end
+# end
