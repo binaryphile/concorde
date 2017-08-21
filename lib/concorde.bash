@@ -126,6 +126,31 @@ grab () {
   emit "$statement"
 }
 
+grabns () {
+  [[ $2 == 'from' ]] || return
+  $(grab "${3%%.*}" from __ns)
+  local name=$1
+  shift 2
+  $(local_hsh arg_hsh="$@")
+  case $name in
+    '('*')' ) eval "local -a var_ary=$name"         ;;
+    '*'     ) local -a var_ary=( "${!arg_hsh[@]}" ) ;;
+    *       ) local -a var_ary=( "$name"          ) ;;
+  esac
+  local statement
+  local var
+
+  ! (( ${#var_ary[@]} )) && return
+  for var in "${var_ary[@]}"; do
+    if is_set arg_hsh["$var"]; then
+      printf -v statement '%sdeclare %s=%q\n' "${statement:-}" "$var" "${arg_hsh[$var]:-}"
+    else
+      printf -v statement '%s$(in_scope %s) || declare %s=%q\n' "${statement:-}" "$var" "$var" "${arg_hsh[$var]:-}"
+    fi
+  done
+  emit "$statement"
+}
+
 in_scope () {
   get_here_str <<'  EOS'
     is_set %s                         && \
