@@ -102,7 +102,8 @@ get_here_str () {
 get_str () { IFS=$'\n' read -rd '' __ ||:         ;}
 
 grab () {
-  [[ $2 == 'from' ]] || return
+  [[ $2 == 'fromns' || $2 == 'from' ]] || return
+  [[ $2 == 'fromns' ]] && { grabns "$1" from "${@:3}"; return ;}
   local name=$1
   shift 2
   $(local_hsh arg_hsh="$@")

@@ -235,6 +235,13 @@ describe grab
     assert equal 3 "$three"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
+
+  it "passes to grabns if the second argument is fromns"; ( _shpec_failures=0
+    $(grab root fromns concorde)
+    [[ -n $root ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
 end
 
 describe in_scope
