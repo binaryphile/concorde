@@ -176,7 +176,7 @@ feature () {
     __ns=$(
       type -P greadlink >/dev/null 2>&1 && readlink='greadlink -f --' || readlink='readlink -f --'
       %s="( [root]=\\"$($readlink "$(dirname "$($readlink "$BASH_SOURCE")")"%s)\\" )"
-      stuff %s into __ns
+      stuff %s into "${__ns:-}"
       echo "$__"
     )
     [[ ${1:-} == 'reload' ]] && shift
@@ -422,7 +422,7 @@ strict_mode () {
 
 stuff () {
   [[ $2 == 'into' ]]  || return
-  is_literal "$1"     && eval "local -a ref_ary=$1" || local -a ref_ary=( "$1" )
+  is_literal "$1" && eval "local -a ref_ary=$1" || local -a ref_ary=( "$1" )
   $(local_hsh result_hsh=$3)
   local ref
 
