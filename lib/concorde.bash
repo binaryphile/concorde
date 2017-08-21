@@ -433,7 +433,12 @@ stuff () {
 }
 
 stuffns () {
-  stuff "$1" "$2" __ns."$3"
+  __stuffrec "$1" __ns"${3+.}${3:-}"
+  __ns=$__
+}
+
+__stuffrec () {
+  stuff "$1" into "$2"
 }
 
 traceback () {

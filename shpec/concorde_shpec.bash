@@ -825,16 +825,13 @@ end
 #   end
 # end
 
-# describe stuffns
-#   it "inserts into a namespace"; ( _shpec_failures=0
-#     sample=zero
-#     set -x
-#     stuffns sample into concorde
-#     set +x
-#     eval "declare -A ns_hsh=$__ns"
-#     eval "declare -A concorde_hsh=${ns_hsh[concorde]}"
-#     [[ -n ${concorde_hsh[sample]:-} ]]
-#     assert equal 0 $?
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-# end
+describe stuffns
+  it "inserts a namespace"; ( _shpec_failures=0
+    sample=zero
+    stuffns sample
+    eval "declare -A ns_hsh=$__ns"
+    [[ -n ${ns_hsh[sample]:-} ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+end
