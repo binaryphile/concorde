@@ -102,33 +102,7 @@ get_here_str () {
 get_str () { IFS=$'\n' read -rd '' __ ||:         ;}
 
 grab () {
-  [[ $2 == 'fromns' || $2 == 'from' ]] || return
-  [[ $2 == 'fromns' ]] && $(grab "${3%%.*}" from __ns)
-  local name=$1
-  shift 2
-  $(local_hsh arg_hsh="$@")
-  case $name in
-    '('*')' ) eval "local -a var_ary=$name"         ;;
-    '*'     ) local -a var_ary=( "${!arg_hsh[@]}" ) ;;
-    *       ) local -a var_ary=( "$name"          ) ;;
-  esac
-  local statement
-  local var
-
-  ! (( ${#var_ary[@]} )) && return
-  for var in "${var_ary[@]}"; do
-    if is_set arg_hsh["$var"]; then
-      printf -v statement '%sdeclare %s=%q\n' "${statement:-}" "$var" "${arg_hsh[$var]:-}"
-    else
-      printf -v statement '%s$(in_scope %s) || declare %s=%q\n' "${statement:-}" "$var" "$var" "${arg_hsh[$var]:-}"
-    fi
-  done
-  emit "$statement"
-}
-
-grabns () {
   [[ $2 == 'from' ]] || return
-  $(grab "${3%%.*}" from __ns)
   local name=$1
   shift 2
   $(local_hsh arg_hsh="$@")
@@ -150,6 +124,8 @@ grabns () {
   done
   emit "$statement"
 }
+
+grabns () { grab "$1" "$2" __ns."${@:3}" ;}
 
 in_scope () {
   get_here_str <<'  EOS'
