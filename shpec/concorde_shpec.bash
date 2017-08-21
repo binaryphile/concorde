@@ -44,50 +44,6 @@ describe assign
 end
 
 describe bring
-  it "errors if \$2 isn't 'from'"; (
-    _shpec_failures=0
-    $(bring one two three) && result=$? || result=$?
-    assert unequal 0 "$result"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "accepts a literal list of functions"; (
-    _shpec_failures=0
-    $(grab root fromns features.concorde)
-    temp=$root/lib/temp.bash
-    echo $'one () { :;}\ntwo () { :;}' >"$temp"
-    $(bring '( one two )' from "$temp")
-    assert equal $'one\ntwo' "$(declare -F one two)"
-    rm "$temp"
-    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-  end
-
-  it "accepts a single function argument"; (
-    _shpec_failures=0
-    $(grab root fromns features.concorde)
-    temp=$root/lib/temp.bash
-    echo $'one () { :;}' >"$temp"
-    $(bring one from "$temp")
-    assert equal one "$(declare -F one)"
-    rm "$temp"
-    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-  end
-
-  it "brings a function with dependencies"; (
-    _shpec_failures=0
-    $(grab root fromns features.concorde)
-    temp=$root/lib/temp.bash
-    get_here_str <<'    EOS'
-      __ns='( [features]="( [temp]=\"( [dependencies]=\\\"( two )\\\" )\" )" )'
-      one () { :;}
-      two () { :;}
-    EOS
-    echo "$__" >"$temp"
-    $(bring one from "$temp")
-    assert equal $'one\ntwo' "$(declare -F one two)"
-    rm "$temp"
-    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-  end
 end
 
 describe die
@@ -133,206 +89,9 @@ describe escape_items
 end
 
 describe feature
-  it "creates namespaces as a global"; (
-    _shpec_failures=0
-    while declare -p __ns >/dev/null 2>&1; do unset -v __ns; done
-    $(feature sample)
-    declare -p __ns >/dev/null 2>&1
-    assert equal 0 $?
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "doesn't interfere with an existing feature entry"; (
-    _shpec_failures=0
-    $(feature sample)
-    declare -A ns_hsh=$__ns
-    declare -A features_hsh=${ns_hsh[features]}
-    [[ -n ${features_hsh[concorde]} ]]
-    assert equal 0 $?
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "creates a root entry for the feature"; (
-    _shpec_failures=0
-    $(feature sample)
-    eval "declare -A ns_hsh=$__ns"
-    eval "declare -A features_hsh=${ns_hsh[features]}"
-    $(grab root from features_hsh[sample])
-    assert unequal '' "$root"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "modifies the depth of the root path based on an argument"; (
-    _shpec_failures=0
-    $(feature sample)
-    eval "declare -A ns_hsh=$__ns"
-    eval "declare -A features_hsh=${ns_hsh[features]}"
-    $(grab root from features_hsh[sample])
-    old_root=$root
-    $(feature sample2 depth=2)
-    eval "declare -A ns_hsh=$__ns"
-    eval "declare -A features_hsh=${ns_hsh[features]}"
-    $(grab root from features_hsh[sample2])
-    [[ $old_root == $root/* ]]
-    assert equal 0 $?
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
 end
 
 describe grab
-  it "errors if \$2 isn't 'from'"; (
-    _shpec_failures=0
-    grab one two && result=$? || result=$?
-    assert unequal 0 "$result"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "doesn't work if the first argument is a reference"; (
-    _shpec_failures=0
-    sample=one
-    result=$(grab sample from '( [one]=1 )')
-    declare -p one >/dev/null 2>&1 && result=$? || result=$?
-    assert unequal 0 "$result"
-    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-  end
-
-  it "instantiates a key/value pair from a hash literal as a local"; (
-    _shpec_failures=0
-    $(grab one from '( [one]=1 )')
-    assert equal 1 "$one"
-    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-  end
-
-  it "instantiates more than one key/value pair from a hash literal"; (
-    _shpec_failures=0
-    $(grab '( one two )' from '( [one]=1 [two]=2 )')
-    assert equal '1 2' "$one $two"
-    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-  end
-
-  it "instantiates all key/value pairs from a hash literal"; (
-    _shpec_failures=0
-    $(grab '*' from '( [one]=1 [two]=2 [three]=3 )')
-    assert equal '1 2 3' "$one $two $three"
-    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-  end
-
-  it "instantiates a key/value pair from a hash literal reference"; (
-    _shpec_failures=0
-    sample='( [one]=1 )'
-    $(grab one from sample)
-    assert equal 1 "$one"
-    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-  end
-
-  it "instantiates more than one key/value pair from a hash literal reference"; (
-    _shpec_failures=0
-    sample='( [one]=1 [two]=2 )'
-    $(grab '( one two )' from sample)
-    assert equal '1 2' "$one $two"
-    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-  end
-
-  it "instantiates all key/value pairs from a hash literal reference"; (
-    _shpec_failures=0
-    sample='( [one]=1 [two]=2 [three]=3 )'
-    $(grab '*' from sample)
-    assert equal '1 2 3' "$one $two $three"
-    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-  end
-
-  it "generates nothing if given '*' on an empty hash"; (
-    _shpec_failures=0
-    result=$(grab '*' from '()')
-    assert equal 0 "$?$result"
-    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-  end
-
-  it "doesn't set the variable if not in the hash and the variable is set locally"; (
-    _shpec_failures=0
-    declare sample=example
-    $(grab sample from '()')
-    assert equal example "$sample"
-    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-  end
-
-  it "creates the variable if not in the hash and the variable is not set locally"; (
-    _shpec_failures=0
-    declare sample=''
-    unset -v sample
-    $(grab sample from '()')
-    is_set sample
-    assert equal 0 $?
-    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-  end
-
-  it "doesn't set the variable if the hash doesn't exist and the variable is set locally"; (
-    _shpec_failures=0
-    declare sample=example
-    $(grab sample from '')
-    assert equal example "$sample"
-    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-  end
-
-  it "creates the variable the hash doesn't exist and the variable is not set locally"; (
-    _shpec_failures=0
-    declare sample=''
-    unset -v sample
-    $(grab sample from '')
-    is_set sample
-    assert equal 0 $?
-    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-  end
-
-  it "grabs from a namespace"; (
-    _shpec_failures=0
-    concorde=''
-    unset -v concorde
-    $(grab concorde fromns features)
-    [[ -n $concorde ]]
-    assert equal 0 $?
-    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-  end
-
-  it "grabs from a nested namespace"; (
-    _shpec_failures=0
-    root=''
-    unset -v root
-    $(grab root fromns features.concorde)
-    [[ -n $root ]]
-    assert equal 0 $?
-    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-  end
-
-  it "grabs from keyword arguments"; (
-    _shpec_failures=0
-    $(grab one from zero='0 1' one=2)
-    assert equal 2 "$one"
-    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-  end
-
-  it "grabs all keyword arguments"; (
-    _shpec_failures=0
-    $(grab '*' from zero='0 1' one=2)
-    assert equal '0 1 2' "$zero $one"
-    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-  end
-
-  it "grabs from a nested hash"; (
-    _shpec_failures=0
-    sample='( [one]="( [two]=2 )" )'
-    $(grab two from sample.one)
-    assert equal 2 "$two"
-    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-  end
-
-  it "grabs from a double nested hash"; (
-    _shpec_failures=0
-    sample='( [one]="( [two]=\"( [three]=3 )\" )" )'
-    $(grab three from sample.one.two)
-    assert equal 3 "$three"
-    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-  end
 end
 
 describe in_scope
@@ -628,62 +387,48 @@ describe local_hsh
 end
 
 describe __ns
-  it "is set"; (
-    _shpec_failures=0
+  it "is set"; ( _shpec_failures=0
     declare -p __ns >/dev/null 2>&1
     assert equal 0 $?
-    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? )) ||:
   end
 
-  it "is a hash literal"; (
-    _shpec_failures=0
+  it "is a hash literal"; ( _shpec_failures=0
     [[ $__ns == '('*')' ]]
     assert equal 0 $?
-    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? )) ||:
   end
 
-  it "has a features key"; (
-    _shpec_failures=0
+  it "has a concorde key"; ( _shpec_failures=0
     declare -A ns_hsh=$__ns
-    [[ -n ${ns_hsh[features]} ]]
+    [[ -n ${ns_hsh[concorde]:-} ]]
     assert equal 0 $?
-    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? )) ||:
   end
 
-  it "has a concorde feature"; (
-    _shpec_failures=0
+  it "has a root for the concorde feature"; ( _shpec_failures=0
     declare -A ns_hsh=$__ns
-    declare -A features_hsh=${ns_hsh[features]}
-    [[ -n ${features_hsh[concorde]} ]]
-    assert equal 0 $?
-    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-  end
-
-  it "has a root for the concorde feature"; (
-    _shpec_failures=0
-    declare -A ns_hsh=$__ns
-    declare -A features_hsh=${ns_hsh[features]}
-    declare -A concorde_hsh=${features_hsh[concorde]}
+    declare -A concorde_hsh=${ns_hsh[concorde]}
     [[ -n ${concorde_hsh[root]} ]]
     assert equal 0 $?
-    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? )) ||:
   end
 
-  it "has a macros key"; (
-    _shpec_failures=0
+  it "has a concorde.macros key"; ( _shpec_failures=0
     declare -A ns_hsh=$__ns
-    [[ -n ${ns_hsh[macros]} ]]
+    declare -A concorde_hsh=${ns_hsh[concorde]}
+    [[ -n ${concorde_hsh[macros]} ]]
     assert equal 0 $?
-    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? )) ||:
   end
 
-  it "has a readlink macro"; (
-    _shpec_failures=0
+  it "has a concorde readlink macro"; ( _shpec_failures=0
     declare -A ns_hsh=$__ns
-    declare -A macros_hsh=${ns_hsh[macros]}
-    [[ -n ${macros_hsh[readlink]} ]]
+    declare -A concorde_hsh=${ns_hsh[concorde]}
+    declare -A macros_hsh=${concorde_hsh[macros]}
+    [[ -n ${macros_hsh[readlink]:-} ]]
     assert equal 0 $?
-    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? )) ||:
   end
 end
 
@@ -844,3 +589,252 @@ describe wed
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 end
+
+# describe bring
+#   it "errors if \$2 isn't 'from'"; (
+#     _shpec_failures=0
+#     $(bring one two three) && result=$? || result=$?
+#     assert unequal 0 "$result"
+#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+#   end
+#
+#   it "accepts a literal list of functions"; (
+#     _shpec_failures=0
+#     $(grab root fromns features.concorde)
+#     temp=$root/lib/temp.bash
+#     echo $'one () { :;}\ntwo () { :;}' >"$temp"
+#     $(bring '( one two )' from "$temp")
+#     assert equal $'one\ntwo' "$(declare -F one two)"
+#     rm "$temp"
+#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+#   end
+#
+#   it "accepts a single function argument"; (
+#     _shpec_failures=0
+#     $(grab root fromns features.concorde)
+#     temp=$root/lib/temp.bash
+#     echo $'one () { :;}' >"$temp"
+#     $(bring one from "$temp")
+#     assert equal one "$(declare -F one)"
+#     rm "$temp"
+#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+#   end
+#
+#   it "brings a function with dependencies"; (
+#     _shpec_failures=0
+#     $(grab root fromns features.concorde)
+#     temp=$root/lib/temp.bash
+#     get_here_str <<'    EOS'
+#       __ns='( [features]="( [temp]=\"( [dependencies]=\\\"( two )\\\" )\" )" )'
+#       one () { :;}
+#       two () { :;}
+#     EOS
+#     echo "$__" >"$temp"
+#     $(bring one from "$temp")
+#     assert equal $'one\ntwo' "$(declare -F one two)"
+#     rm "$temp"
+#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+#   end
+# end
+
+describe feature
+  # it "creates namespaces as a global"; ( _shpec_failures=0
+  #   while declare -p __ns >/dev/null 2>&1; do unset -v __ns; done
+  #   $(feature sample)
+  #   declare -p __ns >/dev/null 2>&1
+  #   assert equal 0 $?
+  #   return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  # end
+
+#   it "doesn't interfere with an existing feature entry"; (
+#     _shpec_failures=0
+#     $(feature sample)
+#     declare -A ns_hsh=$__ns
+#     declare -A features_hsh=${ns_hsh[features]}
+#     [[ -n ${features_hsh[concorde]} ]]
+#     assert equal 0 $?
+#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+#   end
+#
+#   it "creates a root entry for the feature"; (
+#     _shpec_failures=0
+#     $(feature sample)
+#     eval "declare -A ns_hsh=$__ns"
+#     eval "declare -A features_hsh=${ns_hsh[features]}"
+#     $(grab root from features_hsh[sample])
+#     assert unequal '' "$root"
+#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+#   end
+#
+#   it "modifies the depth of the root path based on an argument"; (
+#     _shpec_failures=0
+#     $(feature sample)
+#     eval "declare -A ns_hsh=$__ns"
+#     eval "declare -A features_hsh=${ns_hsh[features]}"
+#     $(grab root from features_hsh[sample])
+#     old_root=$root
+#     $(feature sample2 depth=2)
+#     eval "declare -A ns_hsh=$__ns"
+#     eval "declare -A features_hsh=${ns_hsh[features]}"
+#     $(grab root from features_hsh[sample2])
+#     [[ $old_root == $root/* ]]
+#     assert equal 0 $?
+#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+#   end
+end
+
+# describe grab
+#   it "errors if \$2 isn't 'from'"; (
+#     _shpec_failures=0
+#     grab one two && result=$? || result=$?
+#     assert unequal 0 "$result"
+#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+#   end
+#
+#   it "doesn't work if the first argument is a reference"; (
+#     _shpec_failures=0
+#     sample=one
+#     result=$(grab sample from '( [one]=1 )')
+#     declare -p one >/dev/null 2>&1 && result=$? || result=$?
+#     assert unequal 0 "$result"
+#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+#   end
+#
+#   it "instantiates a key/value pair from a hash literal as a local"; (
+#     _shpec_failures=0
+#     $(grab one from '( [one]=1 )')
+#     assert equal 1 "$one"
+#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+#   end
+#
+#   it "instantiates more than one key/value pair from a hash literal"; (
+#     _shpec_failures=0
+#     $(grab '( one two )' from '( [one]=1 [two]=2 )')
+#     assert equal '1 2' "$one $two"
+#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+#   end
+#
+#   it "instantiates all key/value pairs from a hash literal"; (
+#     _shpec_failures=0
+#     $(grab '*' from '( [one]=1 [two]=2 [three]=3 )')
+#     assert equal '1 2 3' "$one $two $three"
+#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+#   end
+#
+#   it "instantiates a key/value pair from a hash literal reference"; (
+#     _shpec_failures=0
+#     sample='( [one]=1 )'
+#     $(grab one from sample)
+#     assert equal 1 "$one"
+#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+#   end
+#
+#   it "instantiates more than one key/value pair from a hash literal reference"; (
+#     _shpec_failures=0
+#     sample='( [one]=1 [two]=2 )'
+#     $(grab '( one two )' from sample)
+#     assert equal '1 2' "$one $two"
+#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+#   end
+#
+#   it "instantiates all key/value pairs from a hash literal reference"; (
+#     _shpec_failures=0
+#     sample='( [one]=1 [two]=2 [three]=3 )'
+#     $(grab '*' from sample)
+#     assert equal '1 2 3' "$one $two $three"
+#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+#   end
+#
+#   it "generates nothing if given '*' on an empty hash"; (
+#     _shpec_failures=0
+#     result=$(grab '*' from '()')
+#     assert equal 0 "$?$result"
+#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+#   end
+#
+#   it "doesn't set the variable if not in the hash and the variable is set locally"; (
+#     _shpec_failures=0
+#     declare sample=example
+#     $(grab sample from '()')
+#     assert equal example "$sample"
+#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+#   end
+#
+#   it "creates the variable if not in the hash and the variable is not set locally"; (
+#     _shpec_failures=0
+#     declare sample=''
+#     unset -v sample
+#     $(grab sample from '()')
+#     is_set sample
+#     assert equal 0 $?
+#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+#   end
+#
+#   it "doesn't set the variable if the hash doesn't exist and the variable is set locally"; (
+#     _shpec_failures=0
+#     declare sample=example
+#     $(grab sample from '')
+#     assert equal example "$sample"
+#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+#   end
+#
+#   it "creates the variable the hash doesn't exist and the variable is not set locally"; (
+#     _shpec_failures=0
+#     declare sample=''
+#     unset -v sample
+#     $(grab sample from '')
+#     is_set sample
+#     assert equal 0 $?
+#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+#   end
+#
+#   it "grabs from a namespace"; (
+#     _shpec_failures=0
+#     concorde=''
+#     unset -v concorde
+#     $(grab concorde fromns features)
+#     [[ -n $concorde ]]
+#     assert equal 0 $?
+#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+#   end
+#
+#   it "grabs from a nested namespace"; (
+#     _shpec_failures=0
+#     root=''
+#     unset -v root
+#     $(grab root fromns features.concorde)
+#     [[ -n $root ]]
+#     assert equal 0 $?
+#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+#   end
+#
+#   it "grabs from keyword arguments"; (
+#     _shpec_failures=0
+#     $(grab one from zero='0 1' one=2)
+#     assert equal 2 "$one"
+#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+#   end
+#
+#   it "grabs all keyword arguments"; (
+#     _shpec_failures=0
+#     $(grab '*' from zero='0 1' one=2)
+#     assert equal '0 1 2' "$zero $one"
+#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+#   end
+#
+#   it "grabs from a nested hash"; (
+#     _shpec_failures=0
+#     sample='( [one]="( [two]=2 )" )'
+#     $(grab two from sample.one)
+#     assert equal 2 "$two"
+#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+#   end
+#
+#   it "grabs from a double nested hash"; (
+#     _shpec_failures=0
+#     sample='( [one]="( [two]=\"( [three]=3 )\" )" )'
+#     $(grab three from sample.one.two)
+#     assert equal 3 "$three"
+#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+#   end
+# end

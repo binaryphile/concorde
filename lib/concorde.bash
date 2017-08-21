@@ -1,9 +1,9 @@
 [[ -n ${__ns:-} && ${1:-} != 'reload' ]] && return
 [[ ${1:-} == 'reload' ]] && shift
 type -P greadlink >/dev/null 2>&1 && __ns=g || __ns=''
-__ns="( [features]=\"( [concorde]=\\\"( [root]=\\\\\\\"$(
+__ns="( [concorde]=\"( [root]=\\\"$(
   ${__ns}readlink -f -- "$(dirname "$(${ns}readlink -f -- "$BASH_SOURCE")")"/..
-)\\\\\\\" )\\\" )\" [macros]=\"( [readlink]=\\\"${ns}readlink -f --\\\")\" )"
+)\\\" [macros]=\\\"( [readlink]=\\\\\\\"${ns}readlink -f --\\\\\\\" )\\\" )\" )"
 
 unset -v CDPATH
 
@@ -37,7 +37,7 @@ bring () { (
   $(require "$spec")
   feature=${spec##*/}
   feature=${feature%.*}
-  is_feature "$feature" && $(grab dependencies fromns features."$feature")
+  is_feature "$feature" && $(grab dependencies fromns "$feature")
   [[ -n ${dependencies:-} ]] && {
     $(local_ary dependency_ary=$dependencies)
     function_ary+=( "${dependency_ary[@]}" )
@@ -148,7 +148,7 @@ in_scope () {
 instantiate () { printf -v "$1" %s "$(eval "echo ${!1}")" ;}
 
 is_feature () {
-  $(grab "$1" fromns features)
+  $(grab "$1" from __ns)
   is_set "$1"
 }
 
@@ -171,17 +171,12 @@ feature () {
   get_here_str <<'  EOS'
     (
       eval declare -A ns_hsh=${__ns:-}
-      eval declare -A features_hsh=${ns_hsh[features]:-}
-      [[ -n ${features_hsh[%s]:-} && ${1:-} != 'reload' ]]
+      [[ -n ${ns_hsh[%s]:-} && ${1:-} != 'reload' ]]
     ) && return
     __ns=$(
-      eval declare -A ns_hsh=${__ns:-}
       type -P greadlink >/dev/null 2>&1 && readlink='greadlink -f --' || readlink='readlink -f --'
       %s="( [root]=\\"$($readlink "$(dirname "$($readlink "$BASH_SOURCE")")"%s)\\" )"
-      [[ -z ${ns_hsh[features]:-} ]] && ns_hsh[features]='()'
-      stuff %s into ns_hsh[features]
-      ns_hsh[features]=$__
-      repr ns_hsh
+      stuff %s into __ns
       echo "$__"
     )
     [[ ${1:-} == 'reload' ]] && shift
@@ -237,6 +232,27 @@ local_hsh () {
 }
 
 log () { put "$@" ;}
+
+__macros () {
+  local tmp=$HOME/tmp
+  mkdir -p -- "$tmp"
+
+  local ln='ln -sf --'
+  local mkdir='mkdir -p --'
+  local mktemp="mktemp -qp $tmp --"
+  local mktempd="mktemp -qdp $tmp --"
+  local rm='rm --'
+  local rmtree='rm -rf --'
+
+  stuff '(
+    ln
+    mkdir
+    mktemp
+    mktempd
+    rm
+    rmtree
+  )' intons concorde.macros
+}
 
 parse_options () {
   $(local_ary input_ary=$1); shift
