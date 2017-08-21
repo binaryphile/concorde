@@ -102,8 +102,8 @@ get_here_str () {
 get_str () { IFS=$'\n' read -rd '' __ ||:         ;}
 
 grab () {
-  [[ $2 == 'fromns' || $2 == 'from' ]] || return
-  [[ $2 == 'fromns' ]] && { grabns "$1" from "${@:3}"; return ;}
+  [[ $2 == 'fromns' ]] && { grab "$1" from __ns."${@:3}"; return ;}
+  [[ $2 == 'from'   ]] || return
   local name=$1
   shift 2
   $(local_hsh arg_hsh="$@")
@@ -125,8 +125,6 @@ grab () {
   done
   emit "$statement"
 }
-
-grabns () { grab "$1" "$2" __ns."${@:3}" ;}
 
 in_scope () {
   get_here_str <<'  EOS'

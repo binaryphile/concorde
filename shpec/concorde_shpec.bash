@@ -236,7 +236,7 @@ describe grab
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
-  it "passes to grabns if the second argument is fromns"; ( _shpec_failures=0
+  it "grabs from a namespace if the second argument is fromns"; ( _shpec_failures=0
     $(grab root fromns concorde)
     [[ -n $root ]]
     assert equal 0 $?
@@ -815,26 +815,6 @@ end
 #     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
 #   end
 # end
-
-describe grabns
-  it "grabs from a namespace"; ( _shpec_failures=0
-    root=''
-    unset -v root
-    $(grabns root from concorde)
-    [[ -n $root ]]
-    assert equal 0 $?
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  # it "grabs from a nested namespace"; ( _shpec_failures=0
-  #   rm=''
-  #   unset -v rm
-  #   $(grab rm fromns concorde.macros)
-  #   [[ -n $rm ]]
-  #   assert equal 0 $?
-  #   return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  # end
-end
 
 # describe stuffns
 #   it "inserts into a namespace"; ( _shpec_failures=0
