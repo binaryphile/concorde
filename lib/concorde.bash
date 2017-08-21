@@ -433,15 +433,7 @@ stuff () {
 }
 
 stuffns () {
-  [[ $2 == 'into' ]] || return
-  is_literal "$1" && eval "local -a ref_ary=$1" || local -a ref_ary=( "$1" )
-  $(local_hsh result_hsh=$3)
-  local ref
-
-  for ref in "${ref_ary[@]}"; do
-    result_hsh[$ref]=${!ref}
-  done
-  repr result_hsh
+  stuff "$1" "$2" __ns."$3"
 }
 
 traceback () {

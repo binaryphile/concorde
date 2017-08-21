@@ -685,77 +685,6 @@ describe part
 end
 
 describe stuff
-  it "inserts a local variable as a key into an empty hash literal"; ( _shpec_failures=0
-    sample=one
-    stuff sample into '()'
-    eval "declare -A result=$__"
-    assert equal one "${result[sample]}"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "inserts a local variable as a key into an empty string"; ( _shpec_failures=0
-    sample=one
-    stuff sample into ''
-    eval "declare -A result=$__"
-    assert equal one "${result[sample]}"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "inserts a local variable as a key into a reference to an empty hash literal"; ( _shpec_failures=0
-    sample=one
-    example='()'
-    stuff sample into example
-    eval "declare -A result=$__"
-    assert equal one "${result[sample]}"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "inserts a local variable as a key into a reference to an empty string"; ( _shpec_failures=0
-    sample=one
-    example=''
-    stuff sample into example
-    eval "declare -A result=$__"
-    assert equal one "${result[sample]}"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "inserts multiple local variables as keys into an empty hash literal"; ( _shpec_failures=0
-    zero=0
-    one=1
-    stuff '( zero one )' into '()'
-    eval "declare -A result=$__"
-    assert equal '0 1' "${result[zero]} ${result[one]}"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "inserts multiple local variables as keys into an empty string"; ( _shpec_failures=0
-    zero=0
-    one=1
-    stuff '( zero one )' into ''
-    eval "declare -A result=$__"
-    assert equal '0 1' "${result[zero]} ${result[one]}"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "inserts multiple local variables as keys into a reference to an empty hash literal"; ( _shpec_failures=0
-    zero=0
-    one=1
-    example='()'
-    stuff '( zero one )' into example
-    eval "declare -A result=$__"
-    assert equal '0 1' "${result[zero]} ${result[one]}"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "inserts multiple local variables as keys into a reference to an empty string"; ( _shpec_failures=0
-    zero=0
-    one=1
-    example=''
-    stuff '( zero one )' into example
-    eval "declare -A result=$__"
-    assert equal '0 1' "${result[zero]} ${result[one]}"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
 end
 
 describe wed
@@ -829,3 +758,86 @@ end
 #     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
 #   end
 # end
+
+describe stuff
+  it "inserts a local variable as a key into an empty hash literal"; ( _shpec_failures=0
+    sample=one
+    stuff sample into '()'
+    eval "declare -A result_hsh=$__"
+    assert equal one "${result_hsh[sample]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "inserts a local variable as a key into an empty string"; ( _shpec_failures=0
+    sample=one
+    stuff sample into ''
+    eval "declare -A result_hsh=$__"
+    assert equal one "${result_hsh[sample]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "inserts a local variable as a key into a reference to an empty hash literal"; ( _shpec_failures=0
+    sample=one
+    example='()'
+    stuff sample into example
+    eval "declare -A result_hsh=$__"
+    assert equal one "${result_hsh[sample]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "inserts a local variable as a key into a reference to an empty string"; ( _shpec_failures=0
+    sample=one
+    example=''
+    stuff sample into example
+    eval "declare -A result_hsh=$__"
+    assert equal one "${result_hsh[sample]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "inserts multiple local variables as keys into an empty hash literal"; ( _shpec_failures=0
+    zero=0
+    one=1
+    stuff '( zero one )' into '()'
+    eval "declare -A result_hsh=$__"
+    assert equal '0 1' "${result_hsh[zero]} ${result_hsh[one]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "inserts multiple local variables as keys into an empty string"; ( _shpec_failures=0
+    zero=0
+    one=1
+    stuff '( zero one )' into ''
+    eval "declare -A result_hsh=$__"
+    assert equal '0 1' "${result_hsh[zero]} ${result_hsh[one]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "inserts multiple local variables as keys into a reference to an empty hash literal"; ( _shpec_failures=0
+    zero=0
+    one=1
+    example='()'
+    stuff '( zero one )' into example
+    eval "declare -A result_hsh=$__"
+    assert equal '0 1' "${result_hsh[zero]} ${result_hsh[one]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "inserts multiple local variables as keys into a reference to an empty string"; ( _shpec_failures=0
+    zero=0
+    one=1
+    example=''
+    stuff '( zero one )' into example
+    eval "declare -A result_hsh=$__"
+    assert equal '0 1' "${result_hsh[zero]} ${result_hsh[one]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "inserts a local variable as a key into a nested hash literal"; ( _shpec_failures=0
+    sample=example
+    sampleh='( [zero]="( [one]=1 )" )'
+    stuff sample into sampleh.zero
+    eval "declare -A result_hsh=$__"
+    assert equal example "${result_hsh[sample]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+end
