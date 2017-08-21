@@ -421,7 +421,19 @@ strict_mode () {
 }
 
 stuff () {
-  [[ $2 == 'into' ]]  || return
+  [[ $2 == 'into' ]] || return
+  is_literal "$1" && eval "local -a ref_ary=$1" || local -a ref_ary=( "$1" )
+  $(local_hsh result_hsh=$3)
+  local ref
+
+  for ref in "${ref_ary[@]}"; do
+    result_hsh[$ref]=${!ref}
+  done
+  repr result_hsh
+}
+
+stuffns () {
+  [[ $2 == 'into' ]] || return
   is_literal "$1" && eval "local -a ref_ary=$1" || local -a ref_ary=( "$1" )
   $(local_hsh result_hsh=$3)
   local ref
