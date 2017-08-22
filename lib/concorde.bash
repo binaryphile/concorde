@@ -421,7 +421,8 @@ strict_mode () {
 }
 
 stuff () {
-  [[ $2 == 'into' ]] || return
+  [[ $2 == 'intons' ]] && { stuffns "$1" into "${@:3}"; return ;}
+  [[ $2 == 'into'   ]] || return
   is_literal "$1" && eval "local -a ref_ary=$1" || local -a ref_ary=( "$1" )
   $(local_hsh result_hsh=$3)
   local ref

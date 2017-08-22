@@ -765,6 +765,15 @@ describe stuff
     assert equal example "${result_hsh[sample]}"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
+
+  it "calls stuffns if the second argument is intons"; ( _shpec_failures=0
+    sample=zero
+    stuff sample intons
+    eval "declare -A ns_hsh=$__ns"
+    [[ -n ${ns_hsh[sample]:-} ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
 end
 
 describe stuffns
