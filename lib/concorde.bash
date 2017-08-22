@@ -424,6 +424,7 @@ strict_mode () {
 
 stuff () {
   [[ $2 == 'intons' ]] && {
+    [[ -z ${__ns:-} ]] && __ns=''
     __stuffrec "$1" __ns"${3+.}${3:-}"
     __ns=$__
     return

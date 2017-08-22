@@ -775,6 +775,16 @@ describe stuff
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
+  it "inserts into an unset namespace"; ( _shpec_failures=0
+    unset -v __ns
+    sample=zero
+    stuff sample intons
+    eval "declare -A ns_hsh=$__ns"
+    [[ -n ${ns_hsh[sample]:-} ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
   it "inserts into an existing namespace"; ( _shpec_failures=0
     sample=zero
     stuff sample intons concorde
