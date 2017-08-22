@@ -421,7 +421,11 @@ strict_mode () {
 }
 
 stuff () {
-  [[ $2 == 'intons' ]] && { stuffns "$1" into "${@:3}"; return ;}
+  [[ $2 == 'intons' ]] && {
+    __stuffrec "$1" __ns"${3+.}${3:-}"
+    __ns=$__
+    return
+  }
   [[ $2 == 'into'   ]] || return
   is_literal "$1" && eval "local -a ref_ary=$1" || local -a ref_ary=( "$1" )
   $(local_hsh result_hsh=$3)
@@ -431,11 +435,6 @@ stuff () {
     result_hsh[$ref]=${!ref}
   done
   repr result_hsh
-}
-
-stuffns () {
-  __stuffrec "$1" __ns"${3+.}${3:-}"
-  __ns=$__
 }
 
 __stuffrec () {

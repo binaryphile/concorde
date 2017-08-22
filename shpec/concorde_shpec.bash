@@ -766,20 +766,9 @@ describe stuff
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
-  it "calls stuffns if the second argument is intons"; ( _shpec_failures=0
-    sample=zero
-    stuff sample intons
-    eval "declare -A ns_hsh=$__ns"
-    [[ -n ${ns_hsh[sample]:-} ]]
-    assert equal 0 $?
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-end
-
-describe stuffns
   it "inserts a namespace"; ( _shpec_failures=0
     sample=zero
-    stuffns sample
+    stuff sample intons
     eval "declare -A ns_hsh=$__ns"
     [[ -n ${ns_hsh[sample]:-} ]]
     assert equal 0 $?
@@ -788,7 +777,7 @@ describe stuffns
 
   it "inserts into an existing namespace"; ( _shpec_failures=0
     sample=zero
-    stuffns sample into concorde
+    stuff sample intons concorde
     eval "declare -A ns_hsh=$__ns"
     eval "declare -A concorde_hsh=${ns_hsh[concorde]}"
     [[ -n ${concorde_hsh[sample]:-} ]]
@@ -798,7 +787,7 @@ describe stuffns
 
   it "inserts into a nested namespace"; ( _shpec_failures=0
     sample=zero
-    stuffns sample into concorde.macros
+    stuff sample intons concorde.macros
     eval "declare -A ns_hsh=$__ns"
     eval "declare -A concorde_hsh=${ns_hsh[concorde]}"
     eval "declare -A macros_hsh=${concorde_hsh[macros]}"
