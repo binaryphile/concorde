@@ -214,12 +214,14 @@ Hash Operations
 Most functions operate on hash \[literals\] rather actual hashes, with
 the exception of `with`.
 
--   `grab` - create local variables from key/values in a hash
+-   `grab` - create local variables from key/values in a hash or a
+    namespace
 
 -   `local_hsh` - create a local hash from a hash literal or variable
     reference
 
--   `stuff` - add key/values to a hash using local variables
+-   `stuff` - add key/values to a hash or a namespace using local
+    variables
 
 -   `update` - update a hash with the contents of another hash
 

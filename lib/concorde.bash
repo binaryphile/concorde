@@ -242,6 +242,7 @@ __macros () {
   local mktemp="mktemp -qp $tmp --"
   local mktempd="mktemp -qdp $tmp --"
   local rm='rm --'
+  local rmdir='rmdir --'
   local rmtree='rm -rf --'
 
   stuff '(
@@ -250,6 +251,7 @@ __macros () {
     mktemp
     mktempd
     rm
+    rmdir
     rmtree
   )' intons concorde.macros
 }
