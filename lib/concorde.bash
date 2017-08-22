@@ -152,8 +152,8 @@ is_feature () {
   is_set "$1"
 }
 
-is_identifier () { [[ $1 =~ ^[_[:alpha:]][_[:alnum:]]*$ ]]  ;}
-is_literal    () { [[ $1 == '('*')' ]] ;}
+is_identifier () { [[ $1 =~ ^[_[:alpha:]][_[:alnum:]]*$ ]] ;}
+is_literal    () { [[ $1 == '('*')'                     ]] ;}
 
 is_set () {
   declare -p "${1%%[*}" >/dev/null 2>&1 || return
@@ -376,7 +376,7 @@ require_relative () {
   local extension_ary=()
   local file
 
-  $(grab readlink fromns macros)
+  $(grab readlink fromns concorde.macros)
 
   extension_ary=(
     .bash
