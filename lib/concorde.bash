@@ -438,7 +438,15 @@ stuffns () {
 }
 
 __stuffrec () {
-  stuff "$1" into "$2"
+  [[ $2 != *.* ]] && { stuff "$1" into "$2"; return ;}
+  local first=${2%%.*}
+  set -- "$1" "${2#*.}"
+  local second=${2%%.*}
+  set -- "$1" "${2#*.}"
+  $(grab "$second" from "$first")
+  __stuffrec "$1" "$2"
+  local "$second=$__"
+  stuff "$second" into "$first"
 }
 
 traceback () {

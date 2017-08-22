@@ -834,4 +834,14 @@ describe stuffns
     assert equal 0 $?
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
+
+  it "inserts into an existing namespace"; ( _shpec_failures=0
+    sample=zero
+    stuffns sample into concorde
+    eval "declare -A ns_hsh=$__ns"
+    eval "declare -A concorde_hsh=${ns_hsh[concorde]}"
+    [[ -n ${concorde_hsh[sample]:-} ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
 end
