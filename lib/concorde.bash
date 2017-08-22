@@ -2,8 +2,8 @@
 [[ ${1:-} == 'reload' ]] && shift
 type -P greadlink >/dev/null 2>&1 && __ns=g || __ns=''
 __ns="( [concorde]=\"( [root]=\\\"$(
-  ${__ns}readlink -f -- "$(dirname "$(${ns}readlink -f -- "$BASH_SOURCE")")"/..
-)\\\" [macros]=\\\"( [readlink]=\\\\\\\"${ns}readlink -f --\\\\\\\" )\\\" )\" )"
+  ${__ns}readlink -f -- "$(dirname "$(${__ns}readlink -f -- "$BASH_SOURCE")")"/..
+)\\\" [macros]=\\\"( [readlink]=\\\\\\\"${__ns}readlink -f --\\\\\\\" )\\\" )\" )"
 
 unset -v CDPATH
 

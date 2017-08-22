@@ -1,8 +1,8 @@
+set -o nounset
+
 library=../lib/concorde.bash
 source "$library" 2>/dev/null || source "${BASH_SOURCE%/*}/$library"
 unset -v library
-
-set -o nounset
 
 describe assign
   it "errors if \$2 isn't 'to'"; ( _shpec_failures=0
