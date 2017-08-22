@@ -439,14 +439,16 @@ stuffns () {
 
 __stuffrec () {
   [[ $2 != *.* ]] && { stuff "$1" into "$2"; return ;}
-  local first=${2%%.*}
+  local child
+  local parent
+
+  parent=${2%%.*}
   set -- "$1" "${2#*.}"
-  local second=${2%%.*}
-  set -- "$1" "${2#*.}"
-  $(grab "$second" from "$first")
+  child=${2%%.*}
+  $(grab "$child" from "$parent")
   __stuffrec "$1" "$2"
-  local "$second=$__"
-  stuff "$second" into "$first"
+  printf -v "$child" %s "$__"
+  stuff "$child" into "$parent"
 }
 
 traceback () {

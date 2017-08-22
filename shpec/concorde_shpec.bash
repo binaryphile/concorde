@@ -767,6 +767,38 @@ describe stuff
   end
 end
 
+describe stuffns
+  it "inserts a namespace"; ( _shpec_failures=0
+    sample=zero
+    stuffns sample
+    eval "declare -A ns_hsh=$__ns"
+    [[ -n ${ns_hsh[sample]:-} ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "inserts into an existing namespace"; ( _shpec_failures=0
+    sample=zero
+    stuffns sample into concorde
+    eval "declare -A ns_hsh=$__ns"
+    eval "declare -A concorde_hsh=${ns_hsh[concorde]}"
+    [[ -n ${concorde_hsh[sample]:-} ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "inserts into a nested namespace"; ( _shpec_failures=0
+    sample=zero
+    stuffns sample into concorde.macros
+    eval "declare -A ns_hsh=$__ns"
+    eval "declare -A concorde_hsh=${ns_hsh[concorde]}"
+    eval "declare -A macros_hsh=${concorde_hsh[macros]}"
+    [[ -n ${macros_hsh[sample]:-} ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+end
+
 describe wed
   it "joins an array literal with a delimiter"; ( _shpec_failures=0
     wed '( one two )' with @
@@ -824,24 +856,3 @@ end
 #     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
 #   end
 # end
-
-describe stuffns
-  it "inserts a namespace"; ( _shpec_failures=0
-    sample=zero
-    stuffns sample
-    eval "declare -A ns_hsh=$__ns"
-    [[ -n ${ns_hsh[sample]:-} ]]
-    assert equal 0 $?
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "inserts into an existing namespace"; ( _shpec_failures=0
-    sample=zero
-    stuffns sample into concorde
-    eval "declare -A ns_hsh=$__ns"
-    eval "declare -A concorde_hsh=${ns_hsh[concorde]}"
-    [[ -n ${concorde_hsh[sample]:-} ]]
-    assert equal 0 $?
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-end
