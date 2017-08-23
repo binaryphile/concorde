@@ -29,8 +29,8 @@ assign () {
 }
 
 bring () { (
-  [[ $2 == 'from' ]]  || return
-  is_literal "$1"     && eval "local -a function_ary=$1" || local -a function_ary=( "$1" )
+  [[ $2 == 'from' ]] || return
+  is_literal "$1" && eval "local -a function_ary=$1" || local -a function_ary=( "$1" )
   local spec=$3
   local feature
 
@@ -69,13 +69,13 @@ __extract_function () {
 __extract_functions () {
   $(local_ary function_ary=$1)
   local function
-  local result
+  local result=''
 
   for function in "${function_ary[@]}"; do
     __extract_function "$function"
     result+=$__
   done
-  repr result
+  __=$result
 }
 
 get_ary () {
@@ -495,3 +495,4 @@ wed () {
 with () { repr "$1"; grab '*' from "$__" ;}
 
 __macros
+unset -f __macros
