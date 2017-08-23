@@ -10,20 +10,35 @@ Latest Changes
 [unreleased]
 ------------
 
+### Changed
+
+-   features and macros merged into namespaces
+
+-   namespaces are literal instead of hash at top level
+
+-   `bring` no longer requires emission
+
+### Removed
+
+-   `from_feature` from `grab`
+
 ### Added
 
--   namespace operations
+-   namespace operations for stuff and grab
+
+### Fixed
+
+-   `bring` erroneously escaped characters
 
 ### Refactored
 
 -   migrated features to use namespaces
 
+-   private functions are prefixed with double-underscore rather than
+    single-
+
 [v0.0.5] - 2017-08-13
 ---------------------
-
-### Removed
-
--   succinct literals
 
 ### Changed
 
@@ -33,6 +48,10 @@ Latest Changes
     used much
 
 -   `local_hsh` accepts blank as empty literal `()`
+
+### Removed
+
+-   succinct hash literals
 
 ### Added
 

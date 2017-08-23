@@ -7,6 +7,29 @@ __ns="( [concorde]=\"( [root]=\\\"$(
 
 unset -v CDPATH
 
+conco_init () {
+  local tmp=$HOME/tmp
+  mkdir -p -- "$tmp"
+
+  local ln='ln -sf --'
+  local mkdir='mkdir -p --'
+  local mktemp="mktemp -qp $tmp --"
+  local mktempd="mktemp -qdp $tmp --"
+  local rm='rm --'
+  local rmdir='rmdir --'
+  local rmtree='rm -rf --'
+
+  stuff '(
+    ln
+    mkdir
+    mktemp
+    mktempd
+    rm
+    rmdir
+    rmtree
+  )' intons concorde.macros
+}
+
 assign () {
   [[ $2 == 'to' ]] || return
   $(local_ary args=$1)
@@ -234,29 +257,6 @@ local_hsh () {
 }
 
 log () { put "$@" ;}
-
-__macros () {
-  local tmp=$HOME/tmp
-  mkdir -p -- "$tmp"
-
-  local ln='ln -sf --'
-  local mkdir='mkdir -p --'
-  local mktemp="mktemp -qp $tmp --"
-  local mktempd="mktemp -qdp $tmp --"
-  local rm='rm --'
-  local rmdir='rmdir --'
-  local rmtree='rm -rf --'
-
-  stuff '(
-    ln
-    mkdir
-    mktemp
-    mktempd
-    rm
-    rmdir
-    rmtree
-  )' intons concorde.macros
-}
 
 parse_options () {
   $(local_ary input_ary=$1); shift
@@ -496,5 +496,5 @@ wed () {
 
 with () { repr "$1"; grab '*' from "$__" ;}
 
-__macros
-unset -f __macros
+conco_init
+unset -f conco_init
