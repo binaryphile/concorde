@@ -7,12 +7,38 @@ The format is based on [Keep a Changelog] and this project adheres to
 Latest Changes
 ==============
 
-[v0.0.5] - 2017-08-13
+[v0.1.0] - 2017-08-23
 ---------------------
+
+### Changed
+
+-   features and macros merged into namespaces
+
+-   namespaces are literal instead of hash at top level
+
+-   `bring` no longer requires emission
 
 ### Removed
 
--   succinct literals
+-   `from_feature` from `grab`
+
+### Added
+
+-   namespace operations for stuff and grab
+
+### Fixed
+
+-   `bring` erroneously escaped characters
+
+### Refactored
+
+-   migrated features to use namespaces
+
+-   private functions are prefixed with double-underscore rather than
+    single-
+
+[v0.0.5] - 2017-08-13
+---------------------
 
 ### Changed
 
@@ -22,6 +48,10 @@ Latest Changes
     used much
 
 -   `local_hsh` accepts blank as empty literal `()`
+
+### Removed
+
+-   succinct hash literals
 
 ### Added
 
@@ -134,6 +164,7 @@ Older Changes
 
   [Keep a Changelog]: http://keepachangelog.com/
   [Semantic Versioning]: http://semver.org/
+  [v0.1.0]: https://github.com/binaryphile/concorde/compare/v0.0.5...v0.1.0
   [v0.0.5]: https://github.com/binaryphile/concorde/compare/v0.0.4...v0.0.5
   [v0.0.4]: https://github.com/binaryphile/concorde/compare/v0.0.3...v0.0.4
   [v0.0.3]: https://github.com/binaryphile/concorde/compare/v0.0.2...v0.0.3

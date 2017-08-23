@@ -8,7 +8,7 @@ Concorde: "Idiom, sir?"
 Idiom!
 
 Concorde is a distillation of techniques I've picked up from
-[StackOverflow] and the [Bash Hacker's Wiki], and to a lesser extent
+[StackOverflow], the [Bash Hacker's Wiki] and to a lesser extent
 [GreyCat's Wiki], as well as my own personal stylings with bash.
 
 Goals
@@ -16,30 +16,44 @@ Goals
 
 Make it easy to:
 
--   get started writing a script with the familiar command-line
+-   get started writing a script with the familiar command-line option
     interface
 
 -   write reusable bash libraries (naysaying curmudgeons be damned)
 
 -   do [test-driven development] on bash code
 
--   work with hashes and arrays
+-   pass and return hashes and arrays to/from functions
 
--   write self-contained functions without reference to global variables
+-   do basic operations with hashes and arrays such as joining and
+    splitting
 
--   keep global variable and function namespaces as uncluttered as
-    possible
+-   nest hashes
+
+-   write self-contained functions with minimal reference to global
+    variables
+
+-   keep the function namespace as uncluttered as possible
+
+-   create namespaces to store groups of variables away from the global
+    namespace
+
+-   bring/send such namespaced variables into and out of the local scope
+
+-   use the safest options for common system commands such as `rm`
 
 -   reduce visual clutter from special characters
 
 Prerequisites
 =============
 
--   Bash 4.3 or 4.4 - verified with:
+-   Bash 4.3 or 4.4 - concorde is tested against:
 
     -   4.3.11
 
     -   4.3.33
+
+    -   4.3.42
 
     -   4.4.12
 
@@ -53,14 +67,9 @@ Reserved Variables
 
 Concorde reserves the following global variables for its own use:
 
--   `__` - double-underscore, used for returning strings from functions
+-   `__` - double-underscore, used for returning values from functions
 
--   `__features` - a hash for feature (i.e. library) meta-data
-
--   `__instances` - a hash for holding object-like data structures
-
--   `__macros` - a hash for holding safer versions of commonly-used
-    commands
+-   `__ns` - for storing namespaced data
 
 Installation
 ============
@@ -76,6 +85,21 @@ Option Parser
 -------------
 
 A basic parser, aimed at the features of [enhanced getopt].
+
+Example:
+
+``` bash
+source concorde.bash
+
+#     short  long     argument  help
+#     -----  ----     --------  ----
+get_here_ary <<'EOS'
+  (   -o      --opt1  ''        "a flag"            )
+  (   -p      --opt2  value     "an option argument")
+EOS
+
+$(parse_options __ "$@") || die "$usage" 0
+```
 
 Features:
 
@@ -124,66 +148,90 @@ provided on the command-line.
 [Strict Mode] With Tracebacks
 -----------------------------
 
--   stops on most errors
+Typically enabled when your script is being run as a command (vs
+sourced):
+
+``` bash
+sourced && return
+strict_mode on
+```
 
 -   can be turned on and off
+
+-   stops on most errors
+
+-   stops when encountering an unset variable
 
 -   issues ruby-style tracebacks of the call stack, including file and
     line numbers, as well as the offending line of code such as:
 
-        Traceback:  my_intentionally_erroring_function "$my_argument"
-          bin/myscript:193:in erroring_function_caller
-          bin/myscript:1:in main
+``` bash
+Traceback:  my_intentionally_erroring_function "$my_argument"
+  bin/myscript:193:in erroring_function_caller
+  bin/myscript:1:in main
+```
 
-Strict mode does require more careful coding style to avoid
+Strict mode *does* require more careful coding style to avoid
 unintentional errors, so it is suggested that you have practice with it
 before enabling it on legacy code.
 
 I will add some recommended coding hygeine when working with strict
-mode, but until I do, you can learn more [here] and at [Aaron Maxwell's
+mode, but until then, you can learn more [here] and at [Aaron Maxwell's
 page][Strict Mode].
 
 Ruby-style "Features" a.k.a. Libraries
 --------------------------------------
 
-Libraries are written so that they are not unintentionally loaded more
-than once, even if sourced multiple times. Concorde also allows the file
-extension (e.g. `.sh`) for library files to be left off with its
-`require*` functions.
+At the beginning of each library, for example `my_lib.bash`:
+
+``` bash
+source concorde.bash
+$(feature my_lib)
+```
+
+Libraries are written so that they are not loaded more than once, even
+if sourced multiple times.
 
 -   `bring` - python-style import of only specified functions from a
     library to keep function namespace uncluttered
 
 -   `feature` - protect a library file from being loaded multiple times
-    and register its metadata
+    and register its metadata, such as its location on the filesystem
 
 -   `load` - source a filename even if it has been loaded already -
     searches PATH but not current directory
 
 -   `require` - like `source` but only searches PATH, not current
-    directory, and does not require file extension
+    directory - does not require file extension, searches for `.bash`,
+    `.sh` and no extension, in that order
 
 -   `require_relative` - source a file relative to the location of the
-    sourcing file, does not require file extension
+    sourcing file - does not require file extension
 
 Hash Operations
 ---------------
 
--   `grab` - create local variables from key/values in a hash
+Most functions operate on hash \[literals\] rather actual hashes, with
+the exception of `with`.
+
+-   `grab` - create local variables from key/values in a hash or a
+    namespace
 
 -   `local_hsh` - create a local hash from a hash literal or variable
     reference
 
--   `stuff` - add key/values to a hash using local variables
+-   `stuff` - add key/values to a hash or a namespace using local
+    variables
 
 -   `update` - update a hash with the contents of another hash
 
--   `with` - extract all hash keys into local variables
+-   `with` - extract all hash keys into local variables - operates on
+    true hashes rather than literals
 
 Array Operations
 ----------------
 
--   `assign` - multiple assignment from array values to local variables
+-   `assign` - multiple assignment of array values to local variables
 
 -   `get_here_ary` - get a (usually multiline) string from stdin and
     strip leading whitespace indentation, then assign each line to an
@@ -307,7 +355,7 @@ A few points for understanding the template:
     is in turn fed to `script_main`
 
 -   `parse_options` also removes from the script's positional arguments
-    those options which it parses, so the "$@" in `script_main __ "$@"`
+    those options which it parses, so the `$@` in `script_main __ "$@"`
     only contains the remaining unparsed positional arguments
 
 -   the first thing `script_main` does is use `grab` to create local
@@ -327,13 +375,8 @@ A few points for understanding the template:
     greater than 0 - `shift` removes the first positional argument, so
     the loop will eventually end
 
-Concorde's Internal Rules
-=========================
-
-These are the rules which concorde's functions follow. Although I try to
-use the same rules for the rest of my bash coding, you are certainly not
-required to follow them yourself, except insofar as to know how to
-interact with concorde.
+Rules and Techniques for Using Concorde
+=======================================
 
 1.  **test**
 
@@ -354,8 +397,8 @@ interact with concorde.
     -   global variables are, for the most part, not employed or
         modified ("\_\_" being one notable exception)
 
-    -   arguments should be values, not references (with some
-        exceptions)
+    -   arguments should be values, not references to outside variables
+        (with some exceptions)
 
     -   where references are allowed, they are dereferenced and used as
         values
@@ -370,10 +413,10 @@ interact with concorde.
     as strings.
 
     While this sounds like extra work, it actually ends up being
-    convenient when coupled with the other functions in concorde.  You
+    convenient when coupled with the other functions in concorde. You
     don't often need to work with native hashes when you can extract
     keys directly into your namespace, and multiple assignment makes
-    array items available as locals as well.  And the rest of concorde's
+    array items available as locals as well. And the rest of concorde's
     functions expect arrays as strings in the first place, so once
     converted, the arrays rarely need to be converted back to native
     form.
@@ -394,7 +437,7 @@ interact with concorde.
 
         "( [zero]=0 [one]=1 [two]='et cetera' )"
 
-    Hashes also have a succinct format which can be used instead.  It
+    Hashes also have a succinct format which can be used instead. It
     drops the parentheses and brackets:
 
         "zero=0 one=1 two='et cetera'"
@@ -436,7 +479,7 @@ interact with concorde.
 
     -   "\_\_", much like "$?", can't be relied on to stay the same from
         function call to function call, so any value that needs to be
-        saved must *immediately* be assigned - e.g. `myvalue=$**`
+        saved must *immediately* be assigned - e.g. `myvalue=$__`
 
     -   therefore most assignments which were one line when using
         command substitution now require two lines, one for the call and
@@ -461,6 +504,100 @@ interact with concorde.
           }
 
           my_function "required string" optional="optional value"
+
+API
+===
+
+Internal-use functions, of which there are but a couple, start with an
+underscore. The rest form the public API.
+
+Names which appear to be a little esoteric were typically chosen that
+way in order to avoid conflicts with similarly-named programs that you
+might find on a system. For example, `wed` instead of the more standard
+`join` for arrays.
+
+Some functions incorporate data types in their names when they deal with
+such types, such as:
+
+-   `ary`: arrays
+-   `str`: strings
+-   `hsh`: hashes (associative arrays)
+
+Functions which return string values (which are almost all of them) do
+so in the global variable `__` (double-underscore). This is very
+important to understand since it is used everywhere. Additionally, this
+means that, like `$?`, you can't rely on its value remaining the same
+after you call another function. Hence you need to save `__` off to
+another variable if you intend to make more use of its value.
+
+A reference is simply a string variable which happens to hold either the
+name of another string variable or the name and index of an item in an
+array or hash (e.g. `my_hash[key]`). Only references to the variable
+`__instanceh` or the names of array or hash variables may be passed to
+functions written in concorde's idiom. Other uses of references may
+result in namespace clashes.
+
+All parameters designated as "\_array" or "\_hash" in function
+signatures described below actually require the literal representation
+of the array or hash as a string, e.g. "(three item list)" or
+"(\[key\]=value \[pairs\]="")", since bash can't pass actual arrays or
+hashes. If you already have such a literal stored in a variable, the API
+usually allows you to pass the un-expanded variable name (no dollar
+sign) instead and the value will be automatically extrapolated.
+
+The usual way to obtain such a literal from an active array or hash is
+via `repr` (short for "representation", a la Python):
+
+``` bash
+repr my_array
+function_requiring_an_array_literal "$__"
+```
+
+Usually the above function would take the reference `__` as a valid
+alternative for `$__`.
+
+Option Parsing
+--------------
+
+-   **`parse_options`** *`definitions_array`* - creates a new instance
+    of an options data structure
+
+*Returns*: a reference to the option data structure
+
+-   **`options_parse`** *`options_ref [options]`* - parses a list of
+    options provided as-is from the command-line (i.e. "$@")
+
+    Options definitions are in the form of an array literal, with each
+    item containing a sub-array (literal) of four elements:
+
+    -   *short option* (including hyphen) - may be omitted (with `''` in
+        its place) if *long option* is defined
+
+    -   *long option* (including double-hyphen) - may be omitted (with
+        `''` in its place) if *short option* is defined
+
+    -   *argument name* - if the option takes an argument, the name of
+        the variable in which to store the value.
+
+    -   if omitted with '' in its place, the option becomes a flag with
+        the name `flag_[option]`, where \[option\] is the long name, if
+        available, otherwise the short name. It receives either the
+        value 1 if the flag is supplied, or does not exist if it wasn't
+
+    -   *help string* - currently unused but can still be a useful
+        reminder
+
+    *definitions\_array* is usually supplied via `get_here_str`.
+    Example:
+
+``` bash
+get_here_str <<'EOS'
+  ( -o --option1            ''      'a flag'  )
+  ( '' --option2 argument_name 'an argument'  )
+EOS
+
+options_new __
+```
 
   [StackOverflow]: https://stackoverflow.com/
   [Bash Hacker's Wiki]: http://wiki.bash-hackers.org/
