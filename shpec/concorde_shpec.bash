@@ -42,7 +42,7 @@ end
 
 describe bring
   it "errors if \$2 isn't 'from'"; ( _shpec_failures=0
-    $(bring one two three) && result=$? || result=$?
+    bring one two three && result=$? || result=$?
     assert unequal 0 "$result"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
@@ -52,7 +52,7 @@ describe bring
     [[ -d $dir ]] || return
     temp=$dir/temp.bash
     echo $'one () { echo hello ;}\ntwo () { echo world ;}' >"$temp"
-    $(bring '( one two )' from "$temp")
+    bring '( one two )' from "$temp"
     assert equal $'hello\nworld' "$(one; two)"
     $rmtree "$dir"
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
@@ -63,7 +63,7 @@ describe bring
     [[ -d $dir ]] || return
     temp=$dir/temp.bash
     echo $'one () { echo hello ;}' >"$temp"
-    $(bring one from "$temp")
+    bring one from "$temp"
     assert equal hello "$(one)"
     $rmtree "$dir"
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
@@ -79,7 +79,7 @@ describe bring
       two () { echo world       ;}
     EOS
     echo "$__" >"$temp"
-    $(bring one from "$temp")
+    bring one from "$temp"
     assert equal $'hello\nworld' "$(one)"
     $rmtree "$dir"
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
@@ -90,7 +90,7 @@ describe bring
     [[ -d $dir ]] || return
     temp=$dir/temp.bash
     echo $'one () { echo "$1" ;}' >"$temp"
-    $(bring one from "$temp")
+    bring one from "$temp"
     assert equal hello "$(one hello)"
     $rmtree "$dir"
     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))

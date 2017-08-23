@@ -28,24 +28,26 @@ assign () {
   emit "$statement"
 }
 
-bring () { (
+bring () {
   [[ $2 == 'from' ]] || return
   is_literal "$1" && eval "local -a function_ary=$1" || local -a function_ary=( "$1" )
   local spec=$3
   local feature
 
-  $(require "$spec")
-  feature=${spec##*/}
-  feature=${feature%.*}
-  is_feature "$feature" && $(grab dependencies fromns "$feature")
-  [[ -n ${dependencies:-} ]] && {
-    $(local_ary dependency_ary=$dependencies)
-    function_ary+=( "${dependency_ary[@]}" )
-  }
-  repr function_ary
-  __extract_functions __
-  emit "$__"
-) }
+  eval "$(
+    $(require "$spec")
+    feature=${spec##*/}
+    feature=${feature%.*}
+    is_feature "$feature" && $(grab dependencies fromns "$feature")
+    [[ -n ${dependencies:-} ]] && {
+      $(local_ary dependency_ary=$dependencies)
+      function_ary+=( "${dependency_ary[@]}" )
+    }
+    repr function_ary
+    __extract_functions __
+    put "$__"
+  )"
+}
 
 die () {
   local rc=$?
