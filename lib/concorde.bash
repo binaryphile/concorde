@@ -196,7 +196,7 @@ feature () {
   get_here_str <<'  EOS'
     (
       eval declare -A ns_hsh=${__ns:-}
-      [[ -n ${ns_hsh[%s]:-} ]] && ! (( ${reload:-} ))
+      [[ -n ${ns_hsh[%s]:-} ]] && ! (( ${__reload:-} ))
     ) && return
     __ns=$(
       type -P greadlink >/dev/null 2>&1 && readlink='greadlink -f --' || readlink='readlink -f --'
@@ -204,7 +204,7 @@ feature () {
       stuff %s into "${__ns:-}"
       echo "$__"
     )
-    (( ${reload:-} )) && unset -v reload
+    (( ${__reload:-} )) && unset -v __reload
   EOS
   statement=$__
   (( depth )) && for (( i = 0; i < depth; i++ )); do path+=/..; done
@@ -360,6 +360,8 @@ require () {
   local file
   local path
 
+  __reload=$reload
+  unset -v reload
   extension_ary=(
     .bash
     .sh
