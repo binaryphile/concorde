@@ -138,7 +138,7 @@ grab () {
   case $name in
     '('*')' ) eval "local -a var_ary=$name"         ;;
     '*'     ) local -a var_ary=( "${!arg_hsh[@]}" ) ;;
-    *       ) local -a var_ary=( "$name"          ) ;;
+    *       ) local -a var_ary=( $name            ) ;;
   esac
   local statement
   local var

@@ -307,6 +307,13 @@ describe grab
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
+  it "allows names without parentheses"; ( _shpec_failures=0
+    sample='( [zero]=0 [one]=1 [two]=2 )'
+    $(grab 'zero one two' from sample)
+    assert equal '0 1 2' "$zero $one $two"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
   it "grabs from a namespace if the second argument is fromns"; ( _shpec_failures=0
     $(grab root fromns concorde)
     [[ -n $root ]]
