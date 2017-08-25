@@ -172,6 +172,13 @@ describe feature
     assert equal 0 $?
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
+
+  it "doesn't reload"; ( _shpec_failures=0
+    $(feature sample)
+    result=$($(feature sample); echo hello)
+    assert equal '' "$result"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
 end
 
 describe grab
