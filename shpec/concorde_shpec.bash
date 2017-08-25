@@ -580,6 +580,71 @@ describe local_hsh
   end
 end
 
+describe macros
+  it "includes install"; ( _shpec_failures=0
+    $(grab install fromns concorde.macros)
+    [[ $install == install* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "includes installd"; ( _shpec_failures=0
+    $(grab installd fromns concorde.macros)
+    [[ $installd == install* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "includes installx"; ( _shpec_failures=0
+    $(grab installx fromns concorde.macros)
+    [[ $installx == install* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "includes mkdir"; ( _shpec_failures=0
+    $(grab mkdir fromns concorde.macros)
+    [[ $mkdir == mkdir* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "includes mktemp"; ( _shpec_failures=0
+    $(grab mktemp fromns concorde.macros)
+    [[ $mktemp == mktemp* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "includes mktempd"; ( _shpec_failures=0
+    $(grab mktempd fromns concorde.macros)
+    [[ $mktempd == mktemp* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "includes rm"; ( _shpec_failures=0
+    $(grab rm fromns concorde.macros)
+    [[ $rm == rm* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "includes rmdir"; ( _shpec_failures=0
+    $(grab rmdir fromns concorde.macros)
+    [[ $rmdir == rmdir* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "includes rmtree"; ( _shpec_failures=0
+    $(grab rmtree fromns concorde.macros)
+    [[ $rmtree == rm* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+end
+
 describe __ns
   it "is set"; ( _shpec_failures=0
     declare -p __ns >/dev/null 2>&1

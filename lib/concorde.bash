@@ -8,18 +8,21 @@ __ns="( [concorde]=\"( [root]=\\\"$(
 unset -v CDPATH
 
 concorde_init () {
+  local tmp=${TMPDIR:-$HOME/tmp}
+  $(grab tmp from "$@")
   local -A macro_hsh=()
   local key_ary=()
-  local tmp
 
-  tmp=$HOME/tmp
   mkdir -p -- "$tmp"
 
   macro_hsh=(
+    [install]='install -bm 644 --'
+    [installd]='install -dm 755 --'
+    [installx]='install -bm 755 --'
     [ln]='ln -sf --'
     [mkdir]='mkdir -p --'
-    [mktemp]="mktemp -qp $tmp --"
-    [mktempd]="mktemp -qdp $tmp --"
+    [mktemp]="mktemp -q --"
+    [mktempd]="mktemp -qd --"
     [rm]='rm --'
     [rmdir]='rmdir --'
     [rmtree]='rm -rf --'
