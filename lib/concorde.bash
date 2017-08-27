@@ -26,6 +26,7 @@ concorde_init () {
     [rm]='rm --'
     [rmdir]='rmdir --'
     [rmtree]='rm -rf --'
+    [sed]='sed -i.bak'
   )
   $(with macro_hsh)
   key_ary=( "${!macro_hsh[@]}" )

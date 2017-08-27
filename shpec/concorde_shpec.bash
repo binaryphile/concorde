@@ -650,6 +650,13 @@ describe macros
     assert equal 0 $?
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
+
+  it "includes sed"; ( _shpec_failures=0
+    $(grab sed fromns concorde.macros)
+    [[ $sed == sed* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
 end
 
 describe __ns
