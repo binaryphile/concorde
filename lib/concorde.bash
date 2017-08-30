@@ -181,7 +181,7 @@ feature () {
       stuff %s into "${__ns:-}"
       echo "$__"
     )
-    (( ${__reload:-} )) && unset -v __reload
+    ! (( ${__reload:-} )) || unset -v __reload
   EOS
   statement=$__
   (( depth )) && for (( i = 0; i < depth; i++ )); do path+=/..; done

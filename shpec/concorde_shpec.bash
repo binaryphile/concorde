@@ -180,6 +180,12 @@ describe feature
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
+  it "doesn't exit with status 1 when not reloading"; ( _shpec_failures=0
+    $(feature sample)
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
   it "reloads if __reload=1 is set"; ( _shpec_failures=0
     $(feature sample)
     __reload=1
