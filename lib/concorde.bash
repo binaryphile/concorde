@@ -484,6 +484,7 @@ concorde_init () {
   local key_ary=()
 
   macro_hsh=(
+    [cptree]='cp -r --'
     [install]='install -bm 644 --'
     [installd]='install -dm 755 --'
     [installx]='install -bm 755 --'

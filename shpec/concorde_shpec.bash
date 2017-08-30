@@ -540,6 +540,13 @@ describe local_hsh
 end
 
 describe macros
+  it "includes cptree"; ( _shpec_failures=0
+    $(grab cptree fromns concorde.macros)
+    [[ $cptree == cp* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
   it "includes install"; ( _shpec_failures=0
     $(grab install fromns concorde.macros)
     [[ $install == install* ]]
