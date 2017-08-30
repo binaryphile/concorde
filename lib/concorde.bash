@@ -114,7 +114,7 @@ grab () {
     '*'     ) local -a var_ary=( "${!arg_hsh[@]}" ) ;;
     *       ) local -a var_ary=( $name            ) ;;
   esac
-  local statement
+  local statement=''
   local var
 
   ! (( ${#var_ary[@]} )) && return
@@ -122,7 +122,7 @@ grab () {
     if is_set arg_hsh["$var"]; then
       printf -v statement '%sdeclare %s=%q\n' "${statement:-}" "$var" "${arg_hsh[$var]:-}"
     else
-      printf -v statement '%s$(in_scope %s) || declare %s=%q\n' "${statement:-}" "$var" "$var" "${arg_hsh[$var]:-}"
+      ! is_set "$var" && printf -v statement '%sdeclare %s=%q\n' "${statement:-}" "$var" "${arg_hsh[$var]:-}"
     fi
   done
   emit "$statement"
@@ -500,7 +500,6 @@ concorde_init () {
   key_ary=( "${!macro_hsh[@]}" )
   repr key_ary
   stuff "$__" intons concorde.macros
-  [[ $BASH_VERSION == 4.1* ]] && $(require_relative ./bash-4.1.bash)
 }
 
 concorde_init
