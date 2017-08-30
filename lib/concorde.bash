@@ -225,7 +225,8 @@ local_ary () {
 
   name=${first%%=*}
   (( $# )) && value="${first#*=} $*" || value=${first#*=}
-  is_literal "$value" && emit "eval 'declare -a $name=$value'" || emit 'eval "declare -a '"$name"'=${'"$value"'}"'
+  escape_items "$value"
+  is_literal "$value" && emit "eval declare -a $name=$__" || emit 'eval "declare -a '"$name"'=${'"$value"'}"'
 }
 
 local_hsh () {
@@ -250,7 +251,8 @@ local_hsh () {
   [[ -z $value ]] && value='()'
   is_literal "$value" && {
     ! (( $# )) || return
-    emit "eval 'declare -A $name=$value'"
+    escape_items "$value"
+    emit "eval declare -A $name=$__"
     return
   }
   for item in "$@"; do
