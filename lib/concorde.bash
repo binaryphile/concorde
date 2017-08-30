@@ -7,33 +7,6 @@ __ns="( [concorde]=\"( [root]=\\\"$(
 
 unset -v CDPATH
 
-concorde_init () {
-  local tmp=${TMPDIR:-$HOME/tmp}
-  $(grab tmp from "$@")
-  local -A macro_hsh=()
-  local key_ary=()
-
-  mkdir -p -- "$tmp"
-
-  macro_hsh=(
-    [install]='install -bm 644 --'
-    [installd]='install -dm 755 --'
-    [installx]='install -bm 755 --'
-    [ln]='ln -sf --'
-    [mkdir]='mkdir -p --'
-    [mktemp]="mktemp -q --"
-    [mktempd]="mktemp -qd --"
-    [rm]='rm --'
-    [rmdir]='rmdir --'
-    [rmtree]='rm -rf --'
-    [sed]='sed -i.bak'
-  )
-  $(with macro_hsh)
-  key_ary=( "${!macro_hsh[@]}" )
-  repr key_ary
-  stuff "$__" intons concorde.macros
-}
-
 assign () {
   [[ $2 == 'to' ]] || return
   $(local_ary args=$1)
@@ -505,6 +478,30 @@ wed () {
 }
 
 with () { repr "$1"; grab '*' from "$__" ;}
+
+concorde_init () {
+  local -A macro_hsh=()
+  local key_ary=()
+
+  macro_hsh=(
+    [install]='install -bm 644 --'
+    [installd]='install -dm 755 --'
+    [installx]='install -bm 755 --'
+    [ln]='ln -sf --'
+    [mkdir]='mkdir -p --'
+    [mktemp]="mktemp -q --"
+    [mktempd]="mktemp -qd --"
+    [rm]='rm --'
+    [rmdir]='rmdir --'
+    [rmtree]='rm -rf --'
+    [sed]='sed -i.bak'
+  )
+  $(with macro_hsh)
+  key_ary=( "${!macro_hsh[@]}" )
+  repr key_ary
+  stuff "$__" intons concorde.macros
+  [[ $BASH_VERSION == 4.1* ]] && $(require_relative ./bash-4.1.bash)
+}
 
 concorde_init
 unset -f concorde_init
