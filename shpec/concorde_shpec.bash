@@ -236,6 +236,16 @@ describe grab
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
+  it "grabs if the list contains newlines"; ( _shpec_failures=0
+    sample='( [one]=1 [two]=2 )'
+    $(grab '(
+      one
+      two
+    )' from sample)
+    assert equal '1 2' "$one $two"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
   it "instantiates all key/value pairs from a hash literal reference"; ( _shpec_failures=0
     sample='( [one]=1 [two]=2 [three]=3 )'
     $(grab '*' from sample)
