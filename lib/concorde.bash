@@ -50,10 +50,14 @@ bring () {
 }
 
 die () {
-  local rc=$?
+  local rc=${2:-$?}
 
-  [[ -n ${1:-} ]] && puterr "$1"
-  exit "${2:-$rc}"
+  [[ -z ${1:-} ]] && exit "$rc"
+  case $rc in
+    0 ) put     "$1";;
+    * ) puterr  "$1";;
+  esac
+  exit "$rc"
 }
 
 emit          () { printf 'eval eval %q\n' "$1"         ;}
