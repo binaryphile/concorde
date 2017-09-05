@@ -30,7 +30,7 @@ assign () {
 
 bring () {
   [[ $2 == 'from' ]] || return
-  is_literal "$1" && eval "local -a function_ary=$1" || local -a function_ary=( "$1" )
+  is_literal "$1" && eval "local -a function_ary=$1" || local -a function_ary=( $1 )
   local spec=$3
   local feature
 

@@ -114,7 +114,7 @@ describe die
   end
 
   it "exits with an error message"; ( _shpec_failures=0
-    result=$(die 'aaaaagh' 2>&1) ||:
+    result=$(die 'aaaaagh' 1 2>&1) ||:
     assert equal 'Error: aaaaagh' "$result"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
