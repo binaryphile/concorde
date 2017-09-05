@@ -114,7 +114,7 @@ describe die
   end
 
   it "exits with an error message"; ( _shpec_failures=0
-    result=$(die 'aaaaagh' 2>&1) ||:
+    result=$(die 'aaaaagh' 1 2>&1) ||:
     assert equal 'Error: aaaaagh' "$result"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
@@ -172,6 +172,27 @@ describe feature
     assert equal 0 $?
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
+
+  it "doesn't reload"; ( _shpec_failures=0
+    $(feature sample)
+    result=$($(feature sample); echo hello)
+    assert equal '' "$result"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "doesn't exit with status 1 when not reloading"; ( _shpec_failures=0
+    $(feature sample)
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "reloads if __reload=1 is set"; ( _shpec_failures=0
+    $(feature sample)
+    __reload=1
+    result=$($(feature sample); echo hello)
+    assert equal hello "$result"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
 end
 
 describe grab
@@ -217,6 +238,16 @@ describe grab
   it "instantiates more than one key/value pair from a hash literal reference"; ( _shpec_failures=0
     sample='( [one]=1 [two]=2 )'
     $(grab '( one two )' from sample)
+    assert equal '1 2' "$one $two"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "grabs if the list contains newlines"; ( _shpec_failures=0
+    sample='( [one]=1 [two]=2 )'
+    $(grab '(
+      one
+      two
+    )' from sample)
     assert equal '1 2' "$one $two"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
@@ -292,75 +323,18 @@ describe grab
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
+  it "allows names without parentheses"; ( _shpec_failures=0
+    sample='( [zero]=0 [one]=1 [two]=2 )'
+    $(grab 'zero one two' from sample)
+    assert equal '0 1 2' "$zero $one $two"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
   it "grabs from a namespace if the second argument is fromns"; ( _shpec_failures=0
     $(grab root fromns concorde)
     [[ -n $root ]]
     assert equal 0 $?
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-end
-
-describe in_scope
-  it "doesn't set a global"; ( _shpec_failures=0
-    sample_func () { local sample=one; $(in_scope sample) ;}
-    ! is_set sample
-    assert equal 0 $?
-    return "$_shpec_failures"); : $(( _shpec_failures += $? ))
-  end
-
-  it "doesn't change a global"; ( _shpec_failures=0
-    declare -g sample=blah
-    [[ $sample == 'blah' ]]
-    sample_func () { local sample=one; $(in_scope sample) ;}
-    sample_func
-    assert equal blah "$sample"
-    return "$_shpec_failures"); : $(( _shpec_failures += $? ))
-  end
-
-  it "returns true if the variable is a local and there is a global"; ( _shpec_failures=0
-    declare -g sample=blah
-    [[ $sample == 'blah' ]]
-    sample_func () { local sample=one; $(in_scope sample) ;}
-    sample_func
-    assert equal 0 $?
-    return "$_shpec_failures"); : $(( _shpec_failures += $? ))
-  end
-
-  it "returns false if the variable is not a local and there is a global"; ( _shpec_failures=0
-    declare -g sample=blah
-    [[ $sample == 'blah' ]]
-    sample_func () { $(in_scope sample) ;}
-    sample_func && result=$? || result=$?
-    assert unequal 0 "$result"
-    return "$_shpec_failures"); : $(( _shpec_failures += $? ))
-  end
-
-  it "returns true if the variable is a local and there is no global"; ( _shpec_failures=0
-    ! is_set sample
-    sample_func () { local sample=one; $(in_scope sample) ;}
-    sample_func
-    assert equal 0 $?
-    return "$_shpec_failures"); : $(( _shpec_failures += $? ))
-  end
-
-  it "returns false if the variable is not a local and there is no global"; ( _shpec_failures=0
-    ! is_set sample
-    sample_func () { $(in_scope sample) ;}
-    sample_func && result=$? || result=$?
-    assert unequal 0 "$result"
-    return "$_shpec_failures"); : $(( _shpec_failures += $? ))
-  end
-
-  it "returns true if the variable is a global and executed in global scope"; ( _shpec_failures=0
-    get_here_str <<'    EOS'
-      source concorde.bash
-      ! is_set sample
-      sample=one
-      $(in_scope sample)
-    EOS
-    bash -c "$__"
-    assert equal 0 $?
-    return "$_shpec_failures"); : $(( _shpec_failures += $? ))
   end
 end
 
@@ -561,6 +535,85 @@ describe local_hsh
   it "works with values that contain a dot"; ( _shpec_failures=0
     $(local_hsh result_hsh='( [zero]=0.0 )')
     assert equal 0.0 "${result_hsh[zero]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+end
+
+describe macros
+  it "includes cptree"; ( _shpec_failures=0
+    $(grab cptree fromns concorde.macros)
+    [[ $cptree == cp* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "includes install"; ( _shpec_failures=0
+    $(grab install fromns concorde.macros)
+    [[ $install == install* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "includes installd"; ( _shpec_failures=0
+    $(grab installd fromns concorde.macros)
+    [[ $installd == install* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "includes installx"; ( _shpec_failures=0
+    $(grab installx fromns concorde.macros)
+    [[ $installx == install* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "includes mkdir"; ( _shpec_failures=0
+    $(grab mkdir fromns concorde.macros)
+    [[ $mkdir == mkdir* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "includes mktemp"; ( _shpec_failures=0
+    $(grab mktemp fromns concorde.macros)
+    [[ $mktemp == mktemp* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "includes mktempd"; ( _shpec_failures=0
+    $(grab mktempd fromns concorde.macros)
+    [[ $mktempd == mktemp* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "includes rm"; ( _shpec_failures=0
+    $(grab rm fromns concorde.macros)
+    [[ $rm == rm* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "includes rmdir"; ( _shpec_failures=0
+    $(grab rmdir fromns concorde.macros)
+    [[ $rmdir == rmdir* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "includes rmtree"; ( _shpec_failures=0
+    $(grab rmtree fromns concorde.macros)
+    [[ $rmtree == rm* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "includes sed"; ( _shpec_failures=0
+    $(grab sed fromns concorde.macros)
+    [[ $sed == sed* ]]
+    assert equal 0 $?
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 end
@@ -874,6 +927,26 @@ describe wed
     sample='( one two )'
     wed sample with @
     assert equal one@two "$__"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+end
+
+describe repr
+  it "generates a representation of a nested hash variable"; ( _shpec_failures=0
+    declare -A sample_hsh=( [zero]=0 [one]="( [two]=2 )" )
+    repr sample_hsh
+    eval "declare -A example_hsh=$__"
+    eval "declare -A result_hsh=${example_hsh[one]}"
+    assert equal '0 2' "${example_hsh[zero]} ${result_hsh[two]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "generates a representation of a nested hash variable with newlines"; ( _shpec_failures=0
+    declare -A sample_hsh=( [zero]=0 [one]="( [two]=$'2\n3' )" )
+    repr sample_hsh
+    eval "declare -A example_hsh=$__"
+    eval "declare -A result_hsh=${example_hsh[one]}"
+    assert equal $'0 2\n3' "${example_hsh[zero]} ${result_hsh[two]}"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 end
