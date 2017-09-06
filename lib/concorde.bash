@@ -60,7 +60,19 @@ die () {
   exit "$rc"
 }
 
-emit          () { printf 'eval eval %q\n' "$1"         ;}
+emit () { printf 'eval eval %q\n' "$1" ;}
+
+escape_ary () {
+  local i
+  local result_ary=()
+
+  result_ary=( "$@" )
+  for (( i = 0; i < $#; i++ )); do
+    printf -v result_ary[i] %q "${result_ary[i]}"
+  done
+  repr result_ary
+}
+
 escape_items  () { printf -v __ '%q ' "$@"; __=${__% }  ;}
 
 __extract_function () {
@@ -197,13 +209,24 @@ load () { require "$1" reload=1 ;}
 
 local_ary () {
   local first=$1; shift
+  local ary=()
+  local item
   local name
   local value
 
   name=${first%%=*}
-  (( $# )) && value="${first#*=} $*" || value=${first#*=}
-  escape_items "$value"
-  is_literal "$value" && emit "eval declare -a $name=$__" || emit 'eval "declare -a '"$name"'=${'"$value"'}"'
+  set -- "${first#*=}" "$@"
+  value=$*
+  is_set "$value" && value=${!value}
+  eval "ary=( ${value// /$'\37'} )"
+  set -- "${ary[@]//$'\37'/ }"
+  (( $# == 1 )) && { emit "declare -a $name=( $value )"; return ;}
+  ary=()
+  for item in "$@"; do
+    printf -v item %q "$item"
+    ary+=( "$item" )
+  done
+  emit "declare -a $name=( ${ary[*]} )"
 }
 
 local_hsh () {
