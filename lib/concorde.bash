@@ -209,24 +209,13 @@ load () { require "$1" reload=1 ;}
 
 local_ary () {
   local first=$1; shift
-  local ary=()
-  local item
   local name
-  local value
 
+  [[ $first == *=* ]] || return
   name=${first%%=*}
   set -- "${first#*=}" "$@"
-  value=$*
-  is_set "$value" && value=${!value}
-  eval "ary=( ${value// /$'\37'} )"
-  set -- "${ary[@]//$'\37'/ }"
-  (( $# == 1 )) && { emit "declare -a $name=( $value )"; return ;}
-  ary=()
-  for item in "$@"; do
-    printf -v item %q "$item"
-    ary+=( "$item" )
-  done
-  emit "declare -a $name=( ${ary[*]} )"
+  { (( $# == 1 )) && is_set "$1" ;} && set -- ${!1}
+  emit "declare -a $name=( $* )"
 }
 
 local_hsh () {
