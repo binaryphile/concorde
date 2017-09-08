@@ -212,18 +212,22 @@ local_ary () {
   local first=$1; shift
   local IFS=$IFS
   local ary=()
-  local i
+  local item
+  local oldIFS
   local name
 
+  oldIFS=$IFS
   name=${first%%=*}
-  ary=( "${first#*=}" "$@" )
-  for (( i = 0; i < ${#ary[@]}; i++ )); do
-    printf -v ary[i] %q "${ary[i]}"
+  set -- "${first#*=}" "$@"
+  { (( $# == 1 )) && is_set "$1" ;} && set -- "${!1}"
+  [[ $* != *$'\n'* ]] && { emit "declare -a $name=( $* )"; return ;}
+  for item in "$@"; do
+    ary+=( "$(printf %q "$item")" )
   done
-  { (( ${#ary[@]} == 1 )) && is_set "${ary[0]}" ;} && eval 'ary=( \${'"${ary[0]}"'} )'
-  eval "ary=( ${ary[*]} )"
-  [[ ${ary[*]} == *$'\n'* ]] && { IFS=$'\n'; eval "ary=( $* )" ;}
-  emit "declare -a $name=( ${ary[*]} )"
+  IFS=$'\n'
+  set -- ${ary[*]}
+  IFS=$oldIFS
+  emit "declare -a $name=( $* )"
 }
 
 local_hsh () {
