@@ -208,26 +208,23 @@ feature () {
 load () { require "$1" reload=1 ;}
 
 local_ary () {
-  [[ $1 == *=* ]] || return
-  local first=$1; shift
+  { (( $# == 1 )) && [[ $1 == *=* ]] ;} || return
   local IFS=$IFS
   local ary=()
   local item
-  local oldIFS
   local name
+  local value
 
-  oldIFS=$IFS
-  name=${first%%=*}
-  set -- "${first#*=}" "$@"
-  { (( $# == 1 )) && is_set "$1" ;} && set -- "${!1}"
-  [[ $* != *$'\n'* ]] && { emit "declare -a $name=( $* )"; return ;}
-  for item in "$@"; do
-    ary+=( "$(printf %q "$item")" )
-  done
+  name=${1%%=*}
+  value=${1#*=}
+  is_set "$value" && value=${!value}
+  [[ $value != *$'\n'* ]] && { emit "declare -a $name=( $value )"; return ;}
   IFS=$'\n'
-  set -- ${ary[*]}
-  IFS=$oldIFS
-  emit "declare -a $name=( $* )"
+  set -- $value
+  for item in "$@"; do
+    ary+=( $(printf %q "$item") )
+  done
+  emit "declare -a $name=( ${ary[*]} )"
 }
 
 local_hsh () {
