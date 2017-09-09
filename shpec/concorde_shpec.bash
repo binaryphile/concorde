@@ -427,43 +427,156 @@ unset -v library
 #     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
 #   end
 # end
-#
-# describe local_ary
-#   it "creates a local array"; ( _shpec_failures=0
-#     result=$(local_ary sample_ary='( zero )')
-#     [[ $result == *declare* ]]
-#     assert equal 0 $?
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "creates an array from a literal"; ( _shpec_failures=0
-#     $(local_ary result_ary='( zero )')
-#     assert equal zero "${result_ary[0]}"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "creates an array from a string reference"; ( _shpec_failures=0
-#     samples='( zero )'
-#     $(local_ary result_ary=samples)
-#     assert equal zero "${result_ary[0]}"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "creates an array from an array reference"; ( _shpec_failures=0
-#     sample_ary=( '( zero )' )
-#     $(local_ary result_ary=sample_ary[0])
-#     assert equal zero "${result_ary[0]}"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "creates an array from a hash reference"; ( _shpec_failures=0
-#     declare -A sample_hsh=( [item]='( zero )' )
-#     $(local_ary result_ary=sample_hsh[item])
-#     assert equal zero "${result_ary[0]}"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-# end
-#
+
+describe local_ary
+  it "creates an array from a single item"; ( _shpec_failures=0
+    sample=''
+    unset -v sample
+    $(local_ary result_ary=sample)
+    printf -v result '(%s) ' "${result_ary[@]}"
+    assert equal '(sample)' "${result% }"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates an array from a reference"; ( _shpec_failures=0
+    sample=one
+    $(local_ary result_ary=sample)
+    printf -v result '(%s) ' "${result_ary[@]}"
+    assert equal '(one)' "${result% }"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates an array from a string with multiple items"; ( _shpec_failures=0
+    $(local_ary result_ary='one two')
+    printf -v result '(%s) ' "${result_ary[@]}"
+    assert equal '(one) (two)' "${result% }"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates an array from multiple items"; ( _shpec_failures=0
+    $(local_ary result_ary=one two)
+    printf -v result '(%s) ' "${result_ary[@]}"
+    assert equal '(one) (two)' "${result% }"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates an array from a quoted item"; ( _shpec_failures=0
+    $(local_ary result_ary='"one two"')
+    printf -v result '(%s) ' "${result_ary[@]}"
+    assert equal '(one two)' "${result% }"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates an array from a reference to a quoted item"; ( _shpec_failures=0
+    sample='"one two"'
+    $(local_ary result_ary=sample)
+    printf -v result '(%s) ' "${result_ary[@]}"
+    assert equal '(one two)' "${result% }"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates an array from a quoted item with an escaped newline"; ( _shpec_failures=0
+    $(local_ary result_ary="\$'one\ntwo'")
+    printf -v result '(%s) ' "${result_ary[@]}"
+    assert equal $'(one\ntwo)' "${result% }"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates an array from multiple quoted items in a string"; ( _shpec_failures=0
+    $(local_ary result_ary='"one two" "three four"')
+    printf -v result '(%s) ' "${result_ary[@]}"
+    assert equal '(one two) (three four)' "${result% }"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates an array from multiple quoted items"; ( _shpec_failures=0
+    $(local_ary result_ary='"one two"' '"three four"')
+    printf -v result '(%s) ' "${result_ary[@]}"
+    assert equal '(one two) (three four)' "${result% }"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates an array from a multiline string"; ( _shpec_failures=0
+    $(local_ary result_ary=$'one\ntwo')
+    printf -v result '(%s) ' "${result_ary[@]}"
+    assert equal '(one) (two)' "${result% }"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates an array from a reference to a multiline string"; ( _shpec_failures=0
+    sample=$'one\ntwo'
+    $(local_ary result_ary=sample)
+    printf -v result '(%s) ' "${result_ary[@]}"
+    assert equal '(one) (two)' "${result% }"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates a multidimensional array from a multiline string"; ( _shpec_failures=0
+    $(local_ary result_ary=$'one two\nthree')
+    $(local_ary result_ary="${result_ary[0]}")
+    printf -v result '(%s) ' "${result_ary[@]}"
+    assert equal '(one) (two)' "${result% }"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates a multidimensional array from a string with a quoted item"; ( _shpec_failures=0
+    $(local_ary result_ary=$'"one two"\nthree')
+    $(local_ary result_ary="${result_ary[0]}")
+    printf -v result '(%s) ' "${result_ary[@]}"
+    assert equal '(one two)' "${result% }"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates a multidimensional array from a string with a quoted item with an escaped newline"; ( _shpec_failures=0
+    $(local_ary result_ary="\$'one\ntwo'"$'\nthree')
+    $(local_ary result_ary="${result_ary[0]}")
+    printf -v result '(%s) ' "${result_ary[@]}"
+    assert equal $'(one\ntwo)' "${result% }"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates a multidimensional array from multiple quoted items with a newline in a string"; ( _shpec_failures=0
+    $(local_ary result_ary=$'"one two" "three four"\nfive')
+    $(local_ary result_ary="${result_ary[0]}")
+    printf -v result '(%s) ' "${result_ary[@]}"
+    assert equal '(one two) (three four)' "${result% }"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates a multidimensional array from multiple quoted items with a newline"; ( _shpec_failures=0
+    $(local_ary result_ary='"one two"' $'"three four"\nfive')
+    $(local_ary result_ary="${result_ary[0]}")
+    printf -v result '(%s) ' "${result_ary[@]}"
+    assert equal '(one two) (three four)' "${result% }"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates an array from the second multiple quoted items in a string"; ( _shpec_failures=0
+    $(local_ary result_ary=$'"one two" "three four"\n"five six" "seven eight"')
+    $(local_ary result_ary="${result_ary[1]}")
+    printf -v result '(%s) ' "${result_ary[@]}"
+    assert equal '(five six) (seven eight)' "${result% }"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates an array from the second multiple quoted items"; ( _shpec_failures=0
+    $(local_ary result_ary='"one two"' $'"three four"\n"five six"' '"seven eight"')
+    $(local_ary result_ary="${result_ary[1]}")
+    printf -v result '(%s) ' "${result_ary[@]}"
+    assert equal '(five six) (seven eight)' "${result% }"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates an array from the second multiple quoted items in a reference to a string"; ( _shpec_failures=0
+    sample=$'"one two" "three four"\n"five six" "seven eight"'
+    $(local_ary result_ary=sample)
+    $(local_ary result_ary="${result_ary[1]}")
+    printf -v result '(%s) ' "${result_ary[@]}"
+    assert equal '(five six) (seven eight)' "${result% }"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+end
+
 # describe local_hsh
 #   it "creates an empty hash from an empty literal"; ( _shpec_failures=0
 #     $(local_hsh result_hsh='()')
@@ -930,172 +1043,23 @@ unset -v library
 #     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
 #   end
 # end
-#
-# describe repr
-#   it "generates a representation of a nested hash variable"; ( _shpec_failures=0
-#     declare -A sample_hsh=( [zero]=0 [one]="( [two]=2 )" )
-#     repr sample_hsh
-#     eval "declare -A example_hsh=$__"
-#     eval "declare -A result_hsh=${example_hsh[one]}"
-#     assert equal '0 2' "${example_hsh[zero]} ${result_hsh[two]}"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "generates a representation of a nested hash variable with newlines"; ( _shpec_failures=0
-#     declare -A sample_hsh=( [zero]=0 [one]="( [two]=$'2\n3' )" )
-#     repr sample_hsh
-#     eval "declare -A example_hsh=$__"
-#     eval "declare -A result_hsh=${example_hsh[one]}"
-#     assert equal $'0 2\n3' "${example_hsh[zero]} ${result_hsh[two]}"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-# end
 
-describe local_ary
-  it "creates an array from a single item"; ( _shpec_failures=0
-    sample=''
-    unset -v sample
-    $(local_ary result_ary=sample)
-    printf -v result '(%s) ' "${result_ary[@]}"
-    assert equal '(sample)' "${result% }"
+describe repr
+  it "generates a representation of a nested hash variable"; ( _shpec_failures=0
+    declare -A sample_hsh=( [zero]=0 [one]="[two]=2" )
+    repr sample_hsh
+    eval "declare -A example_hsh=( $__ )"
+    eval "declare -A result_hsh=( ${example_hsh[one]} )"
+    assert equal '0 2' "${example_hsh[zero]} ${result_hsh[two]}"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
-  it "creates an array from a reference"; ( _shpec_failures=0
-    sample=one
-    $(local_ary result_ary=sample)
-    printf -v result '(%s) ' "${result_ary[@]}"
-    assert equal '(one)' "${result% }"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "creates an array from a string with multiple items"; ( _shpec_failures=0
-    $(local_ary result_ary='one two')
-    printf -v result '(%s) ' "${result_ary[@]}"
-    assert equal '(one) (two)' "${result% }"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "creates an array from multiple items"; ( _shpec_failures=0
-    $(local_ary result_ary=one two)
-    printf -v result '(%s) ' "${result_ary[@]}"
-    assert equal '(one) (two)' "${result% }"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "creates an array from a quoted item"; ( _shpec_failures=0
-    $(local_ary result_ary='"one two"')
-    printf -v result '(%s) ' "${result_ary[@]}"
-    assert equal '(one two)' "${result% }"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "creates an array from a reference to a quoted item"; ( _shpec_failures=0
-    sample='"one two"'
-    $(local_ary result_ary=sample)
-    printf -v result '(%s) ' "${result_ary[@]}"
-    assert equal '(one two)' "${result% }"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "creates an array from a quoted item with an escaped newline"; ( _shpec_failures=0
-    $(local_ary result_ary="\$'one\ntwo'")
-    printf -v result '(%s) ' "${result_ary[@]}"
-    assert equal $'(one\ntwo)' "${result% }"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "creates an array from multiple quoted items in a string"; ( _shpec_failures=0
-    $(local_ary result_ary='"one two" "three four"')
-    printf -v result '(%s) ' "${result_ary[@]}"
-    assert equal '(one two) (three four)' "${result% }"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "creates an array from multiple quoted items"; ( _shpec_failures=0
-    $(local_ary result_ary='"one two"' '"three four"')
-    printf -v result '(%s) ' "${result_ary[@]}"
-    assert equal '(one two) (three four)' "${result% }"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "creates an array from a multiline string"; ( _shpec_failures=0
-    $(local_ary result_ary=$'one\ntwo')
-    printf -v result '(%s) ' "${result_ary[@]}"
-    assert equal '(one) (two)' "${result% }"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "creates an array from a reference to a multiline string"; ( _shpec_failures=0
-    sample=$'one\ntwo'
-    $(local_ary result_ary=sample)
-    printf -v result '(%s) ' "${result_ary[@]}"
-    assert equal '(one) (two)' "${result% }"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "creates a multidimensional array from a multiline string"; ( _shpec_failures=0
-    $(local_ary result_ary=$'one two\nthree')
-    $(local_ary result_ary="${result_ary[0]}")
-    printf -v result '(%s) ' "${result_ary[@]}"
-    assert equal '(one) (two)' "${result% }"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "creates a multidimensional array from a string with a quoted item"; ( _shpec_failures=0
-    $(local_ary result_ary=$'"one two"\nthree')
-    $(local_ary result_ary="${result_ary[0]}")
-    printf -v result '(%s) ' "${result_ary[@]}"
-    assert equal '(one two)' "${result% }"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "creates a multidimensional array from a string with a quoted item with an escaped newline"; ( _shpec_failures=0
-    $(local_ary result_ary="\$'one\ntwo'"$'\nthree')
-    $(local_ary result_ary="${result_ary[0]}")
-    printf -v result '(%s) ' "${result_ary[@]}"
-    assert equal $'(one\ntwo)' "${result% }"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "creates a multidimensional array from multiple quoted items with a newline in a string"; ( _shpec_failures=0
-    $(local_ary result_ary=$'"one two" "three four"\nfive')
-    $(local_ary result_ary="${result_ary[0]}")
-    printf -v result '(%s) ' "${result_ary[@]}"
-    assert equal '(one two) (three four)' "${result% }"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "creates a multidimensional array from multiple quoted items with a newline"; ( _shpec_failures=0
-    $(local_ary result_ary='"one two"' $'"three four"\nfive')
-    $(local_ary result_ary="${result_ary[0]}")
-    printf -v result '(%s) ' "${result_ary[@]}"
-    assert equal '(one two) (three four)' "${result% }"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "creates an array from the second multiple quoted items in a string"; ( _shpec_failures=0
-    $(local_ary result_ary=$'"one two" "three four"\n"five six" "seven eight"')
-    $(local_ary result_ary="${result_ary[1]}")
-    printf -v result '(%s) ' "${result_ary[@]}"
-    assert equal '(five six) (seven eight)' "${result% }"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "creates an array from the second multiple quoted items"; ( _shpec_failures=0
-    $(local_ary result_ary='"one two"' $'"three four"\n"five six"' '"seven eight"')
-    $(local_ary result_ary="${result_ary[1]}")
-    printf -v result '(%s) ' "${result_ary[@]}"
-    assert equal '(five six) (seven eight)' "${result% }"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "creates an array from the second multiple quoted items in a reference to a string"; ( _shpec_failures=0
-    sample=$'"one two" "three four"\n"five six" "seven eight"'
-    $(local_ary result_ary=sample)
-    $(local_ary result_ary="${result_ary[1]}")
-    printf -v result '(%s) ' "${result_ary[@]}"
-    assert equal '(five six) (seven eight)' "${result% }"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
+  # it "generates a representation of a nested hash variable with newlines"; ( _shpec_failures=0
+  #   declare -A sample_hsh=( [zero]=0 [one]="( [two]=$'2\n3' )" )
+  #   repr sample_hsh
+  #   eval "declare -A example_hsh=$__"
+  #   eval "declare -A result_hsh=${example_hsh[one]}"
+  #   assert equal $'0 2\n3' "${example_hsh[zero]} ${result_hsh[two]}"
+  #   return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  # end
 end

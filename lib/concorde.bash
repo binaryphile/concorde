@@ -344,9 +344,22 @@ raise () {
 }
 
 repr () {
+  local ary=()
+  local item
+
   __=$(declare -p "$1" 2>/dev/null) || return
-  __=${__#*=}
-  [[ $__ == \'*\' ]] && eval "__=$__" || __=$__
+  [[ ${__:9:1} != a ]] && {
+    __=${__#*=}
+    [[ $__ == \'*\' ]] && eval "__=$__"
+    __=${__#\(}
+    __=${__% \)}
+    return
+  }
+  eval 'set -- ${'"$1"'[@]} )'
+  for item in "$@"; do
+    ary+=( "$(printf %q "$item")" )
+  done
+  __=${ary[*]}
 }
 
 require () {
