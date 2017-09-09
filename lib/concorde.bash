@@ -1,9 +1,9 @@
 [[ -n ${__ns:-} && ${1:-} != 'reload=1' ]] && return
 [[ ${1:-} == 'reload=1' ]] && shift
 type -P greadlink >/dev/null 2>&1 && __ns=g || __ns=''
-__ns="( [concorde]=\"( [root]=\\\"$(
+__ns="[concorde]=\"[root]=\\\"$(
   ${__ns}readlink -f -- "$(dirname "$(${__ns}readlink -f -- "$BASH_SOURCE")")"/..
-)\\\" [macros]=\\\"( [readlink]=\\\\\\\"${__ns}readlink -f --\\\\\\\" )\\\" )\" )"
+)\\\" [macros]=\\\"[readlink]=\\\\\\\"${__ns}readlink -f --\\\\\\\"\\\"\""
 
 unset -v CDPATH
 
@@ -543,5 +543,5 @@ concorde_init () {
   stuff "$__" intons concorde.macros
 }
 
-# concorde_init
+concorde_init
 unset -f concorde_init
