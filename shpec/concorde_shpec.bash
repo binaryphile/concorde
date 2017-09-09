@@ -890,21 +890,21 @@ end
 #     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
 #   end
 # end
-#
-# describe part
-#   it "splits a string on a delimiter"; ( _shpec_failures=0
-#     part one@two on @
-#     assert equal '([0]="one" [1]="two")' "$__"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "doesn't split a string by name with a delimiter"; ( _shpec_failures=0
-#     sample=one@two
-#     part sample on @
-#     assert equal '([0]="sample")' "$__"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-# end
+
+describe part
+  it "splits a string on a delimiter"; ( _shpec_failures=0
+    part one@two on @
+    assert equal 'one two' "$__"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "doesn't split a string by name with a delimiter"; ( _shpec_failures=0
+    sample=one@two
+    part sample on @
+    assert equal sample "$__"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+end
 
 describe stuff
   it "inserts a local variable as a key into an empty hash literal"; ( _shpec_failures=0

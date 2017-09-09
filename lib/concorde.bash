@@ -325,11 +325,12 @@ parse_options () {
 }
 
 part () {
-  [[ $2 == 'on' ]] || return
+  [[ $2 == on ]] || return
   local IFS=$3
   local result_ary=()
 
   result_ary=( $1 )
+  unset -v IFS
   repr result_ary
 }
 
