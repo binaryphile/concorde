@@ -8,7 +8,7 @@ __ns="( [concorde]=\"( [root]=\\\"$(
 unset -v CDPATH
 
 assign () {
-  [[ $2 == 'to' ]] || return
+  [[ $2 == to ]] || return
   $(local_ary args=$1)
   $(local_ary vars=$3)
   local count
@@ -108,16 +108,16 @@ get_here_ary () {
   get_ary <<<"$__"
 }
 
-get_here_str () {
+get () {
   local space
 
-  get_str
+  get_raw
   space=${__%%[^[:space:]]*}
   printf -v __ %s "${__:${#space}}"
   printf -v __ %s "${__//$'\n'$space/$'\n'}"
 }
 
-get_str () { IFS=$'\n' read -rd '' __ ||:         ;}
+get_raw () { IFS=$'\n' read -rd '' __ ||: ;}
 
 grab () {
   [[ $2 == 'fromns' ]] && { grab "$1" from __ns."${@:3}"; return ;}
@@ -240,20 +240,18 @@ local_hsh () {
   name=${1%%=*}
   value=${1#*=}
   shift
-  [[ -z $value ]] && value='()'
   set -- "$value" "$@"
-  is_literal "$*"  && { value=$*; set -- ;}
-  { ! is_literal "$value" && [[ $value == *.* ]] ;} && {
+  ! is_set "$*" && { value=$*; set -- ;}
+  { is_set "$value" && [[ $value == *.* ]] ;} && {
     item=${value%.*}
     value=${value##*.}
     $(grab "$value" from "$item")
   }
-  is_set "$value" && { value=${!value}; shift   ;}
-  [[ -z $value ]] && value='()'
-  is_literal "$value" && {
+  is_set "$value" && { value=${!value}; shift ;}
+  ! is_set "$value" && {
     ! (( $# )) || return
     escape_items "$value"
-    emit "eval declare -A $name=$__"
+    emit "eval declare -A $name=( $__ )"
     return
   }
   for item in "$@"; do
@@ -276,12 +274,12 @@ parse_options () {
   local statement
 
   for input in "${input_ary[@]}"; do
-    $(assign input to '( short long argument help )')
+    $(assign input to 'short long argument help')
     short=${short#-}
     long=${long#--}
     long=${long//-/_}
     [[ -n $long ]] && name=$long || name=$short
-    stuff '( argument name help )' into '()'
+    stuff 'argument name help' into ''
     [[ -n $short  ]] && option_hsh[$short]=$__
     [[ -n $long   ]] && option_hsh[$long]=$__
   done
@@ -456,7 +454,7 @@ stuff () {
     __ns=$__
     return
   }
-  [[ $2 == 'into'   ]] || return
+  [[ $2 == into ]] || return
   ! is_set "$1" && eval "local -a ref_ary=( $1 )" || local -a ref_ary=( "$1" )
   $(local_hsh result_hsh=$3)
   local ref
