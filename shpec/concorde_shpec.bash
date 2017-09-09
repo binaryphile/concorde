@@ -1054,12 +1054,12 @@ describe repr
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
-  # it "generates a representation of a nested hash variable with newlines"; ( _shpec_failures=0
-  #   declare -A sample_hsh=( [zero]=0 [one]="( [two]=$'2\n3' )" )
-  #   repr sample_hsh
-  #   eval "declare -A example_hsh=$__"
-  #   eval "declare -A result_hsh=${example_hsh[one]}"
-  #   assert equal $'0 2\n3' "${example_hsh[zero]} ${result_hsh[two]}"
-  #   return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  # end
+  it "generates a representation of a nested hash variable with newlines"; ( _shpec_failures=0
+    declare -A sample_hsh=( [zero]=0 [one]="[two]=$'2\n3'" )
+    repr sample_hsh
+    eval "declare -A example_hsh=( $__ )"
+    eval "declare -A result_hsh=( ${example_hsh[one]} )"
+    assert equal $'0 2\n3' "${example_hsh[zero]} ${result_hsh[two]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
 end
