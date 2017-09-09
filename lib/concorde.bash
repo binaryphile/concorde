@@ -355,7 +355,7 @@ repr () {
     __=${__% \)}
     return
   }
-  eval 'set -- ${'"$1"'[@]} )'
+  eval 'set -- "${'"$1"'[@]}"'
   for item in "$@"; do
     ary+=( "$(printf %q "$item")" )
   done
