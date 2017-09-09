@@ -957,7 +957,7 @@ describe stuff
     for item in $(sort <<<"${!result_hsh[@]}"); do
       result_ary+=( "(${result_hsh[$item]})" )
     done
-    assert equal '(example)' "${result_ary[*]}"
+    assert equal '(example) (1)' "${result_ary[*]}"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 

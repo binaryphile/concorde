@@ -242,7 +242,7 @@ local_hsh () {
   shift
   set -- "$value" "$@"
   ! is_set "$*" && { value=$*; set -- ;}
-  { is_set "$value" && [[ $value == *.* ]] ;} && {
+  { [[ $value == *.* ]] && is_identifier "${value%.*}" && is_identifier "${value##*.}" ;} && {
     item=${value%.*}
     value=${value##*.}
     $(grab "$value" from "$item")
@@ -448,7 +448,7 @@ strict_mode () {
 }
 
 stuff () {
-  [[ $2 == 'intons' ]] && {
+  [[ $2 == intons ]] && {
     [[ -z ${__ns:-} ]] && __ns=''
     __stuffrec "$1" __ns"${3+.}${3:-}"
     __ns=$__
