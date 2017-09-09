@@ -544,5 +544,5 @@ concorde_init () {
   stuff "$__" intons concorde.macros
 }
 
-concorde_init
+# concorde_init
 unset -f concorde_init

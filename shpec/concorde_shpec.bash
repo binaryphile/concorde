@@ -1028,21 +1028,21 @@ end
 #     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
 #   end
 # end
-#
-# describe wed
-#   it "joins an array literal with a delimiter"; ( _shpec_failures=0
-#     wed '( one two )' with @
-#     assert equal one@two "$__"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "joins an array literal by name with a delimiter"; ( _shpec_failures=0
-#     sample='( one two )'
-#     wed sample with @
-#     assert equal one@two "$__"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-# end
+
+describe wed
+  it "joins an array literal with a delimiter"; ( _shpec_failures=0
+    wed 'one two' with @
+    assert equal one@two "$__"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "joins an array literal by name with a delimiter"; ( _shpec_failures=0
+    sample='one two'
+    wed sample with @
+    assert equal one@two "$__"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+end
 
 describe repr
   it "generates a representation of an array"; ( _shpec_failures=0
