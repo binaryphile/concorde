@@ -456,7 +456,7 @@ stuff () {
     return
   }
   [[ $2 == 'into'   ]] || return
-  is_literal "$1" && eval "local -a ref_ary=$1" || local -a ref_ary=( "$1" )
+  ! is_set "$1" && eval "local -a ref_ary=( $1 )" || local -a ref_ary=( "$1" )
   $(local_hsh result_hsh=$3)
   local ref
 

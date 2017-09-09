@@ -905,129 +905,99 @@ end
 #     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
 #   end
 # end
-#
-# describe stuff
-#   it "inserts a local variable as a key into an empty hash literal"; ( _shpec_failures=0
-#     sample=one
-#     stuff sample into '()'
-#     eval "declare -A result_hsh=$__"
-#     assert equal one "${result_hsh[sample]}"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "inserts a local variable as a key into an empty string"; ( _shpec_failures=0
-#     sample=one
-#     stuff sample into ''
-#     eval "declare -A result_hsh=$__"
-#     assert equal one "${result_hsh[sample]}"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "inserts a local variable as a key into a reference to an empty hash literal"; ( _shpec_failures=0
-#     sample=one
-#     example='()'
-#     stuff sample into example
-#     eval "declare -A result_hsh=$__"
-#     assert equal one "${result_hsh[sample]}"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "inserts a local variable as a key into a reference to an empty string"; ( _shpec_failures=0
-#     sample=one
-#     example=''
-#     stuff sample into example
-#     eval "declare -A result_hsh=$__"
-#     assert equal one "${result_hsh[sample]}"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "inserts multiple local variables as keys into an empty hash literal"; ( _shpec_failures=0
-#     zero=0
-#     one=1
-#     stuff '( zero one )' into '()'
-#     eval "declare -A result_hsh=$__"
-#     assert equal '0 1' "${result_hsh[zero]} ${result_hsh[one]}"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "inserts multiple local variables as keys into an empty string"; ( _shpec_failures=0
-#     zero=0
-#     one=1
-#     stuff '( zero one )' into ''
-#     eval "declare -A result_hsh=$__"
-#     assert equal '0 1' "${result_hsh[zero]} ${result_hsh[one]}"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "inserts multiple local variables as keys into a reference to an empty hash literal"; ( _shpec_failures=0
-#     zero=0
-#     one=1
-#     example='()'
-#     stuff '( zero one )' into example
-#     eval "declare -A result_hsh=$__"
-#     assert equal '0 1' "${result_hsh[zero]} ${result_hsh[one]}"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "inserts multiple local variables as keys into a reference to an empty string"; ( _shpec_failures=0
-#     zero=0
-#     one=1
-#     example=''
-#     stuff '( zero one )' into example
-#     eval "declare -A result_hsh=$__"
-#     assert equal '0 1' "${result_hsh[zero]} ${result_hsh[one]}"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "inserts a local variable as a key into a nested hash literal"; ( _shpec_failures=0
-#     sample=example
-#     sampleh='( [zero]="( [one]=1 )" )'
-#     stuff sample into sampleh.zero
-#     eval "declare -A result_hsh=$__"
-#     assert equal example "${result_hsh[sample]}"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "inserts a namespace"; ( _shpec_failures=0
-#     sample=zero
-#     stuff sample intons
-#     eval "declare -A ns_hsh=$__ns"
-#     [[ -n ${ns_hsh[sample]:-} ]]
-#     assert equal 0 $?
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "inserts into an unset namespace"; ( _shpec_failures=0
-#     unset -v __ns
-#     sample=zero
-#     stuff sample intons
-#     eval "declare -A ns_hsh=$__ns"
-#     [[ -n ${ns_hsh[sample]:-} ]]
-#     assert equal 0 $?
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "inserts into an existing namespace"; ( _shpec_failures=0
-#     sample=zero
-#     stuff sample intons concorde
-#     eval "declare -A ns_hsh=$__ns"
-#     eval "declare -A concorde_hsh=${ns_hsh[concorde]}"
-#     [[ -n ${concorde_hsh[sample]:-} ]]
-#     assert equal 0 $?
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "inserts into a nested namespace"; ( _shpec_failures=0
-#     sample=zero
-#     stuff sample intons concorde.macros
-#     eval "declare -A ns_hsh=$__ns"
-#     eval "declare -A concorde_hsh=${ns_hsh[concorde]}"
-#     eval "declare -A macros_hsh=${concorde_hsh[macros]}"
-#     [[ -n ${macros_hsh[sample]:-} ]]
-#     assert equal 0 $?
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-# end
+
+describe stuff
+  it "inserts a local variable as a key into an empty hash literal"; ( _shpec_failures=0
+    sample=one
+    stuff sample into ''
+    eval "declare -A result_hsh=( $__ )"
+    assert equal one "${result_hsh[sample]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "inserts a local variable as a key into a reference to an empty string"; ( _shpec_failures=0
+    sample=one
+    example=''
+    stuff sample into example
+    eval "declare -A result_hsh=( $__ )"
+    assert equal one "${result_hsh[sample]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "inserts multiple local variables as keys into an empty string"; ( _shpec_failures=0
+    zero=0
+    one=1
+    stuff 'zero one' into ''
+    eval "declare -A result_hsh=( $__ )"
+    for item in $(sort <<<"${!result_hsh[@]}"); do
+      result_ary+=( "(${result_hsh[$item]})" )
+    done
+    assert equal '(1) (0)' "${result_ary[*]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "inserts multiple local variables as keys into a reference to an empty string"; ( _shpec_failures=0
+    zero=0
+    one=1
+    example=''
+    stuff 'zero one' into example
+    eval "declare -A result_hsh=( $__ )"
+    for item in $(sort <<<"${!result_hsh[@]}"); do
+      result_ary+=( "(${result_hsh[$item]})" )
+    done
+    assert equal '(1) (0)' "${result_ary[*]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "inserts a local variable as a key into a nested hash literal"; ( _shpec_failures=0
+    sample=example
+    sampleh='[zero]="[one]=1"'
+    stuff sample into sampleh.zero
+    eval "declare -A result_hsh=( $__ )"
+    for item in $(sort <<<"${!result_hsh[@]}"); do
+      result_ary+=( "(${result_hsh[$item]})" )
+    done
+    assert equal '(example)' "${result_ary[*]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "inserts a namespace"; ( _shpec_failures=0
+    sample=zero
+    stuff sample intons
+    eval "declare -A result_hsh=( $__ns )"
+    assert equal zero "${result_hsh[sample]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "inserts into an unset namespace"; ( _shpec_failures=0
+    __ns=''
+    unset -v __ns
+    sample=zero
+    stuff sample intons
+    eval "declare -A result_hsh=( $__ns )"
+    assert equal zero "${result_hsh[sample]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "inserts into an existing namespace"; ( _shpec_failures=0
+    sample=zero
+    stuff sample intons concorde
+    eval "declare -A ns_hsh=( $__ns )"
+    eval "declare -A concorde_hsh=( ${ns_hsh[concorde]} )"
+    assert equal zero "${concorde_hsh[sample]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "inserts into a nested namespace"; ( _shpec_failures=0
+    sample=zero
+    stuff sample intons concorde.macros
+    eval "declare -A ns_hsh=( $__ns )"
+    eval "declare -A concorde_hsh=( ${ns_hsh[concorde]} )"
+    eval "declare -A macros_hsh=( ${concorde_hsh[macros]} )"
+    assert equal zero "${macros_hsh[sample]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+end
 
 describe wed
   it "joins an array literal with a delimiter"; ( _shpec_failures=0
