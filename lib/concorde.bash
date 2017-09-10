@@ -253,14 +253,14 @@ local_hsh () {
   value=${1#*=}
   shift
   set -- "$value" "$@"
-  ! is_set "$*" && { value=$*; set -- ;}
+  [[ $* == '['* || -z $* ]] && { value=$*; set -- ;}
   is_dotted "$value" && {
     item=${value%.*}
     value=${value##*.}
     $(grab "$value" from "$item")
   }
   is_set "$value" && { value=${!value}; shift ;}
-  ! is_set "$value" && {
+  [[ $value == '['* || -z $value ]] && {
     ! (( $# )) || return
     escape_items "$value"
     emit "eval declare -A $name=( $__ )"
