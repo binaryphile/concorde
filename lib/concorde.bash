@@ -165,6 +165,18 @@ in_scope () {
 
 instantiate () { printf -v "$1" %s "$(eval "echo ${!1}")" ;}
 
+is_dotted () {
+  local value=$1
+  local item
+
+  [[ $value == *.* ]] || return
+  part "$value" on .
+  $(local_ary value_ary=__)
+  for item in "${value_ary[@]}"; do
+    is_identifier "$item" || return
+  done
+}
+
 is_feature () {
   $(grab "$1" from __ns)
   is_set "$1"
@@ -242,7 +254,7 @@ local_hsh () {
   shift
   set -- "$value" "$@"
   ! is_set "$*" && { value=$*; set -- ;}
-  { [[ $value == *.* ]] && is_identifier "${value%.*}" && is_identifier "${value##*.}" ;} && {
+  is_dotted "$value" && {
     item=${value%.*}
     value=${value##*.}
     $(grab "$value" from "$item")
