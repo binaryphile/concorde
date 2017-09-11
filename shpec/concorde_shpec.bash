@@ -129,14 +129,14 @@ describe die
   end
 end
 
-# describe escape_items
-#   it "creates a quoted string from some items"; ( _shpec_failures=0
-#     escape_items 'one two' three
-#     assert equal 'one\ two three' "$__"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-# end
-#
+describe escape_items
+  it "creates a quoted string from some items"; ( _shpec_failures=0
+    escape_items 'one two' three
+    assert equal 'one\ two three' "$__"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+end
+
 # describe feature
 #   it "creates namespaces as a global"; ( _shpec_failures=0
 #     while declare -p __ns >/dev/null 2>&1; do unset -v __ns; done
