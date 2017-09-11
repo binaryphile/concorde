@@ -137,66 +137,61 @@ describe escape_items
   end
 end
 
-# describe feature
-#   it "creates namespaces as a global"; ( _shpec_failures=0
-#     while declare -p __ns >/dev/null 2>&1; do unset -v __ns; done
-#     $(feature sample)
-#     declare -p __ns >/dev/null 2>&1
-#     assert equal 0 $?
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "doesn't interfere with an existing feature entry"; ( _shpec_failures=0
-#     $(feature sample)
-#     eval "declare -A ns_hsh=$__ns"
-#     eval "declare -A concorde_hsh=${ns_hsh[concorde]}"
-#     [[ -n ${concorde_hsh[root]:-} ]]
-#     assert equal 0 $?
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "creates a root entry for the feature"; ( _shpec_failures=0
-#     $(feature sample)
-#     eval "declare -A ns_hsh=$__ns"
-#     eval "declare -A sample_hsh=${ns_hsh[sample]}"
-#     [[ -n ${sample_hsh[root]:-} ]]
-#     assert equal 0 $?
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "modifies the depth of the root path based on an argument"; ( _shpec_failures=0
-#     $(feature sample)
-#     eval "declare -A ns_hsh=$__ns"
-#     eval "declare -A sample_hsh=${ns_hsh[sample]}"
-#     $(feature sample2 depth=2)
-#     eval "declare -A ns_hsh=$__ns"
-#     eval "declare -A sample2_hsh=${ns_hsh[sample2]}"
-#     [[ ${sample_hsh[root]} == ${sample2_hsh[root]}/* ]]
-#     assert equal 0 $?
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "doesn't reload"; ( _shpec_failures=0
-#     $(feature sample)
-#     result=$($(feature sample); echo hello)
-#     assert equal '' "$result"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "doesn't exit with status 1 when not reloading"; ( _shpec_failures=0
-#     $(feature sample)
-#     assert equal 0 $?
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "reloads if __reload=1 is set"; ( _shpec_failures=0
-#     $(feature sample)
-#     __reload=1
-#     result=$($(feature sample); echo hello)
-#     assert equal hello "$result"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-# end
+describe feature
+  it "creates namespaces as a global"; ( _shpec_failures=0
+    declare __ns=''
+    unset -v __ns
+    $(feature sample)
+    declare -p __ns >/dev/null 2>&1
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "doesn't interfere with an existing feature entry"; ( _shpec_failures=0
+    $(feature sample)
+    eval "declare -A ns_hsh=( $__ns )"
+    eval "declare -A concorde_hsh=( ${ns_hsh[concorde]} )"
+    [[ -n ${concorde_hsh[root]:-} ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates a root entry for the feature"; ( _shpec_failures=0
+    $(feature sample)
+    eval "declare -A ns_hsh=( $__ns )"
+    eval "declare -A sample_hsh=( ${ns_hsh[sample]} )"
+    [[ -n ${sample_hsh[root]:-} ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "modifies the depth of the root path based on an argument"; ( _shpec_failures=0
+    $(feature sample)
+    eval "declare -A ns_hsh=( $__ns )"
+    eval "declare -A sample_hsh=( ${ns_hsh[sample]} )"
+    $(feature sample2 depth=2)
+    eval "declare -A ns_hsh=( $__ns )"
+    eval "declare -A sample2_hsh=( ${ns_hsh[sample2]} )"
+    [[ ${sample_hsh[root]} == ${sample2_hsh[root]}/* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "doesn't reload"; ( _shpec_failures=0
+    $(feature sample)
+    result=$($(feature sample); echo hello)
+    assert equal '0 ' "$? $result"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "reloads if __reload=1 is set"; ( _shpec_failures=0
+    $(feature sample)
+    __reload=1
+    result=$($(feature sample); echo hello)
+    assert equal hello "$result"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+end
 
 describe grab
   it "errors if \$2 isn't 'from'"; ( _shpec_failures=0

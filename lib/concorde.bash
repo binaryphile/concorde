@@ -197,14 +197,14 @@ feature () {
   local path=''
   local statement
 
-  get_here_str <<'  EOS'
+  get <<'  EOS'
     (
-      eval declare -A ns_hsh=${__ns:-}
+      eval declare -A ns_hsh=( ${__ns:-} )
       [[ -n ${ns_hsh[%s]:-} ]] && ! (( ${__reload:-} ))
     ) && return
     __ns=$(
       type -P greadlink >/dev/null 2>&1 && readlink='greadlink -f --' || readlink='readlink -f --'
-      %s="( [root]=\\"$($readlink "$(dirname "$($readlink "$BASH_SOURCE")")"%s)\\" )"
+      %s="[root]=\\"$($readlink "$(dirname "$($readlink "$BASH_SOURCE")")"%s)\\""
       stuff %s into "${__ns:-}"
       echo "$__"
     )
