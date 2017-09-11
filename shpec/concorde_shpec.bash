@@ -100,35 +100,35 @@ describe bring
   end
 end
 
-# describe die
-#   it "exits without an error message"; ( _shpec_failures=0
-#     result=$(die 2>&1) ||:
-#     assert equal '' "$result"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "exits with a default error code of the last command"; ( _shpec_failures=0
-#     false
-#     (die 2>&1) && result=$? || result=$?
-#     true
-#     (die 2>&1) && result="$result $?" || result="$result $?"
-#     assert equal '1 0' "$result"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "exits with an error message"; ( _shpec_failures=0
-#     result=$(die 'aaaaagh' 1 2>&1) ||:
-#     assert equal 'Error: aaaaagh' "$result"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "exits with an error code"; ( _shpec_failures=0
-#     (die '' 2 2>&1) && result=$? || result=$?
-#     assert equal 2 "$result"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-# end
-#
+describe die
+  it "exits without an error message"; ( _shpec_failures=0
+    result=$(die 2>&1) ||:
+    assert equal '' "$result"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "exits with a default error code of the last command"; ( _shpec_failures=0
+    false
+    (die 2>&1) && result=$? || result=$?
+    true
+    (die 2>&1) && result="$result $?" || result="$result $?"
+    assert equal '1 0' "$result"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "exits with an error message"; ( _shpec_failures=0
+    result=$(die 'aaaaagh' 1 2>&1) ||:
+    assert equal 'Error: aaaaagh' "$result"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "exits with an error code"; ( _shpec_failures=0
+    (die '' 2 2>&1) && result=$? || result=$?
+    assert equal 2 "$result"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+end
+
 # describe escape_items
 #   it "creates a quoted string from some items"; ( _shpec_failures=0
 #     escape_items 'one two' three
