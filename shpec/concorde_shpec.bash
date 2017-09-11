@@ -883,6 +883,59 @@ describe part
   end
 end
 
+describe repr
+  it "generates a representation of an array"; ( _shpec_failures=0
+    sample_ary=( zero one )
+    repr sample_ary
+    eval "declare -a result_ary=( $__ )"
+    printf -v result '(%s) ' "${result_ary[@]}"
+    assert equal '(zero) (one)' "${result% }"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "generates a representation of an array with a space in an item"; ( _shpec_failures=0
+    sample_ary=( "zero one" two )
+    repr sample_ary
+    eval "declare -a result_ary=( $__ )"
+    printf -v result '(%s) ' "${result_ary[@]}"
+    assert equal '(zero one) (two)' "${result% }"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "generates a representation of an array with a newline in an item"; ( _shpec_failures=0
+    sample_ary=( $'zero\none' two )
+    repr sample_ary
+    eval "declare -a result_ary=( $__ )"
+    printf -v result '(%s) ' "${result_ary[@]}"
+    assert equal $'(zero\none) (two)' "${result% }"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "generates a representation of a nested hash variable"; ( _shpec_failures=0
+    declare -A sample_hsh=( [zero]=0 [one]="[two]=2 [three]=3" )
+    repr sample_hsh
+    eval "declare -A example_hsh=( $__ )"
+    eval "declare -A result_hsh=( ${example_hsh[one]} )"
+    for item in $(IFS=$'\n'; sort <<<"${!result_hsh[*]}"); do
+      result_ary+=( "(${result_hsh[$item]})" )
+    done
+    assert equal '(3) (2)' "${result_ary[*]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "generates a representation of a nested hash variable with newlines"; ( _shpec_failures=0
+    declare -A sample_hsh=( [zero]=0 [one]="[two]=$'2\n3' [four]=4" )
+    repr sample_hsh
+    eval "declare -A example_hsh=( $__ )"
+    eval "declare -A result_hsh=( ${example_hsh[one]} )"
+    for item in $(IFS=$'\n'; sort <<<"${!result_hsh[*]}"); do
+      result_ary+=( "(${result_hsh[$item]})" )
+    done
+    assert equal $'(4) (2\n3)' "${result_ary[*]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+end
+
 describe stuff
   it "inserts a local variable as a key into an empty hash literal"; ( _shpec_failures=0
     sample=one
@@ -987,59 +1040,6 @@ describe wed
     sample='one two'
     wed sample with @
     assert equal one@two "$__"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-end
-
-describe repr
-  it "generates a representation of an array"; ( _shpec_failures=0
-    sample_ary=( zero one )
-    repr sample_ary
-    eval "declare -a result_ary=( $__ )"
-    printf -v result '(%s) ' "${result_ary[@]}"
-    assert equal '(zero) (one)' "${result% }"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "generates a representation of an array with a space in an item"; ( _shpec_failures=0
-    sample_ary=( "zero one" two )
-    repr sample_ary
-    eval "declare -a result_ary=( $__ )"
-    printf -v result '(%s) ' "${result_ary[@]}"
-    assert equal '(zero one) (two)' "${result% }"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "generates a representation of an array with a newline in an item"; ( _shpec_failures=0
-    sample_ary=( $'zero\none' two )
-    repr sample_ary
-    eval "declare -a result_ary=( $__ )"
-    printf -v result '(%s) ' "${result_ary[@]}"
-    assert equal $'(zero\none) (two)' "${result% }"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "generates a representation of a nested hash variable"; ( _shpec_failures=0
-    declare -A sample_hsh=( [zero]=0 [one]="[two]=2 [three]=3" )
-    repr sample_hsh
-    eval "declare -A example_hsh=( $__ )"
-    eval "declare -A result_hsh=( ${example_hsh[one]} )"
-    for item in $(IFS=$'\n'; sort <<<"${!result_hsh[*]}"); do
-      result_ary+=( "(${result_hsh[$item]})" )
-    done
-    assert equal '(3) (2)' "${result_ary[*]}"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "generates a representation of a nested hash variable with newlines"; ( _shpec_failures=0
-    declare -A sample_hsh=( [zero]=0 [one]="[two]=$'2\n3' [four]=4" )
-    repr sample_hsh
-    eval "declare -A example_hsh=( $__ )"
-    eval "declare -A result_hsh=( ${example_hsh[one]} )"
-    for item in $(IFS=$'\n'; sort <<<"${!result_hsh[*]}"); do
-      result_ary+=( "(${result_hsh[$item]})" )
-    done
-    assert equal $'(4) (2\n3)' "${result_ary[*]}"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 end
