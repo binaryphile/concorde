@@ -126,7 +126,6 @@ grab () {
   shift 2
   $(local_hsh arg_hsh="$@")
   case $name in
-    '('*')' ) eval "local -a var_ary=$name"         ;;
     '*'     ) local -a var_ary=( "${!arg_hsh[@]}" ) ;;
     *       ) local -a var_ary=( $name            ) ;;
   esac
@@ -307,7 +306,7 @@ parse_options () {
     option=${1#-}
     option=${option#-}
     [[ $1 =~ ^-{1,2}[^-] && -n ${option_hsh[$option]:-} ]] && {
-      $(grab '( argument name )' from "${option_hsh[$option]}")
+      $(grab 'argument name' from "${option_hsh[$option]}")
       case $argument in
         ''  ) result_hsh[flag_$name]=1         ;;
         *   ) result_hsh[$argument]=$2; shift  ;;
