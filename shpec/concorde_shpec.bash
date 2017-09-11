@@ -906,7 +906,7 @@ describe stuff
     one=1
     stuff 'zero one' into ''
     eval "declare -A result_hsh=( $__ )"
-    for item in $(sort <<<"${!result_hsh[@]}"); do
+    for item in $(IFS=$'\n'; sort <<<"${!result_hsh[*]}"); do
       result_ary+=( "(${result_hsh[$item]})" )
     done
     assert equal '(1) (0)' "${result_ary[*]}"
@@ -919,7 +919,7 @@ describe stuff
     example=''
     stuff 'zero one' into example
     eval "declare -A result_hsh=( $__ )"
-    for item in $(sort <<<"${!result_hsh[@]}"); do
+    for item in $(IFS=$'\n'; sort <<<"${!result_hsh[*]}"); do
       result_ary+=( "(${result_hsh[$item]})" )
     done
     assert equal '(1) (0)' "${result_ary[*]}"
@@ -931,10 +931,10 @@ describe stuff
     sampleh='[zero]="[one]=1"'
     stuff sample into sampleh.zero
     eval "declare -A result_hsh=( $__ )"
-    for item in $(sort <<<"${!result_hsh[@]}"); do
+    for item in $(IFS=$'\n'; sort <<<"${!result_hsh[*]}"); do
       result_ary+=( "(${result_hsh[$item]})" )
     done
-    assert equal '(example) (1)' "${result_ary[*]}"
+    assert equal '(1) (example)' "${result_ary[*]}"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
@@ -1024,10 +1024,10 @@ describe repr
     repr sample_hsh
     eval "declare -A example_hsh=( $__ )"
     eval "declare -A result_hsh=( ${example_hsh[one]} )"
-    for item in $(sort <<<"${!result_hsh[@]}"); do
+    for item in $(IFS=$'\n'; sort <<<"${!result_hsh[*]}"); do
       result_ary+=( "(${result_hsh[$item]})" )
     done
-    assert equal '(2) (3)' "${result_ary[*]}"
+    assert equal '(3) (2)' "${result_ary[*]}"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
@@ -1036,10 +1036,10 @@ describe repr
     repr sample_hsh
     eval "declare -A example_hsh=( $__ )"
     eval "declare -A result_hsh=( ${example_hsh[one]} )"
-    for item in $(sort <<<"${!result_hsh[@]}"); do
+    for item in $(IFS=$'\n'; sort <<<"${!result_hsh[*]}"); do
       result_ary+=( "(${result_hsh[$item]})" )
     done
-    assert equal $'(2\n3) (4)' "${result_ary[*]}"
+    assert equal $'(4) (2\n3)' "${result_ary[*]}"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 end
