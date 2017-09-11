@@ -4,42 +4,42 @@ library=../lib/concorde.bash
 source "$library" 2>/dev/null || source "${BASH_SOURCE%/*}/$library"
 unset -v library
 
-# $(grab '( mktempd rmtree )' fromns concorde.macros)
-#
-# describe assign
-#   it "errors if \$2 isn't 'to'"; ( _shpec_failures=0
-#     $(assign one two three) && result=$? || result=$?
-#     assert unequal 0 "$result"
-#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-#   end
-#
-#   it "accepts array literals"; ( _shpec_failures=0
-#     $(assign '( 1 2 )' to '( one two )')
-#     assert equal '1 2' "$one $two"
-#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-#   end
-#
-#   it "accepts a reference for the value array literal"; ( _shpec_failures=0
-#     sample='( 1 2 )'
-#     $(assign sample to '( one two )')
-#     assert equal '1 2' "$one $two"
-#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-#   end
-#
-#   it "accepts a reference for the destination variable"; ( _shpec_failures=0
-#     sample='( one two )'
-#     $(assign '( 1 2 )' to sample)
-#     assert equal '1 2' "$one $two"
-#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-#   end
-#
-#   it "makes the last named target an array if there are too many values"; ( _shpec_failures=0
-#     $(assign '( 1 2 3 )' to '( one two )')
-#     assert equal '1 2 3' "$one ${two[*]}"
-#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-#   end
-# end
-#
+$(grab 'mktempd rmtree' fromns concorde.macros)
+
+describe assign
+  it "errors if \$2 isn't 'to'"; ( _shpec_failures=0
+    $(assign one two three) && result=$? || result=$?
+    assert unequal 0 "$result"
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
+
+  it "accepts array literals"; ( _shpec_failures=0
+    $(assign '1 2' to 'one two')
+    assert equal '(1) (2)' "($one) ($two)"
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
+
+  it "accepts a reference for the value array literal"; ( _shpec_failures=0
+    sample='1 2'
+    $(assign sample to 'one two')
+    assert equal '(1) (2)' "($one) ($two)"
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
+
+  it "accepts a reference for the destination variable"; ( _shpec_failures=0
+    sample='one two'
+    $(assign '1 2' to sample)
+    assert equal '(1) (2)' "($one) ($two)"
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
+
+  it "makes the last named target an array if there are too many values"; ( _shpec_failures=0
+    $(assign '1 2 3' to 'one two')
+    assert equal '(1) (2 3)' "($one) (${two[*]})"
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
+end
+
 # describe bring
 #   it "errors if \$2 isn't 'from'"; ( _shpec_failures=0
 #     bring one two three && result=$? || result=$?
