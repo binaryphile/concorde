@@ -1,3 +1,6 @@
+export TMPDIR=$HOME/tmp
+mkdir -p "$TMPDIR"
+
 set -o nounset
 
 library=../lib/concorde.bash
@@ -40,63 +43,63 @@ describe assign
   end
 end
 
-# describe bring
-#   it "errors if \$2 isn't 'from'"; ( _shpec_failures=0
-#     bring one two three && result=$? || result=$?
-#     assert unequal 0 "$result"
-#     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-#   end
-#
-#   it "accepts a literal list of functions"; ( _shpec_failures=0
-#     dir=$($mktempd)
-#     [[ -d $dir ]] || return
-#     temp=$dir/temp.bash
-#     echo $'one () { echo hello ;}\ntwo () { echo world ;}' >"$temp"
-#     bring '( one two )' from "$temp"
-#     assert equal $'hello\nworld' "$(one; two)"
-#     $rmtree "$dir"
-#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-#   end
-#
-#   it "accepts a single function argument"; ( _shpec_failures=0
-#     dir=$($mktempd)
-#     [[ -d $dir ]] || return
-#     temp=$dir/temp.bash
-#     echo $'one () { echo hello ;}' >"$temp"
-#     bring one from "$temp"
-#     assert equal hello "$(one)"
-#     $rmtree "$dir"
-#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-#   end
-#
-#   it "brings a function with dependencies"; ( _shpec_failures=0
-#     dir=$($mktempd)
-#     [[ -d $dir ]] || return
-#     temp=$dir/temp.bash
-#     get_here_str <<'    EOS'
-#       __ns='( [temp]="( [dependencies]=\"( two )\" )" )'
-#       one () { echo hello; two  ;}
-#       two () { echo world       ;}
-#     EOS
-#     echo "$__" >"$temp"
-#     bring one from "$temp"
-#     assert equal $'hello\nworld' "$(one)"
-#     $rmtree "$dir"
-#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-#   end
-#
-#   it "works with expansions"; ( _shpec_failures=0
-#     dir=$($mktempd)
-#     [[ -d $dir ]] || return
-#     temp=$dir/temp.bash
-#     echo $'one () { echo "$1" ;}' >"$temp"
-#     bring one from "$temp"
-#     assert equal hello "$(one hello)"
-#     $rmtree "$dir"
-#     return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
-#   end
-# end
-#
+describe bring
+  it "errors if \$2 isn't 'from'"; ( _shpec_failures=0
+    bring one two three && result=$? || result=$?
+    assert unequal 0 "$result"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "accepts a literal list of functions"; ( _shpec_failures=0
+    dir=$($mktempd)
+    [[ -d $dir ]] || return
+    temp=$dir/temp.bash
+    echo $'one () { echo hello ;}\ntwo () { echo world ;}' >"$temp"
+    bring 'one two' from "$temp"
+    assert equal $'hello\nworld' "$(one; two)"
+    $rmtree "$dir"
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
+
+  it "accepts a single function argument"; ( _shpec_failures=0
+    dir=$($mktempd)
+    [[ -d $dir ]] || return
+    temp=$dir/temp.bash
+    echo $'one () { echo hello ;}' >"$temp"
+    bring one from "$temp"
+    assert equal hello "$(one)"
+    $rmtree "$dir"
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
+
+  it "brings a function with dependencies"; ( _shpec_failures=0
+    dir=$($mktempd)
+    [[ -d $dir ]] || return
+    temp=$dir/temp.bash
+    get <<'    EOS'
+      __ns='[temp]="[dependencies]=\"two\""'
+      one () { echo hello; two  ;}
+      two () { echo world       ;}
+    EOS
+    echo "$__" >"$temp"
+    bring one from "$temp"
+    assert equal $'hello\nworld' "$(one)"
+    $rmtree "$dir"
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
+
+  it "works with expansions"; ( _shpec_failures=0
+    dir=$($mktempd)
+    [[ -d $dir ]] || return
+    temp=$dir/temp.bash
+    echo $'one () { echo "$1" ;}' >"$temp"
+    bring one from "$temp"
+    assert equal hello "$(one hello)"
+    $rmtree "$dir"
+    return "$_shpec_failures" ); : $(( _shpec_failures+= $? ))
+  end
+end
+
 # describe die
 #   it "exits without an error message"; ( _shpec_failures=0
 #     result=$(die 2>&1) ||:
