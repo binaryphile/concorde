@@ -354,7 +354,7 @@ raise () {
 }
 
 repr () {
-  local ary=()
+  local _ary=()
   local item
 
   __=$(declare -p "$1" 2>/dev/null) || return
@@ -367,9 +367,9 @@ repr () {
   }
   eval 'set -- "${'"$1"'[@]}"'
   for item in "$@"; do
-    ary+=( "$(printf %q "$item")" )
+    _ary+=( "$(printf %q "$item")" )
   done
-  __=${ary[*]}
+  __=${_ary[*]}
 }
 
 require () {
