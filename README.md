@@ -11,6 +11,12 @@ Concorde is a distillation of techniques I've picked up from
 [StackOverflow], the [Bash Hacker's Wiki] and to a lesser extent
 [GreyCat's Wiki], as well as my own personal stylings with bash.
 
+**NOTE: This readme is currently out-of-date - to see the current status
+of capabilities, look at the tests in `shpec/` and the examples in
+`examples/`.**
+
+I will be updating the documentation as soon as possible.
+
 Goals
 =====
 
@@ -93,9 +99,9 @@ source concorde.bash
 
 #     short  long     argument  help
 #     -----  ----     --------  ----
-get_here_ary <<'EOS'
-  (   -o      --opt1  ''        "a flag"            )
-  (   -p      --opt2  value     "an option argument")
+get <<'EOS'
+  -o      --opt1  ''        "a flag"
+  -p      --opt2  value     "an option argument"
 EOS
 
 $(parse_options __ "$@") || die "$usage" 0
@@ -233,10 +239,6 @@ Array Operations
 
 -   `assign` - multiple assignment of array values to local variables
 
--   `get_here_ary` - get a (usually multiline) string from stdin and
-    strip leading whitespace indentation, then assign each line to an
-    element of an array
-
 -   `local_ary` - create a local array from an array literal or variable
     reference
 
@@ -246,10 +248,10 @@ Array Operations
 String Operations
 -----------------
 
--   `get_here_str` - get a string from stdin (usually a heredoc) and
-    strip leading whitespace indentation
+-   `get` - get a string from stdin (usually a heredoc) and strip
+    leading whitespace indentation
 
--   `get_str` - get a string from stdin (usually a heredoc)
+-   `get_raw` - get a raw (un-de-indented) string from stdin
 
 -   `part` - split a string into an array with the specified delimiter
 
@@ -273,8 +275,6 @@ Input/Output
 
 -   `die` - output message on stderr and exit
 
--   `log` - log output (currently just goes to stdout)
-
 -   `put` - replacement for `echo` which uses printf, behaves like ruby
     `puts` - see [this explanation] for why you might want to use it
 
@@ -293,13 +293,13 @@ example:
 
 source concorde.bash
 
-get_here_str <<'EOS'
+get <<'EOS'
   Detailed usage message goes here
 EOS
 printf -v usage '\n%s\n' "$__"
 
 script_main () {
-  $(grab '( opt1 opt2_flag )' from "$1"); shift
+  $(grab 'opt1 opt2_flag' from "$1"); shift
 
   do_something_with_option "$opt1"
 
@@ -323,9 +323,9 @@ strict_mode on      # stop on errors and issue traceback
 #
 # short     long      var name                 help
 # -----   ------      --------   ------------------
-get_here_ary <<'EOS'
-  (  -o   --opt1      opt1       "a named argument" )
-  (  ''   --opt2      ''         "a long flag"      )
+get <<'EOS'
+  -o   --opt1      opt1       "a named argument"
+  ''   --opt2      ''         "a long flag"
 EOS
 
 $(parse_options __ "$@") || die "$usage" 0
@@ -422,10 +422,11 @@ Rules and Techniques for Using Concorde
     form.
 
     The format of the string representations is simply the text format
-    used in array assignments, with parentheses on the outside and array
-    items separated by spaces. Quotes are used to put spaces in values:
+    used in array assignments, without parentheses on the outside and
+    array items separated by spaces. Quotes are used to put spaces in
+    values:
 
-        "( zero \"item one\" 'item two' )"
+        "zero \"item one\" 'item two'"
 
     I call these array and hash literals, even though they are normally
     restricted to only assignment statements.
@@ -435,10 +436,10 @@ Rules and Techniques for Using Concorde
 
     For hashes, the format always includes indices, which looks like:
 
-        "( [zero]=0 [one]=1 [two]='et cetera' )"
+        "[zero]=0 [one]=1 [two]='et cetera'"
 
-    Hashes also have a succinct format which can be used instead. It
-    drops the parentheses and brackets:
+    Hashes also have a "keyword argument" format which can be used
+    instead. It drops the brackets:
 
         "zero=0 one=1 two='et cetera'"
 
@@ -459,8 +460,8 @@ Rules and Techniques for Using Concorde
     The reason for this is that it results in fewer quotes and dollar
     signs, which makes things more readable.
 
-5.  **return values, aside from return codes, are put in the global
-    variable "\_\_" (double-underscore)**
+5.  **string return values, as opposed to return codes, are put in the
+    global variable "\_\_" (double-underscore)**
 
     Rather than relying on [command substitution] to save returned
     strings in a variable, concorde prefers to store them in a global
@@ -539,8 +540,8 @@ result in namespace clashes.
 
 All parameters designated as "\_array" or "\_hash" in function
 signatures described below actually require the literal representation
-of the array or hash as a string, e.g. "(three item list)" or
-"(\[key\]=value \[pairs\]="")", since bash can't pass actual arrays or
+of the array or hash as a string, e.g. "three item list" or
+'\[key\]=value \[pairs\]=""', since bash can't pass actual arrays or
 hashes. If you already have such a literal stored in a variable, the API
 usually allows you to pass the un-expanded variable name (no dollar
 sign) instead and the value will be automatically extrapolated.
@@ -561,11 +562,6 @@ Option Parsing
 
 -   **`parse_options`** *`definitions_array`* - creates a new instance
     of an options data structure
-
-*Returns*: a reference to the option data structure
-
--   **`options_parse`** *`options_ref [options]`* - parses a list of
-    options provided as-is from the command-line (i.e. "$@")
 
     Options definitions are in the form of an array literal, with each
     item containing a sub-array (literal) of four elements:
@@ -591,12 +587,12 @@ Option Parsing
     Example:
 
 ``` bash
-get_here_str <<'EOS'
-  ( -o --option1            ''      'a flag'  )
-  ( '' --option2 argument_name 'an argument'  )
+get <<'EOS'
+  -o --option1            ''      'a flag'
+  '' --option2 argument_name 'an argument'
 EOS
 
-options_new __
+$(parse_options __ "$@") || die "$usage" 0
 ```
 
   [StackOverflow]: https://stackoverflow.com/
