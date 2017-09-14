@@ -7,6 +7,23 @@ The format is based on [Keep a Changelog] and this project adheres to
 Latest Changes
 ==============
 
+[v0.2.0] - 2017-09-14
+---------------------
+
+### Changed
+
+-   removed parentheses from array and hash literal formats
+
+-   `get_here_str` renamed to `get`
+
+-   `get_str` renamed to `get_raw`
+
+-   all functions refactored to use `get` and new literal format
+
+### Removed
+
+-   `get_here_ary` removed
+
 [v0.1.0] - 2017-08-23
 ---------------------
 
@@ -78,6 +95,9 @@ Latest Changes
 -   readme updated with better description of features, sample template
     script
 
+Older Changes
+=============
+
 [v0.0.4] - 2017-08-01
 ---------------------
 
@@ -145,9 +165,6 @@ Latest Changes
 
 -   implementation of `return_if_sourced`, now `sourced`
 
-Older Changes
-=============
-
 [v0.0.1] - 2017-07-19
 ---------------------
 
@@ -164,6 +181,7 @@ Older Changes
 
   [Keep a Changelog]: http://keepachangelog.com/
   [Semantic Versioning]: http://semver.org/
+  [v0.2.0]: https://github.com/binaryphile/concorde/compare/v0.1.0...v0.2.0
   [v0.1.0]: https://github.com/binaryphile/concorde/compare/v0.0.5...v0.1.0
   [v0.0.5]: https://github.com/binaryphile/concorde/compare/v0.0.4...v0.0.5
   [v0.0.4]: https://github.com/binaryphile/concorde/compare/v0.0.3...v0.0.4

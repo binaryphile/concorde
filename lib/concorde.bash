@@ -1,37 +1,14 @@
-[[ -n ${__ns:-} && ${1:-} != 'reload' ]] && return
-[[ ${1:-} == 'reload' ]] && shift
+[[ -n ${__ns:-} && ${1:-} != 'reload=1' ]] && return
+[[ ${1:-} == 'reload=1' ]] && shift
 type -P greadlink >/dev/null 2>&1 && __ns=g || __ns=''
-__ns="( [concorde]=\"( [root]=\\\"$(
+__ns="[concorde]=\"[root]=\\\"$(
   ${__ns}readlink -f -- "$(dirname "$(${__ns}readlink -f -- "$BASH_SOURCE")")"/..
-)\\\" [macros]=\\\"( [readlink]=\\\\\\\"${__ns}readlink -f --\\\\\\\" )\\\" )\" )"
+)\\\" [macros]=\\\"[readlink]=\\\\\\\"${__ns}readlink -f --\\\\\\\"\\\"\""
 
 unset -v CDPATH
 
-conco_init () {
-  local tmp=$HOME/tmp
-  mkdir -p -- "$tmp"
-
-  local ln='ln -sf --'
-  local mkdir='mkdir -p --'
-  local mktemp="mktemp -qp $tmp --"
-  local mktempd="mktemp -qdp $tmp --"
-  local rm='rm --'
-  local rmdir='rmdir --'
-  local rmtree='rm -rf --'
-
-  stuff '(
-    ln
-    mkdir
-    mktemp
-    mktempd
-    rm
-    rmdir
-    rmtree
-  )' intons concorde.macros
-}
-
 assign () {
-  [[ $2 == 'to' ]] || return
+  [[ $2 == to ]] || return
   $(local_ary args=$1)
   $(local_ary vars=$3)
   local count
@@ -52,13 +29,13 @@ assign () {
 }
 
 bring () {
-  [[ $2 == 'from' ]] || return
-  is_literal "$1" && eval "local -a function_ary=$1" || local -a function_ary=( "$1" )
+  [[ $2 == from ]] || return
+  is_literal "$1" && eval "local -a function_ary=$1" || local -a function_ary=( $1 )
   local spec=$3
   local feature
 
   eval "$(
-    $(require "$spec")
+    $(load "$spec")
     feature=${spec##*/}
     feature=${feature%.*}
     is_feature "$feature" && $(grab dependencies fromns "$feature")
@@ -73,13 +50,29 @@ bring () {
 }
 
 die () {
-  local rc=$?
+  local rc=${2:-$?}
 
-  [[ -n ${1:-} ]] && puterr "$1"
-  exit "${2:-$rc}"
+  [[ -z ${1:-} ]] && exit "$rc"
+  case $rc in
+    0 ) put     "$1";;
+    * ) puterr  "$1";;
+  esac
+  exit "$rc"
 }
 
-emit          () { printf 'eval eval %q\n' "$1"         ;}
+emit () { printf 'eval eval %q\n' "$1" ;}
+
+escape_ary () {
+  local i
+  local result_ary=()
+
+  result_ary=( "$@" )
+  for (( i = 0; i < $#; i++ )); do
+    printf -v result_ary[i] %q "${result_ary[i]}"
+  done
+  repr result_ary
+}
+
 escape_items  () { printf -v __ '%q ' "$@"; __=${__% }  ;}
 
 __extract_function () {
@@ -115,16 +108,16 @@ get_here_ary () {
   get_ary <<<"$__"
 }
 
-get_here_str () {
+get () {
   local space
 
-  get_str
+  get_raw
   space=${__%%[^[:space:]]*}
   printf -v __ %s "${__:${#space}}"
   printf -v __ %s "${__//$'\n'$space/$'\n'}"
 }
 
-get_str () { IFS=$'\n' read -rd '' __ ||:         ;}
+get_raw () { IFS=$'\n' read -rd '' __ ||: ;}
 
 grab () {
   [[ $2 == 'fromns' ]] && { grab "$1" from __ns."${@:3}"; return ;}
@@ -133,11 +126,10 @@ grab () {
   shift 2
   $(local_hsh arg_hsh="$@")
   case $name in
-    '('*')' ) eval "local -a var_ary=$name"         ;;
     '*'     ) local -a var_ary=( "${!arg_hsh[@]}" ) ;;
-    *       ) local -a var_ary=( "$name"          ) ;;
+    *       ) local -a var_ary=( $name            ) ;;
   esac
-  local statement
+  local statement=''
   local var
 
   ! (( ${#var_ary[@]} )) && return
@@ -145,7 +137,7 @@ grab () {
     if is_set arg_hsh["$var"]; then
       printf -v statement '%sdeclare %s=%q\n' "${statement:-}" "$var" "${arg_hsh[$var]:-}"
     else
-      printf -v statement '%s$(in_scope %s) || declare %s=%q\n' "${statement:-}" "$var" "$var" "${arg_hsh[$var]:-}"
+      ! is_set "$var" && printf -v statement '%sdeclare %s=%q\n' "${statement:-}" "$var" "${arg_hsh[$var]:-}"
     fi
   done
   emit "$statement"
@@ -172,6 +164,18 @@ in_scope () {
 
 instantiate () { printf -v "$1" %s "$(eval "echo ${!1}")" ;}
 
+is_dotted () {
+  local value=$1
+  local item
+
+  [[ $value == *.* ]] || return
+  part "$value" on .
+  $(local_ary value_ary=__)
+  for item in "${value_ary[@]}"; do
+    is_identifier "$item" || return
+  done
+}
+
 is_feature () {
   $(grab "$1" from __ns)
   is_set "$1"
@@ -193,18 +197,18 @@ feature () {
   local path=''
   local statement
 
-  get_here_str <<'  EOS'
+  get <<'  EOS'
     (
-      eval declare -A ns_hsh=${__ns:-}
-      [[ -n ${ns_hsh[%s]:-} && ${1:-} != 'reload' ]]
+      eval declare -A ns_hsh=( ${__ns:-} )
+      [[ -n ${ns_hsh[%s]:-} ]] && ! (( ${__reload:-} ))
     ) && return
     __ns=$(
       type -P greadlink >/dev/null 2>&1 && readlink='greadlink -f --' || readlink='readlink -f --'
-      %s="( [root]=\\"$($readlink "$(dirname "$($readlink "$BASH_SOURCE")")"%s)\\" )"
+      %s="[root]=\\"$($readlink "$(dirname "$($readlink "$BASH_SOURCE")")"%s)\\""
       stuff %s into "${__ns:-}"
       echo "$__"
     )
-    [[ ${1:-} == 'reload' ]] && shift
+    ! (( ${__reload:-} )) || unset -v __reload
   EOS
   statement=$__
   (( depth )) && for (( i = 0; i < depth; i++ )); do path+=/..; done
@@ -212,16 +216,29 @@ feature () {
   emit "$statement"
 }
 
-load () { require "$1" reload ;}
+load () { require "$1" reload=1 ;}
 
 local_ary () {
+  [[ $1 == *=* ]] || return
   local first=$1; shift
+  local IFS=$IFS
+  local ary=()
+  local item
   local name
   local value
 
   name=${first%%=*}
-  (( $# )) && value="${first#*=} $*" || value=${first#*=}
-  is_literal "$value" && emit "eval 'declare -a $name=$value'" || emit 'eval "declare -a '"$name"'=${'"$value"'}"'
+  set -- "${first#*=}" "$@"
+  value=$*
+  is_set "$value" && value=${!value}
+  [[ $value != *$'\n'* ]] && { emit "declare -a $name=( $value )"; return ;}
+  IFS=$'\n'
+  set -- $value
+  ary=()
+  for item in "$@"; do
+    ary+=( "$(printf %q "$item")" )
+  done
+  emit "declare -a $name=( ${ary[*]} )"
 }
 
 local_hsh () {
@@ -234,19 +251,18 @@ local_hsh () {
   name=${1%%=*}
   value=${1#*=}
   shift
-  [[ -z $value ]] && value='()'
   set -- "$value" "$@"
-  is_literal "$*"  && { value=$*; set -- ;}
-  { ! is_literal "$value" && [[ $value == *.* ]] ;} && {
+  [[ $* == '['* || -z $* ]] && { value=$*; set -- ;}
+  is_dotted "$value" && {
     item=${value%.*}
     value=${value##*.}
     $(grab "$value" from "$item")
   }
-  is_set "$value" && { value=${!value}; shift   ;}
-  [[ -z $value ]] && value='()'
-  is_literal "$value" && {
+  is_set "$value" && { value=${!value}; shift ;}
+  [[ $value == '['* || -z $value ]] && {
     ! (( $# )) || return
-    emit "eval 'declare -A $name=$value'"
+    escape_items "$value"
+    emit "eval declare -A $name=( $__ )"
     return
   }
   for item in "$@"; do
@@ -269,12 +285,12 @@ parse_options () {
   local statement
 
   for input in "${input_ary[@]}"; do
-    $(assign input to '( short long argument help )')
+    $(assign input to 'short long argument help')
     short=${short#-}
     long=${long#--}
     long=${long//-/_}
     [[ -n $long ]] && name=$long || name=$short
-    stuff '( argument name help )' into '()'
+    stuff 'argument name help' into ''
     [[ -n $short  ]] && option_hsh[$short]=$__
     [[ -n $long   ]] && option_hsh[$long]=$__
   done
@@ -290,7 +306,7 @@ parse_options () {
     option=${1#-}
     option=${option#-}
     [[ $1 =~ ^-{1,2}[^-] && -n ${option_hsh[$option]:-} ]] && {
-      $(grab '( argument name )' from "${option_hsh[$option]}")
+      $(grab 'argument name' from "${option_hsh[$option]}")
       case $argument in
         ''  ) result_hsh[flag_$name]=1         ;;
         *   ) result_hsh[$argument]=$2; shift  ;;
@@ -318,11 +334,12 @@ parse_options () {
 }
 
 part () {
-  [[ $2 == 'on' ]] || return
+  [[ $2 == on ]] || return
   local IFS=$3
   local result_ary=()
 
   result_ary=( $1 )
+  unset -v IFS
   repr result_ary
 }
 
@@ -337,22 +354,27 @@ raise () {
 }
 
 repr () {
+  local _ary=()
+  local item
+
   __=$(declare -p "$1" 2>/dev/null) || return
-  [[ ${__:9:1} == [aA] ]] && {
+  [[ ${__:9:1} != a ]] && {
     __=${__#*=}
-    __=${__#\'}
-    __=${__%\'}
-    __=${__//\'\\\'\'/\'}
+    [[ $__ == \'*\' ]] && eval "__=$__"
+    __=${__#\(}
+    __=${__% \)}
     return
   }
-  __=${__#*=}
-  __=${__#\"}
-  __=${__%\"}
+  eval 'set -- "${'"$1"'[@]}"'
+  for item in "$@"; do
+    _ary+=( "$(printf %q "$item")" )
+  done
+  __=${_ary[*]}
 }
 
 require () {
   local spec=$1; shift
-  local reload=${1:-}
+  $(grab reload from "$@")
   local IFS=$IFS
   local extension
   local extension_ary=()
@@ -360,8 +382,20 @@ require () {
   local file
   local path
 
-  [[ $reload == 'reload' ]] && extension_ary=( '' ) || extension_ary=( .bash .sh '' )
-  [[ $spec == /* ]] && { path=${spec%/*}; spec=${spec##*/} ;} || path=$PATH
+  __reload=$reload
+  unset -v reload
+  extension_ary=(
+    .bash
+    .sh
+    ''
+  )
+  case $spec in
+    /* )
+      path=${spec%/*}
+      spec=${spec##*/}
+      ;;
+    * ) path=$PATH;;
+  esac
   IFS=:
   for item in $path; do
     for extension in "${extension_ary[@]}"; do
@@ -425,14 +459,14 @@ strict_mode () {
 }
 
 stuff () {
-  [[ $2 == 'intons' ]] && {
+  [[ $2 == intons ]] && {
     [[ -z ${__ns:-} ]] && __ns=''
     __stuffrec "$1" __ns"${3+.}${3:-}"
     __ns=$__
     return
   }
-  [[ $2 == 'into'   ]] || return
-  is_literal "$1" && eval "local -a ref_ary=$1" || local -a ref_ary=( "$1" )
+  [[ $2 == into ]] || return
+  ! is_set "$1" && eval "local -a ref_ary=( $1 )" || local -a ref_ary=( "$1" )
   $(local_hsh result_hsh=$3)
   local ref
 
@@ -496,5 +530,29 @@ wed () {
 
 with () { repr "$1"; grab '*' from "$__" ;}
 
-conco_init
-unset -f conco_init
+concorde_init () {
+  local -A macro_hsh=()
+  local key_ary=()
+
+  macro_hsh=(
+    [cptree]='cp -r --'
+    [install]='install -bm 644 --'
+    [installd]='install -dm 755 --'
+    [installx]='install -bm 755 --'
+    [ln]='ln -sf --'
+    [mkdir]='mkdir -p --'
+    [mktemp]="mktemp -q --"
+    [mktempd]="mktemp -qd --"
+    [rm]='rm --'
+    [rmdir]='rmdir --'
+    [rmtree]='rm -rf --'
+    [sed]='sed -i.bak'
+  )
+  $(with macro_hsh)
+  key_ary=( "${!macro_hsh[@]}" )
+  repr key_ary
+  stuff "$__" intons concorde.macros
+}
+
+concorde_init
+unset -f concorde_init
