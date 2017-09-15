@@ -96,18 +96,6 @@ __extract_functions () {
   __=$result
 }
 
-get_ary () {
-  local result_ary=()
-
-  IFS=$'\n' read -rd '' -a result_ary ||:
-  repr result_ary
-}
-
-get_here_ary () {
-  get_here_str
-  get_ary <<<"$__"
-}
-
 get () {
   local space
 
@@ -141,25 +129,6 @@ grab () {
     fi
   done
   emit "$statement"
-}
-
-in_scope () {
-  get_here_str <<'  EOS'
-    is_set %s                         && \
-      {
-        (( ! ${#FUNCNAME[@]} ))       || \
-          (
-            declare -g %s=$'sigil\037'
-            [[ $%s != $'sigil\037' ]] && \
-              {
-                unset -v %s
-                ! is_set %s
-              }
-          )
-      }
-  EOS
-  printf -v __ "$__" "$1" "$1" "$1" "$1" "$1"
-  emit "$__"
 }
 
 instantiate () { printf -v "$1" %s "$(eval "echo ${!1}")" ;}
@@ -446,7 +415,7 @@ strict_mode () {
     'off' ) option=+; callback=-          ;;
     *     ) return 1                      ;;
   esac
-  get_str <<'  EOS'
+  get <<'  EOS'
     set %so errexit
     set %so errtrace
     set %so nounset
