@@ -335,11 +335,11 @@ repr () {
     __=${__% }
     return
   }
-  eval 'set -- "${'"$1"'[@]}"'
+  eval '(( ${#'"$1"'[@]} )) && set -- "${'"$1"'[@]}" || set --'
   for item in "$@"; do
     _ary+=( "$(printf %q "$item")" )
   done
-  __=${_ary[*]}
+  (( ${#_ary[@]} )) && __=${_ary[*]} || __=''
 }
 
 require () {
