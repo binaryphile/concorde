@@ -753,6 +753,15 @@ describe __ns
 end
 
 describe parse_options
+  it "accepts no options on the command line when options are defined"; ( _shpec_failures=0
+    get <<'    EOS'
+      "-o '' '' 'a flag'"
+    EOS
+    $(parse_options __)
+    assert equal '' "$__"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
   it "accepts a short flag option"; ( _shpec_failures=0
     get <<'    EOS'
       "-o '' '' 'a flag'"
@@ -882,6 +891,14 @@ describe part
 end
 
 describe repr
+  it "generates a representation of an empty array"; ( _shpec_failures=0
+    sample_ary=()
+    repr sample_ary
+    eval "declare -a result_ary=( $__ )"
+    assert equal 0 "${#result_ary[@]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
   it "generates a representation of an array"; ( _shpec_failures=0
     sample_ary=( zero one )
     repr sample_ary
@@ -906,6 +923,14 @@ describe repr
     eval "declare -a result_ary=( $__ )"
     printf -v result '(%s) ' "${result_ary[@]}"
     assert equal $'(zero\none) (two)' "${result% }"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "generates a representation of an empty hash"; ( _shpec_failures=0
+    declare -A sample_hsh=()
+    repr sample_hsh
+    eval "declare -A result_hsh=( $__ )"
+    assert equal 0 "${#result_hsh[@]}"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
