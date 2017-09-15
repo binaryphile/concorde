@@ -513,7 +513,7 @@ concorde_init () {
     [mkdir]='mkdir -p --'
     [mktemp]="mktemp -q --"
     [mktempd]="mktemp -qd --"
-    [rm]='rm --'
+    [rm]='rm -f --'
     [rmdir]='rmdir --'
     [rmtree]='rm -rf --'
     [sed]='sed -i.bak'
