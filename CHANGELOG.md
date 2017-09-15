@@ -7,6 +7,18 @@ The format is based on [Keep a Changelog] and this project adheres to
 Latest Changes
 ==============
 
+[v0.2.1] - 2017-09-15
+---------------------
+
+### Fixed
+
+-   `strict_mode` was still calling deprecated `get_str`, changed to
+    `get`
+
+### Removed
+
+-   `in_scope`, `get_ary`
+
 [v0.2.0] - 2017-09-14
 ---------------------
 
@@ -54,6 +66,9 @@ Latest Changes
 -   private functions are prefixed with double-underscore rather than
     single-
 
+Older Changes
+=============
+
 [v0.0.5] - 2017-08-13
 ---------------------
 
@@ -94,9 +109,6 @@ Latest Changes
 
 -   readme updated with better description of features, sample template
     script
-
-Older Changes
-=============
 
 [v0.0.4] - 2017-08-01
 ---------------------
@@ -181,6 +193,7 @@ Older Changes
 
   [Keep a Changelog]: http://keepachangelog.com/
   [Semantic Versioning]: http://semver.org/
+  [v0.2.1]: https://github.com/binaryphile/concorde/compare/v0.2.0...v0.2.1
   [v0.2.0]: https://github.com/binaryphile/concorde/compare/v0.1.0...v0.2.0
   [v0.1.0]: https://github.com/binaryphile/concorde/compare/v0.0.5...v0.1.0
   [v0.0.5]: https://github.com/binaryphile/concorde/compare/v0.0.4...v0.0.5
