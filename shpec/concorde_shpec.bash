@@ -706,6 +706,65 @@ describe macros
   end
 end
 
+describe member_of
+  it "identifies a member of an array literal"; ( _shpec_failures=0
+    sample_ary=( one two )
+    repr sample_ary
+    member_of "$__" one
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "doesn't identify a non-member of an array literal"; ( _shpec_failures=0
+    sample_ary=( one two )
+    repr sample_ary
+    member_of "$__" three
+    assert unequal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "identifies a member of a reference to an array literal"; ( _shpec_failures=0
+    sample_ary=( one two )
+    repr sample_ary
+    member_of __ one
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "doesn't identify a non-member of a reference to an array literal"; ( _shpec_failures=0
+    sample_ary=( one two )
+    repr sample_ary
+    member_of __ three
+    assert unequal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "identifies a member of set of args"; ( _shpec_failures=0
+    member_of one two one
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "doesn't identify a non-member of a set of args"; ( _shpec_failures=0
+    member_of one two three
+    assert unequal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "identifies a member of set of args with a space"; ( _shpec_failures=0
+    member_of '"one two"' three 'one two'
+    rc=$?
+    assert equal 0 $rc
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "identifies a member of set of args with a newline"; ( _shpec_failures=0
+    member_of "\$'one\ntwo'" three $'one\ntwo'
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+end
+
 describe __ns
   it "is set"; ( _shpec_failures=0
     declare -p __ns >/dev/null 2>&1

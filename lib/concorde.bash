@@ -243,6 +243,15 @@ local_hsh () {
 
 log () { put "$@" ;}
 
+member_of () {
+  $(local_ary set_ary="${@:1:$#-1}")
+  value="${@: -1}"
+  local IFS
+
+  IFS=$'\037'
+  [[ $IFS"${set_ary[*]}"$IFS == *"$IFS$value$IFS"* ]]
+}
+
 parse_options () {
   $(local_ary input_ary=$1); shift
   local -A option_hsh=()
