@@ -10,6 +10,10 @@ Latest Changes
 [v0.2.1] - 2017-09-15
 ---------------------
 
+### Added
+
+-   `local_nry` for newline-separated arrays
+
 ### Fixed
 
 -   `strict_mode` was still calling deprecated `get_str`, changed to

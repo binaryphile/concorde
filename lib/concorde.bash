@@ -200,14 +200,7 @@ local_ary () {
   set -- "${first#*=}" "$@"
   value=$*
   is_set "$value" && value=${!value}
-  [[ $value != *$'\n'* ]] && { emit "declare -a $name=( $value )"; return ;}
-  IFS=$'\n'
-  set -- $value
-  ary=()
-  for item in "$@"; do
-    ary+=( "$(printf %q "$item")" )
-  done
-  emit "declare -a $name=( ${ary[*]} )"
+  emit "declare -a $name=( $value )"
 }
 
 local_hsh () {
@@ -241,6 +234,28 @@ local_hsh () {
   emit "eval 'declare -A $name=( $result )'"
 }
 
+local_nry () {
+  [[ $1 == *=* ]] || return
+  local first=$1; shift
+  local IFS=$IFS
+  local ary=()
+  local item
+  local name
+  local value
+
+  name=${first%%=*}
+  set -- "${first#*=}" "$@"
+  value=$*
+  is_set "$value" && value=${!value}
+  IFS=$'\n'
+  set -- $value
+  ary=()
+  for item in "$@"; do
+    ary+=( "$(printf %q "$item")" )
+  done
+  emit "declare -a $name=( ${ary[*]} )"
+}
+
 log () { put "$@" ;}
 
 member_of () {
@@ -253,7 +268,7 @@ member_of () {
 }
 
 parse_options () {
-  $(local_ary input_ary=$1); shift
+  $(local_nry input_ary=$1); shift
   local -A option_hsh=()
   local -A result_hsh=()
   local arg_ary=()
