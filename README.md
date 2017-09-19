@@ -11,44 +11,54 @@ Concorde is a distillation of techniques I've picked up from
 [StackOverflow], the [Bash Hacker's Wiki] and to a lesser extent
 [GreyCat's Wiki], as well as my own personal stylings with bash.
 
-**NOTE: This readme is currently out-of-date - to see the current status
-of capabilities, look at the tests in `shpec/` and the examples in
-`examples/`.**
-
-I will be updating the documentation as soon as possible.
-
 Goals
 =====
 
-Make it easy to:
+The overall goal of concorde is to include all of the must-have features
+necessary to both create command-line executable scripts as well as
+reusable library scripts.
 
--   get started writing a script with the familiar command-line option
-    interface
+That includes making it easy to:
 
--   write reusable bash libraries (naysaying curmudgeons be damned)
+-   parse command-line options
 
--   do [test-driven development] on bash code
+-   load a library from the PATH or from a path relative to the current
+    file
 
--   pass and return hashes and arrays to/from functions
+-   do [test-driven development]
 
--   do basic operations with hashes and arrays such as joining and
-    splitting
+-   pass arrays and hashes (a.k.a. associative arrays) to functions
+    without using global variables or [namerefs]
 
--   nest hashes
+-   import specific functions from a library rather than requiring all
+    functions in the file
 
--   write self-contained functions with minimal reference to global
-    variables
+-   store and access related variables outside of the global namespace
 
--   keep the function namespace as uncluttered as possible
+-   use the safest options for common system commands such as `rm` by
+    default
 
--   create namespaces to store groups of variables away from the global
-    namespace
+-   reduce visual clutter from special characters such as quotes and
+    dollar signs where possible
 
--   bring/send such namespaced variables into and out of the local scope
+In support of these goals, concorde attempts to address some of my
+perceived shortcomings of bash, namely:
 
--   use the safest options for common system commands such as `rm`
+-   [variable scoping] and reliance on globals
 
--   reduce visual clutter from special characters
+-   singular function namespace
+
+-   directory-location dependent behavior of the `source` command
+
+-   lack of protection from sourcing files with circular dependencies
+
+-   all-or-nothing loading of library functions
+
+-   lack of testing facilities
+
+-   default behavior of not stopping on errors
+
+-   no tracebacks on errors
 
 Prerequisites
 =============
@@ -68,6 +78,13 @@ Prerequisites
 
 -   `sed` in your PATH
 
+Installation
+============
+
+Clone this repo or copy `lib/concorde.bash`. Make the location of
+`concorde.bash` (e.g. `~/concorde/lib`) available in your PATH. Then use
+`source concorde.bash` in your scripts.
+
 Reserved Variables
 ==================
 
@@ -77,12 +94,98 @@ Concorde reserves the following global variables for its own use:
 
 -   `__ns` - for storing namespaced data
 
-Installation
-============
+Sample Script Template
+======================
 
-Clone this repo or copy `lib/concorde.bash`. Make the location of
-`concorde.bash` (e.g. `~/concorde/lib`) available in your PATH. Then use
-`source concorde.bash` in your scripts.
+See the [tutorial] for a walkthrough on the thought process behind this
+example:
+
+``` bash
+#!/usr/bin/env bash
+
+source concorde.bash
+
+get <<'EOS'
+  Detailed usage message goes here
+EOS
+printf -v usage '\n%s\n' "$__"
+
+script_main () {
+  $(grab 'opt1 opt2_flag' from "$1"); shift
+
+  do_something_with_option "$opt1"
+
+  (( opt2_flag )) && do_something_with_flag
+
+  # consume positional arguments
+  while (( $# )); do
+    do_something_with_arg "$1"
+    shift
+  done
+}
+
+other_functions () {
+  ...
+}
+
+sourced && return   # stop here if testing with shpec
+strict_mode on      # stop on errors and issue traceback
+
+# option fields:
+#
+# short     long      var name   help
+# -----   ------      --------   ------------------
+get <<'EOS'
+  -o      --opt1      opt1       "a named argument"
+  ''      --opt2      ''         "a long flag"
+EOS
+
+$(parse_options __ "$@") || die "$usage" 0
+script_main     __ "$@"
+```
+
+A few points for understanding the template:
+
+-   any `source` or `require` statements come right after the shebang
+    line
+
+-   the first part of the script only defines functions, up until
+    `sourced && return`; this is so the test framework can test those
+    functions
+
+-   the second part tests whether the script is being run or is being
+    sourced and does three things if it is being run:
+
+    -   turn on strict mode
+
+    -   define and parse options
+
+    -   call the main function of the script with an options hash and
+        the remaining positional arguments
+
+-   `get` and `parse_options` place their output in the global variable
+    "$__", which is fed to `script_main`
+
+-   `parse_options` also removes the parsed options from the rest of the
+    script's positional arguments, so the "$@" in `script_main __ "$@"`
+    only contains the remaining unparsed positional arguments
+
+-   the first thing `script_main` does is use `grab` to create local
+    variables of the keys "opt1" (a named argument) and "opt2\_flag" (a
+    flag) from the hash passed in the first argument
+
+-   "opt1" is a named argument holding a value from the user's
+    invocation
+
+-   "opt2\_flag" is a flag from the "opt2" definition, which
+    automatically has "\_flag" appended to its name by `parse_options`
+
+-   if "opt2\_flag" is *true*, then `(( opt2_flag ))` evaluates as true;
+    this is the standard way to test a flag
+
+-   `(( $# ))` is true so long as the number of positional arguments is
+    greater than 0 - `shift` removes the first positional argument, so
+    the loop will eventually end
 
 Features
 ========
@@ -97,8 +200,8 @@ Example:
 ``` bash
 source concorde.bash
 
-#     short  long     argument  help
-#     -----  ----     --------  ----
+# short   long    argument  help
+# -----   ----    --------  ----
 get <<'EOS'
   -o      --opt1  ''        "a flag"
   -p      --opt2  value     "an option argument"
@@ -154,17 +257,24 @@ provided on the command-line.
 [Strict Mode] With Tracebacks
 -----------------------------
 
-Typically enabled when your script is being run as a command (vs
-sourced):
+Typically enabled when your script is a command rather than a library.
 
 ``` bash
 sourced && return
 strict_mode on
+script_main "$@"
 ```
 
 -   can be turned on and off
 
--   stops on most errors
+-   stops on most errors - uses options:
+
+    -   [nounset] - no unset variables
+
+    -   [errexit][nounset] - exit on (most) errors
+
+    -   [pipefail][nounset] - return any error encountered in a pipeline
+        as the pipeline's return value
 
 -   stops when encountering an unset variable
 
@@ -196,7 +306,7 @@ $(feature my_lib)
 ```
 
 Libraries are written so that they are not loaded more than once, even
-if sourced multiple times.
+if sourced multiple times.  Protects from circular dependencies as well.
 
 -   `bring` - python-style import of only specified functions from a
     library to keep function namespace uncluttered
@@ -217,8 +327,10 @@ if sourced multiple times.
 Hash Operations
 ---------------
 
-Most functions operate on hash \[literals\] rather actual hashes, with
-the exception of `with`.
+Most functions operate on hash literals rather actual hashes, with the
+exception of `with`.  Literals are the same syntax used inside the
+parentheses of [compound array assignment], which is the syntax used to
+initialize entire hashes at once.
 
 -   `grab` - create local variables from key/values in a hash or a
     namespace
@@ -231,7 +343,7 @@ the exception of `with`.
 
 -   `update` - update a hash with the contents of another hash
 
--   `with` - extract all hash keys into local variables - operates on
+-   `with` - expand all hash keys into local variables - operates on
     true hashes rather than literals
 
 Array Operations
@@ -260,8 +372,6 @@ String Operations
 Contextual Operations
 ---------------------
 
--   `in_scope` - determine whether the named variable is local or not
-
 -   `instantiate` - evaluate a string containing unevaluated variable
     references in order to interpolate them
 
@@ -281,99 +391,6 @@ Input/Output
 -   `puterr` - output message on stderr
 
 -   `raise` - output message on stderr and return
-
-Sample Script Template
-======================
-
-See the [tutorial] for a walkthrough on the thought process behind this
-example:
-
-``` bash
-#!/usr/bin/env bash
-
-source concorde.bash
-
-get <<'EOS'
-  Detailed usage message goes here
-EOS
-printf -v usage '\n%s\n' "$__"
-
-script_main () {
-  $(grab 'opt1 opt2_flag' from "$1"); shift
-
-  do_something_with_option "$opt1"
-
-  (( opt2_flag )) && do_something_with_flag
-
-  # consume positional arguments
-  while (( $# )); do
-    do_something_with_args
-    shift
-  done
-}
-
-other_functions () {
-  ...
-}
-
-sourced && return   # stop here if testing with shpec
-strict_mode on      # stop on errors and issue traceback
-
-# option fields:
-#
-# short     long      var name                 help
-# -----   ------      --------   ------------------
-get <<'EOS'
-  -o   --opt1      opt1       "a named argument"
-  ''   --opt2      ''         "a long flag"
-EOS
-
-$(parse_options __ "$@") || die "$usage" 0
-script_main     __ "$@"
-```
-
-A few points for understanding the template:
-
--   any `source` or `require` statements come right after the shebang
-    line
-
--   the first part of the script only defines functions, up until
-    `sourced && return`; this is so the test framework can test those
-    functions
-
--   the second part tests whether the script is being run or is being
-    sourced and does three things if it is being run:
-
-    -   turn on strict mode
-
-    -   define and parse options
-
-    -   call the main function of the script with an options hash and
-        the remaining positional arguments
-
--   `parse_options` places the options in a hash stored in `$__`, which
-    is in turn fed to `script_main`
-
--   `parse_options` also removes from the script's positional arguments
-    those options which it parses, so the `$@` in `script_main __ "$@"`
-    only contains the remaining unparsed positional arguments
-
--   the first thing `script_main` does is use `grab` to create local
-    variables of the keys "opt1" (a named argument) and "opt2\_flag" (a
-    flag) from the hash passed in the first argument
-
--   "opt1" is a named argument holding a value from the user's
-    invocation
-
--   "opt2\_flag" is a flag from the "opt2" definition, which
-    automatically has "\_flag" appended to its name by `parse_options`
-
--   if "opt2\_flag" is *true*, then `(( opt2_flag ))` evaluates as true;
-    this is the standard way to test a flag
-
--   `(( $# ))` is true so long as the number of positional arguments is
-    greater than 0 - `shift` removes the first positional argument, so
-    the loop will eventually end
 
 Rules and Techniques for Using Concorde
 =======================================
@@ -397,11 +414,9 @@ Rules and Techniques for Using Concorde
     -   global variables are, for the most part, not employed or
         modified ("\_\_" being one notable exception)
 
-    -   arguments should be values, not references to outside variables
-        (with some exceptions)
-
-    -   where references are allowed, they are dereferenced and used as
-        values
+    -   arguments should be values - variable references may be passed
+        for arrays and hashes but are simply expanded and not used to
+        return values
 
 3.  **arrays and hashes are passed and returned as string
     representations**
@@ -422,24 +437,21 @@ Rules and Techniques for Using Concorde
     form.
 
     The format of the string representations is simply the text format
-    used in array assignments, without parentheses on the outside and
-    array items separated by spaces. Quotes are used to put spaces in
-    values:
+    used in [compound array assignments], without parentheses on the
+    outside. Array items are separated by spaces. Quotes are used to put
+    spaces into values:
 
         "zero \"item one\" 'item two'"
 
-    I call these array and hash literals, even though they are normally
-    restricted to only assignment statements.
+    I call these array and hash literals, even though bash does not
+    define them as such and they are only interpreted into arrays by the
+    `local_hsh` and `local_ary` functions.
 
     In many places, this documentation refers to "passing an array" or a
     hash. This is simply shorthand for "passing an array literal".
 
-    For hashes, the format always includes indices, which looks like:
-
-        "[zero]=0 [one]=1 [two]='et cetera'"
-
-    Hashes also have a "keyword argument" format which can be used
-    instead. It drops the brackets:
+    For hashes, the format always includes indices (minus brackets),
+    which looks like:
 
         "zero=0 one=1 two='et cetera'"
 
@@ -500,11 +512,151 @@ Rules and Techniques for Using Concorde
           my_function () {
             local mandatory=$1; shift
             local optional="default value"
-            $(grab optional from "$1")
+            $(grab optional from "$@")
             [...]
           }
 
           my_function "required string" optional="optional value"
+
+    When using "$@" with `grab` like that, all of the "$@" arguments
+    must be in keyword format (var=value).
+
+Examples
+========
+
+Testing
+-------
+
+I use [shpec] and [entr] for testing.  See the [tutorial] and the
+`all-shpecs` file for details.
+
+Testing works equally well for commands as it does for libraries.
+Since libraries typically only consist of functions, nothing special
+needs to be done when writing them.
+
+Commands, however, should be structured with all function definitions
+first, then a line stopping execution if the file is being source rather
+than run.  Finally, the invocation of the main function can occur, such
+as the following:
+
+```
+my_function () {
+  ...
+}
+
+sourced && return
+script_main
+```
+
+In the test file which loads the command or library, you typically set
+the `nounset` option and `require_relative` the file you are testing:
+
+```
+set -o nounset
+
+source concorde.bash
+$(require_relative ../myfile)
+
+describe mytest
+  it "..."
+    <test my_function>
+  end
+end
+```
+
+If you are making directories and files in your tests with `mktemp`, you
+may want to set TMPDIR as well:
+
+```
+export TMPDIR=$HOME/tmp
+mkdir -p "$TMPDIR"
+
+set -o nounset
+...
+```
+
+Writing a Library (Feature)
+---------------------------
+
+Concorde borrows the concept of a "feature" from ruby.  A library is
+declared a feature by calling concorde's `feature` function.  The
+feature typically has the same name as its filename.  However, the
+filename may include an extension, such as `.sh` or `.bash`.  When the
+feature is loaded with `require` or `require_relative`, the extension is
+not required when naming the feature to load.
+
+Feature names must not include spaces, but may include underscores.
+
+Simply add the following to the beginning of the feature file:
+
+```
+source concorde.bash
+$(feature my_feature)
+```
+
+This will:
+
+-   prevent the feature from being loaded again if sourced or required
+    again
+
+-   register a concorde namespace for the feature
+
+-   add the root location of the feature's project directory to the
+    metadata in the namespace
+
+
+### Feature Root
+
+The root location of the project's directory defaults to one directory
+above the feature file itself (for example, when the file is located in
+the `lib` subdirectory).  If the file depth is different, you can
+specify it thusly:
+
+```
+$(feature my_feature depth=0)
+```
+
+0 would be if the file is in the root directory of the project.  If
+deeper, use the number of directories down instead.
+
+To use the feature's root location (for example, to add it to the PATH),
+load it from the namespace like so:
+
+```
+$(grab root fromns my_feature)
+PATH+=:$root/bin:$root/lib
+```
+
+Working With a Hash
+-------------------
+
+### Pass a Hash to a Function
+
+```
+my_function () {
+  $(local_hsh received_hash=$1)
+  echo "${received_hash[zero]}"
+}
+
+declare -A my_hash=( [zero]=0 )
+repr my_hash
+my_function __
+```
+
+Functions such as `my_function` use the `local_hsh` function to turn a
+received hash literal into an actual hash.
+
+In order pass the hash literal to the function, the `repr` function
+takes the name of an actual hash and returns the literal in the global
+`__` variable.  The `local_hsh` function on the receiving side can take
+either the literal string itself, in which case you could call
+`my_function "$__"`. Alternatively, it can dereference the variable name
+itself (`__` in this case), which give the call above as `my_function
+__`.
+
+`local_hsh` is specifically written so that quotes are not required
+around the parameter on the right-hand side of the assignment, so
+`received_hash=$1` does not have them around `$1` above.
 
 API
 ===
@@ -595,6 +747,12 @@ EOS
 $(parse_options __ "$@") || die "$usage" 0
 ```
 
+  [shpec]: https://github.com/rylnd/shpec/tree/0.2.2
+  [entr]: http://entrproject.org/
+  [nounset]: http://wiki.bash-hackers.org/commands/builtin/set
+  [variable scoping]: http://wiki.bash-hackers.org/scripting/basics#variable_scope
+  [namerefs]: http://wiki.bash-hackers.org/commands/builtin/declare#nameref
+  [compound array assignment]: http://wiki.bash-hackers.org/syntax/arrays#storing_values
   [StackOverflow]: https://stackoverflow.com/
   [Bash Hacker's Wiki]: http://wiki.bash-hackers.org/
   [GreyCat's Wiki]: http://mywiki.wooledge.org/
