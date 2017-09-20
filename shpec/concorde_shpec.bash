@@ -828,8 +828,8 @@ describe parse_options
       -o '' '' 'a flag'
     EOS
     $(parse_options __ -o)
-    $(grab flag_o from __)
-    assert equal 1 "$flag_o"
+    $(grab o_flag from __)
+    assert equal 1 "$o_flag"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
@@ -838,8 +838,8 @@ describe parse_options
       '' --option '' 'a flag'
     EOS
     $(parse_options __ --option)
-    $(grab flag_option from __ )
-    assert equal 1 "$flag_option"
+    $(grab option_flag from __ )
+    assert equal 1 "$option_flag"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
@@ -879,8 +879,8 @@ describe parse_options
       -p '' '' 'a flag'
     EOS
     $(parse_options __ -op            )
-    $(grab 'flag_o flag_p' from __)
-    assert equal '1 1' "$flag_o $flag_p"
+    $(grab 'o_flag p_flag' from __)
+    assert equal '1 1' "$o_flag $p_flag"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
@@ -890,8 +890,8 @@ describe parse_options
       -p '' argument 'an argument'
     EOS
     $(parse_options __ -op value        )
-    $(grab 'flag_o argument' from __)
-    assert equal '1 value' "$flag_o $argument"
+    $(grab 'o_flag argument' from __)
+    assert equal '1 value' "$o_flag $argument"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
@@ -906,14 +906,14 @@ describe parse_options
     EOS
     $(parse_options __ --option1 -o --option3=value3 -p value4 --option5 -r value6)
     $(grab '
-      flag_option1
-      flag_o
+      option1_flag
+      o_flag
       argument3
       argument4
-      flag_option5
+      option5_flag
       argument6
     ' from __ )
-    assert equal '1 1 value3 value4 1 value6' "$flag_option1 $flag_o $argument3 $argument4 $flag_option5 $argument6"
+    assert equal '1 1 value3 value4 1 value6' "$option1_flag $o_flag $argument3 $argument4 $option5_flag $argument6"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 

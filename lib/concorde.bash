@@ -301,7 +301,7 @@ parse_options () {
     [[ $1 =~ ^-{1,2}[^-] && -n ${option_hsh[$option]:-} ]] && {
       $(grab 'argument name' from "${option_hsh[$option]}")
       case $argument in
-        ''  ) result_hsh[flag_$name]=1         ;;
+        ''  ) result_hsh["$name"_flag]=1       ;;
         *   ) result_hsh[$argument]=$2; shift  ;;
       esac
       shift
