@@ -96,18 +96,6 @@ __extract_functions () {
   __=$result
 }
 
-get_ary () {
-  local result_ary=()
-
-  IFS=$'\n' read -rd '' -a result_ary ||:
-  repr result_ary
-}
-
-get_here_ary () {
-  get_here_str
-  get_ary <<<"$__"
-}
-
 get () {
   local space
 
@@ -141,25 +129,6 @@ grab () {
     fi
   done
   emit "$statement"
-}
-
-in_scope () {
-  get_here_str <<'  EOS'
-    is_set %s                         && \
-      {
-        (( ! ${#FUNCNAME[@]} ))       || \
-          (
-            declare -g %s=$'sigil\037'
-            [[ $%s != $'sigil\037' ]] && \
-              {
-                unset -v %s
-                ! is_set %s
-              }
-          )
-      }
-  EOS
-  printf -v __ "$__" "$1" "$1" "$1" "$1" "$1"
-  emit "$__"
 }
 
 instantiate () { printf -v "$1" %s "$(eval "echo ${!1}")" ;}
@@ -231,14 +200,7 @@ local_ary () {
   set -- "${first#*=}" "$@"
   value=$*
   is_set "$value" && value=${!value}
-  [[ $value != *$'\n'* ]] && { emit "declare -a $name=( $value )"; return ;}
-  IFS=$'\n'
-  set -- $value
-  ary=()
-  for item in "$@"; do
-    ary+=( "$(printf %q "$item")" )
-  done
-  emit "declare -a $name=( ${ary[*]} )"
+  emit "declare -a $name=( $value )"
 }
 
 local_hsh () {
@@ -272,10 +234,41 @@ local_hsh () {
   emit "eval 'declare -A $name=( $result )'"
 }
 
+local_nry () {
+  [[ $1 == *=* ]] || return
+  local first=$1; shift
+  local IFS=$IFS
+  local ary=()
+  local item
+  local name
+  local value
+
+  name=${first%%=*}
+  set -- "${first#*=}" "$@"
+  value=$*
+  is_set "$value" && value=${!value}
+  IFS=$'\n'
+  set -- $value
+  ary=()
+  for item in "$@"; do
+    ary+=( "$(printf %q "$item")" )
+  done
+  emit "declare -a $name=( ${ary[*]} )"
+}
+
 log () { put "$@" ;}
 
+member_of () {
+  $(local_ary set_ary="${@:1:$#-1}")
+  value="${@: -1}"
+  local IFS
+
+  IFS=$'\037'
+  [[ $IFS"${set_ary[*]}"$IFS == *"$IFS$value$IFS"* ]]
+}
+
 parse_options () {
-  $(local_ary input_ary=$1); shift
+  $(local_nry input_ary=$1); shift
   local -A option_hsh=()
   local -A result_hsh=()
   local arg_ary=()
@@ -308,7 +301,7 @@ parse_options () {
     [[ $1 =~ ^-{1,2}[^-] && -n ${option_hsh[$option]:-} ]] && {
       $(grab 'argument name' from "${option_hsh[$option]}")
       case $argument in
-        ''  ) result_hsh[flag_$name]=1         ;;
+        ''  ) result_hsh["$name"_flag]=1       ;;
         *   ) result_hsh[$argument]=$2; shift  ;;
       esac
       shift
@@ -362,14 +355,15 @@ repr () {
     __=${__#*=}
     [[ $__ == \'*\' ]] && eval "__=$__"
     __=${__#\(}
-    __=${__% \)}
+    __=${__%\)}
+    __=${__% }
     return
   }
-  eval 'set -- "${'"$1"'[@]}"'
+  eval '(( ${#'"$1"'[@]} )) && set -- "${'"$1"'[@]}" || set --'
   for item in "$@"; do
     _ary+=( "$(printf %q "$item")" )
   done
-  __=${_ary[*]}
+  (( ${#_ary[@]} )) && __=${_ary[*]} || __=''
 }
 
 require () {
@@ -446,7 +440,7 @@ strict_mode () {
     'off' ) option=+; callback=-          ;;
     *     ) return 1                      ;;
   esac
-  get_str <<'  EOS'
+  get <<'  EOS'
     set %so errexit
     set %so errtrace
     set %so nounset
@@ -543,7 +537,7 @@ concorde_init () {
     [mkdir]='mkdir -p --'
     [mktemp]="mktemp -q --"
     [mktempd]="mktemp -qd --"
-    [rm]='rm --'
+    [rm]='rm -f --'
     [rmdir]='rmdir --'
     [rmtree]='rm -rf --'
     [sed]='sed -i.bak'

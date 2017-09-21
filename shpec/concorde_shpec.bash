@@ -492,71 +492,6 @@ describe local_ary
     assert equal '(one) (two)' "${result% }"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
-
-  it "creates a multidimensional array from a multiline string"; ( _shpec_failures=0
-    $(local_ary result_ary=$'one two\nthree')
-    $(local_ary result_ary="${result_ary[0]}")
-    printf -v result '(%s) ' "${result_ary[@]}"
-    assert equal '(one) (two)' "${result% }"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "creates a multidimensional array from a string with a quoted item"; ( _shpec_failures=0
-    $(local_ary result_ary=$'"one two"\nthree')
-    $(local_ary result_ary="${result_ary[0]}")
-    printf -v result '(%s) ' "${result_ary[@]}"
-    assert equal '(one two)' "${result% }"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "creates a multidimensional array from a string with a quoted item with an escaped newline"; ( _shpec_failures=0
-    $(local_ary result_ary="\$'one\ntwo'"$'\nthree')
-    $(local_ary result_ary="${result_ary[0]}")
-    printf -v result '(%s) ' "${result_ary[@]}"
-    assert equal $'(one\ntwo)' "${result% }"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "creates a multidimensional array from multiple quoted items with a newline in a string"; ( _shpec_failures=0
-    $(local_ary result_ary=$'"one two" "three four"\nfive')
-    $(local_ary result_ary="${result_ary[0]}")
-    printf -v result '(%s) ' "${result_ary[@]}"
-    assert equal '(one two) (three four)' "${result% }"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "creates a multidimensional array from multiple quoted items with a newline"; ( _shpec_failures=0
-    $(local_ary result_ary='"one two"' $'"three four"\nfive')
-    $(local_ary result_ary="${result_ary[0]}")
-    printf -v result '(%s) ' "${result_ary[@]}"
-    assert equal '(one two) (three four)' "${result% }"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "creates an array from the second multiple quoted items in a string"; ( _shpec_failures=0
-    $(local_ary result_ary=$'"one two" "three four"\n"five six" "seven eight"')
-    $(local_ary result_ary="${result_ary[1]}")
-    printf -v result '(%s) ' "${result_ary[@]}"
-    assert equal '(five six) (seven eight)' "${result% }"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "creates an array from the second multiple quoted items"; ( _shpec_failures=0
-    $(local_ary result_ary='"one two"' $'"three four"\n"five six"' '"seven eight"')
-    $(local_ary result_ary="${result_ary[1]}")
-    printf -v result '(%s) ' "${result_ary[@]}"
-    assert equal '(five six) (seven eight)' "${result% }"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-
-  it "creates an array from the second multiple quoted items in a reference to a string"; ( _shpec_failures=0
-    sample=$'"one two" "three four"\n"five six" "seven eight"'
-    $(local_ary result_ary=sample)
-    $(local_ary result_ary="${result_ary[1]}")
-    printf -v result '(%s) ' "${result_ary[@]}"
-    assert equal '(five six) (seven eight)' "${result% }"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
 end
 
 describe local_hsh
@@ -623,6 +558,73 @@ describe local_hsh
   it "works with values which contain a dot"; ( _shpec_failures=0
     $(local_hsh result_hsh=[zero]=0.0)
     assert equal 0.0 "${result_hsh[zero]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+end
+
+describe local_nry
+  it "creates a multidimensional array from a multiline string"; ( _shpec_failures=0
+    $(local_nry result_ary=$'one two\nthree')
+    $(local_ary result_ary="${result_ary[0]}")
+    printf -v result '(%s) ' "${result_ary[@]}"
+    assert equal '(one) (two)' "${result% }"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates a multidimensional array from a string with a quoted item"; ( _shpec_failures=0
+    $(local_nry result_ary=$'"one two"\nthree')
+    $(local_ary result_ary="${result_ary[0]}")
+    printf -v result '(%s) ' "${result_ary[@]}"
+    assert equal '(one two)' "${result% }"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates a multidimensional array from a string with a quoted item with an escaped newline"; ( _shpec_failures=0
+    $(local_nry result_ary="\$'one\ntwo'"$'\nthree')
+    $(local_ary result_ary="${result_ary[0]}")
+    printf -v result '(%s) ' "${result_ary[@]}"
+    assert equal $'(one\ntwo)' "${result% }"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates a multidimensional array from multiple quoted items with a newline in a string"; ( _shpec_failures=0
+    $(local_nry result_ary=$'"one two" "three four"\nfive')
+    $(local_ary result_ary="${result_ary[0]}")
+    printf -v result '(%s) ' "${result_ary[@]}"
+    assert equal '(one two) (three four)' "${result% }"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates a multidimensional array from multiple quoted items with a newline"; ( _shpec_failures=0
+    $(local_nry result_ary='"one two"' $'"three four"\nfive')
+    $(local_ary result_ary="${result_ary[0]}")
+    printf -v result '(%s) ' "${result_ary[@]}"
+    assert equal '(one two) (three four)' "${result% }"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates an array from the second multiple quoted items in a string"; ( _shpec_failures=0
+    $(local_nry result_ary=$'"one two" "three four"\n"five six" "seven eight"')
+    $(local_ary result_ary="${result_ary[1]}")
+    printf -v result '(%s) ' "${result_ary[@]}"
+    assert equal '(five six) (seven eight)' "${result% }"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates an array from the second multiple quoted items"; ( _shpec_failures=0
+    $(local_nry result_ary='"one two"' $'"three four"\n"five six"' '"seven eight"')
+    $(local_ary result_ary="${result_ary[1]}")
+    printf -v result '(%s) ' "${result_ary[@]}"
+    assert equal '(five six) (seven eight)' "${result% }"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "creates an array from the second multiple quoted items in a reference to a string"; ( _shpec_failures=0
+    sample=$'"one two" "three four"\n"five six" "seven eight"'
+    $(local_nry result_ary=sample)
+    $(local_ary result_ary="${result_ary[1]}")
+    printf -v result '(%s) ' "${result_ary[@]}"
+    assert equal '(five six) (seven eight)' "${result% }"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 end
@@ -706,6 +708,65 @@ describe macros
   end
 end
 
+describe member_of
+  it "identifies a member of an array literal"; ( _shpec_failures=0
+    sample_ary=( one two )
+    repr sample_ary
+    member_of "$__" one
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "doesn't identify a non-member of an array literal"; ( _shpec_failures=0
+    sample_ary=( one two )
+    repr sample_ary
+    member_of "$__" three
+    assert unequal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "identifies a member of a reference to an array literal"; ( _shpec_failures=0
+    sample_ary=( one two )
+    repr sample_ary
+    member_of __ one
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "doesn't identify a non-member of a reference to an array literal"; ( _shpec_failures=0
+    sample_ary=( one two )
+    repr sample_ary
+    member_of __ three
+    assert unequal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "identifies a member of set of args"; ( _shpec_failures=0
+    member_of one two one
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "doesn't identify a non-member of a set of args"; ( _shpec_failures=0
+    member_of one two three
+    assert unequal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "identifies a member of set of args with a space"; ( _shpec_failures=0
+    member_of '"one two"' three 'one two'
+    rc=$?
+    assert equal 0 $rc
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "identifies a member of set of args with a newline"; ( _shpec_failures=0
+    member_of "\$'one\ntwo'" three $'one\ntwo'
+    assert equal 0 $?
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+end
+
 describe __ns
   it "is set"; ( _shpec_failures=0
     declare -p __ns >/dev/null 2>&1
@@ -753,29 +814,38 @@ describe __ns
 end
 
 describe parse_options
+  it "accepts no options on the command line when options are defined"; ( _shpec_failures=0
+    get <<'    EOS'
+      -o '' '' 'a flag'
+    EOS
+    $(parse_options __)
+    assert equal '' "$__"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
   it "accepts a short flag option"; ( _shpec_failures=0
     get <<'    EOS'
-      "-o '' '' 'a flag'"
+      -o '' '' 'a flag'
     EOS
     $(parse_options __ -o)
-    $(grab flag_o from __)
-    assert equal 1 "$flag_o"
+    $(grab o_flag from __)
+    assert equal 1 "$o_flag"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
   it "accepts a long flag option"; ( _shpec_failures=0
     get <<'    EOS'
-      "'' --option '' 'a flag'"
+      '' --option '' 'a flag'
     EOS
     $(parse_options __ --option)
-    $(grab flag_option from __ )
-    assert equal 1 "$flag_option"
+    $(grab option_flag from __ )
+    assert equal 1 "$option_flag"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
   it "accepts a short argument option"; ( _shpec_failures=0
     get <<'    EOS'
-      "-o '' argument 'an argument'"
+      -o '' argument 'an argument'
     EOS
     $(parse_options __ -o value )
     $(grab argument from __     )
@@ -785,7 +855,7 @@ describe parse_options
 
   it "accepts a long argument option without an equals sign"; ( _shpec_failures=0
     get <<'    EOS'
-      "'' --option argument 'an argument'"
+      '' --option argument 'an argument'
     EOS
     $(parse_options __ --option value )
     $(grab argument from __           )
@@ -795,7 +865,7 @@ describe parse_options
 
   it "accepts a long argument option with an equals sign"; ( _shpec_failures=0
     get <<'    EOS'
-      "'' --option argument 'an argument'"
+      '' --option argument 'an argument'
     EOS
     $(parse_options __ --option=value )
     $(grab argument from __           )
@@ -809,8 +879,8 @@ describe parse_options
       -p '' '' 'a flag'
     EOS
     $(parse_options __ -op            )
-    $(grab 'flag_o flag_p' from __)
-    assert equal '1 1' "$flag_o $flag_p"
+    $(grab 'o_flag p_flag' from __)
+    assert equal '1 1' "$o_flag $p_flag"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
@@ -820,8 +890,8 @@ describe parse_options
       -p '' argument 'an argument'
     EOS
     $(parse_options __ -op value        )
-    $(grab 'flag_o argument' from __)
-    assert equal '1 value' "$flag_o $argument"
+    $(grab 'o_flag argument' from __)
+    assert equal '1 value' "$o_flag $argument"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
@@ -836,20 +906,20 @@ describe parse_options
     EOS
     $(parse_options __ --option1 -o --option3=value3 -p value4 --option5 -r value6)
     $(grab '
-      flag_option1
-      flag_o
+      option1_flag
+      o_flag
       argument3
       argument4
-      flag_option5
+      option5_flag
       argument6
     ' from __ )
-    assert equal '1 1 value3 value4 1 value6' "$flag_option1 $flag_o $argument3 $argument4 $flag_option5 $argument6"
+    assert equal '1 1 value3 value4 1 value6' "$option1_flag $o_flag $argument3 $argument4 $option5_flag $argument6"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
   it "outputs arguments"; ( _shpec_failures=0
     get <<'    EOS'
-      "-o  '' '' 'a flag'"
+      -o  '' '' 'a flag'
     EOS
     $(parse_options __ -o arg1 arg2 )
     assert equal 'arg1 arg2' "$1 $2"
@@ -858,7 +928,7 @@ describe parse_options
 
   it "doesn't output arguments if none are provided"; ( _shpec_failures=0
     get <<'    EOS'
-      "-o  '' '' 'a flag'"
+      -o  '' '' 'a flag'
     EOS
     $(parse_options __ -o)
     assert equal 0 $#
@@ -882,6 +952,14 @@ describe part
 end
 
 describe repr
+  it "generates a representation of an empty array"; ( _shpec_failures=0
+    sample_ary=()
+    repr sample_ary
+    eval "declare -a result_ary=( $__ )"
+    assert equal 0 "${#result_ary[@]}"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
   it "generates a representation of an array"; ( _shpec_failures=0
     sample_ary=( zero one )
     repr sample_ary
@@ -906,6 +984,14 @@ describe repr
     eval "declare -a result_ary=( $__ )"
     printf -v result '(%s) ' "${result_ary[@]}"
     assert equal $'(zero\none) (two)' "${result% }"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "generates a representation of an empty hash"; ( _shpec_failures=0
+    declare -A sample_hsh=()
+    repr sample_hsh
+    eval "declare -A result_hsh=( $__ )"
+    assert equal 0 "${#result_hsh[@]}"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
