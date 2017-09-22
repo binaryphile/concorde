@@ -1,4 +1,4 @@
-export TMPDIR=$HOME/tmp
+export TMPDIR=${TMPDIR:-$HOME/tmp}
 mkdir -p "$TMPDIR"
 
 set -o nounset
