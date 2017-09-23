@@ -140,13 +140,12 @@ value=$__
 `to_upper` capitalizes the input string and returns it in `__`.
 
 Note that `__` is always a string value.  Your functions should be
-careful not to store an actual array or hash in it (e.g. `__=( "array
-item" )`).
+careful not to store an actual array or hash in it, e.g. `__=( "array
+item" )`.
 
 This is because some of concorde's features rely on `__`'s type to be
 string.  Since bash automatically converts a string variable to an array
-or hash when assigned, doing so can interfere with concorde.  Once
-assigned.
+or hash when assigned, doing so can interfere with concorde.
 
 Dealing with Hashes and Arrays as Parameters
 --------------------------------------------
@@ -179,19 +178,19 @@ representation for an array, it does define such a format in its array
 assignment statements. You can see an example by running `declare -p
 <variable_name>`.
 
-Concorde borrows the same format, with minor changes, for the array
-literals expected by concorde's functions.
+Concorde borrows the same format for the array literals expected by
+concorde's functions, with minor changes.
 
 ### Passing an Array or Hash
 
-For example, to call a function `my_func` which expects a single array
-argument, you might define the array, then use concorde's `repr`
+For example, to call a function `my_function` which expects a single
+array argument, you might define the array, then use concorde's `repr`
 function to generate the string format:
 
 ```bash
 my_ary=( "first item" "second item" )
 repr my_ary
-my_func "$__"
+my_function "$__"
 ```
 
 Note that `repr` takes the name of the array as an argument and returns
@@ -246,8 +245,9 @@ my_function () {
 
 Both `local_ary` and `local_hsh` will allow you to pass them the name of
 the variable holding the string representation instead of the
-representation itself, if you so desire. They will detect the variable
-name and expand it themselves.
+representation itself. They will detect the variable name and expand it
+themselves.  This is the recommended method of calling them, as detailed
+in the "caveat" section below.
 
 This means you can call any concorde function which takes an array like
 so:
@@ -259,9 +259,9 @@ member_of __ "item one" && echo "'item one' is in array"
 ```
 
 `member_of` takes an array and an item and returns whether the array
-contains the item.  Since `repr` returns the string representation of
-the array in `__`, you can feed the name `__` to `member_of` instead of
-the expansion `$__`.  Of course, the expansion will work as well.
+contains the item.  `repr` returns the string representation of the
+array in `__`. Concorde lets you feed the name `__` as the first
+argument to `member_of` instead of the expansion `$__`.
 
 Concorde supports passing by name for array and hash representations,
 but not normal strings.
@@ -285,8 +285,8 @@ array that is also the name of a variable.
 
 ### Passing by Literal
 
-You may construct your own literals for arrays or hashes, but they
-follow slightly different rules.
+You may also construct your own literals for arrays or hashes but each
+follows its own, slightly different, rule.
 
 #### Arrays (Not Hashes)
 
@@ -438,3 +438,60 @@ my_function "required value" optional_arg="optional value"
 `"default value"`.
 
 To see an example of this, look at the `die` function.
+
+### The Other Array Literal, or Nested Arrays
+
+You can construct multidimensional arrays with concorde fairly simply.
+
+Let's start with a function which expects a two-dimensional array as its
+only argument:
+
+```bash
+my_function () {
+  $(local_nry outer_ary=$1)
+  local item
+  local row
+
+  for row in "${outer_ary[@]}"; do
+    $(local_ary inner_ary=$row)
+    for item in "${inner_ary[@]}"; do
+      echo "$item"
+    done
+  done
+}
+```
+
+`local_nry` introduces the idea of a newline-delimited array
+representation.  It creates a normal, local array named `outer_ary`, but
+expects a slightly different input.
+
+It expects a multiline array literal, separated by newlines.  This is
+different from `local_ary` because it only splits on newlines, not
+spaces or tabs.  In fact, that's the only difference between the two.
+
+That means that each row of the array representation can also contain an
+array representation, although those arrays can't hold unescaped
+newlines, just whitespace and escaped newlines.
+
+The function above creates the outer array from the newline-delimited
+representation, then interprets each row as a regular array
+representation.  That makes a nested array.
+
+Here's what such a representation looks like, using `get` and a heredoc:
+
+```bash
+get <<'EOS'
+  "first array, item one"  "first array, item two"
+  "second array, item one" "second array, item two"
+EOS
+my_func __
+```
+
+which would output:
+
+```bash
+first array, item one
+first array, item two
+second array, item one
+second array, item two
+```
