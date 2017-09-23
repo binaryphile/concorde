@@ -282,3 +282,159 @@ Be careful to avoid this situation or you will get unexpected behavior.
 The recommended way to avoid it is to always pass by variable name.  If
 you do pass a literal, however, ensure that it is not a single-item
 array that is also the name of a variable.
+
+### Passing by Literal
+
+You may construct your own literals for arrays or hashes, but they
+follow slightly different rules.
+
+#### Arrays (Not Hashes)
+
+The array syntax is to use a string which contains whitespace-separated
+items.  Whitespace includes spaces, tabs and newlines, the normal
+values in the field separator variable `IFS`.
+
+Array items which contain whitespace must either be quoted or escaped:
+
+```bash
+# example actual arrays and equivalent representations
+array1=( 'an item' 'another item' )
+representation1="'an item' 'another item'"
+
+array2=( an\ item  another\ item )
+representation2="an\ item  another\ item"
+```
+
+Either form, quoted or escaped, is acceptable.
+
+Notice that the representations above are simply the string form of what
+appears between the parentheses in the array declarations.  In fact, an
+array representation should be usable in the form:
+
+```bash
+eval "array=( $representation )"
+```
+
+For the most part, an array representation is equivalent to the portion
+of `declare -p`'s output from inside the parentheses, minus the
+bracketed indices.
+
+`repr` returns the escaped form, rather than quoted, and without
+indices.  Therefore concorde doesn't preserve the indexing of sparse
+arrays, since those require the inclusion of indices.
+
+The following are both examples of valid array literals:
+
+```bash
+# newlines separating items (spaced items still require quotes)
+my_literal='
+one
+two
+"three and four"
+'
+
+another_literal='one two "three and four"'
+```
+### Hashes
+
+Hashes, like arrays, are similar to the portion of `declare -p`'s output
+from inside the parentheses.  Unlike arrays, hash literals must include
+indices.  Unlike the regular form of hash declarations though, the
+indices are not in brackets.  For example:
+
+```bash
+my_literal="one=1 two=2 three_and_four='3 and 4'"
+```
+
+In this case, quoted items are quoted after the index and equals sign.
+Escaping works as well.
+
+`repr` generates this format when invoked on a hash.
+
+Notably, the following does *not* work on a hash representation:
+
+```bash
+# does NOT work
+eval "declare -A my_hsh=( $representation )"
+```
+
+That's because of the missing brackets on indices.
+
+Because the indices do not have brackets, concorde also doesn't support
+hash indices with spaces.  In general, concorde only supports hash
+indices which are also usable as variable names.  That is, keys which
+are composed only of alphanumeric and underscore characters, and don't
+start with a number.
+
+### Passing Arrays as Multiple Arguments
+
+`local_ary` is also geared to accept multiple arguments as an array.
+This can be useful when converting positional arguments into a named
+array:
+
+```bash
+my_function () {
+  $(local_ary my_ary="$@")
+  local item
+
+  for item in "${my_ary[@]}"; do
+    do_something_with "$item"
+  done
+}
+```
+
+### Passing Hashes as Multiple Arguments (a.k.a. Keyword Arguments)
+
+`local_hsh` can do the same thing with multiple arguments:
+
+```bash
+my_function () {
+  $(local_hsh my_hsh="$@")
+  local key
+
+  for key in "${!my_hsh[@]}"; do
+    do_something_with "${my_hsh[$key]}"
+  done
+}
+```
+
+Calling a function like this looks familiar from other languages:
+
+```bash
+my_function one=1 two=2 threeandfour="3 and 4"
+```
+
+Languages such as python and ruby allow you to specify named arguments
+via keywords like the above.
+
+Concorde's functions specify that any required arguments are passed
+first as positional arguments, and optional arguments are passed last as
+keyword arguments.  Optional arguments typically have built-in default
+values.  Here is an example of how such a function is implemented:
+
+```bash
+my_function () {
+  local required_arg=$1; shift
+  local optional_arg="default value"
+  $(grab optional_arg from "$@")
+
+  do_something_with "$required_arg"
+  do_something_with "$optional_arg"
+}
+```
+
+Any required arguments are stored and `shift`ed out of the positional
+arguments, then the remainder of optional arguments are `grab`bed from
+the remaining arguments.  `grab` just passes them to `local_hsh` before
+extracting them into local variables based on the key name(s).
+
+This is what it looks like calling `my_function`:
+
+```bash
+my_function "required value" optional_arg="optional value"
+```
+
+`optional_arg` can be left off, in which case it will get the value
+`"default value"`.
+
+To see an example of this, look at the `die` function.
