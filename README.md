@@ -12,16 +12,17 @@ Concorde is a toolkit for writing bash scripts and libraries.
 Features
 ========
 
--   a getopt-style option parser - `parse_options`
+-   an enhanced-getopt-style option parser - `parse_options`
 
--   array and hash (a.k.a. associative array) functions
+-   array and hash utility functions (hashes are also called associative
+    arrays)
 
--   smarter versions of `source` (a.k.a. `.`) - `require` and
-    `require_relative`
-
--   isolated global variable namespaces for different libraries
+-   smarter versions of `source`, a.k.a. the `.` operator - `require`
+    and `require_relative`
 
 -   support for test frameworks - `sourced`
+
+-   namespaces to isolate library variables from one another
 
 -   importation of only specified functions from libraries - `bring`
 
@@ -33,11 +34,15 @@ Requirements
 
 -   `sed` on your PATH
 
--   bash version 4.3 or 4.4 - tested with:
+-   bash 4.3 or 4.4 - tested with:
 
-    - 4.x
+    -   4.3.11
 
-    - etc
+    -   4.3.33
+
+    -   4.3.42
+
+    -   4.4.12
 
 Reserved Global Variables
 =========================
@@ -73,7 +78,7 @@ in order to trigger actions.
 
 For example the `sourced` function typically is used like so:
 
-```
+```bash
 sourced && return
 ```
 
@@ -88,7 +93,7 @@ to use command substitution.
 
 For example, the result of an `echo` command might be stored like so:
 
-```
+```bash
 # This is not concorde's method of doing this
 my_value=$(echo "the value")
 ```
@@ -100,23 +105,24 @@ Any concorde function which returns a string value does so in the global
 variable `__` (double-underscore).
 
 Because any function is allowed to overwrite `__` to return a value, you
-want to save that value before calling any other functions like so
-(`get` is a concorde function and `<<<` introduces a here-string):
+want to save that value before calling any other functions like so:
 
-```
+```bash
 get <<<"the value"
 my_value=$__
 ```
 
-This is much like how you must treat the value of the `$?` return code
-variable, since every command changes it.
+`get` is a concorde function and `<<<` introduces a here-string.
+
+This is much like how the value of the `$?` return code variable must be
+treated, since every successive command changes it.
 
 Note that because `__` is a global, it is discarded by the subshells
 which are employed by pipelines.  Therefore you cannot use pipelines to
 return strings from concorde functions.  For example, this will not
 work:
 
-```
+```bash
 # Doesn't work
 echo "the value" | get
 my_value=$__
@@ -128,26 +134,28 @@ Dealing with Hashes and Arrays as Parameters
 Bash can pass string variables to functions, but is not able to pass
 arrays (or hashes) as individual parameters to a function.
 
-If expanding an array into the positional arguments of a function call
-isn't acceptable, then typical bash practice is to refer to the array
-directly in an outer scope (e.g. a global variable) or to use named
-references (`declare -n` or `${!reference}`).
+If an array needs to be treated as a singular parameter to a function,
+typical bash practice is to use the shortcut of not passing it at all
+and instead just referring to the global variable directly by name.
+
+Another approach is to use named references (`declare -n` or
+`${!reference}`) instead of using a normal local variable.
 
 For many reasons, each of these approaches is problematic.
 
 The workaround employed by concorde is to simply convert arrays and
 hashes to strings (serialize them) when crossing function boundaries,
-either as arguments or return values.  Bash is good at passing strings.
+whether as arguments or return values.  Bash is good at passing strings.
 It's ok at returning them too, or at least better at it than at
 returning arrays.
 
 Any concorde function which expects an array or hash argument will
 expect a string representation of the array.
 
-Although bash doesn't formally have a string literal representation for
-an array, it does define such a format in its array assignment
-statements (you can see an example by running `declare -p
-<variable_name>`).
+Although bash doesn't have a general-purpose string literal
+representation for an array, it does define such a format in its array
+assignment statements. You can see an example by running `declare -p
+<variable_name>`.
 
 I borrow the same format, with minor changes, for the array literals
 expected by concorde's functions.
@@ -156,7 +164,7 @@ For example, to call a function `my_func` which expects a single array
 argument, you might define the array, then use concorde's `repr`
 function to generate the string format:
 
-```
+```bash
 my_ary=( "first item" "second item" )
 repr my_ary
 my_func "$__"
@@ -168,7 +176,7 @@ returns the string representation in `__`.
 To write a function which receives such an argument, you use concorde's
 `local_ary` function:
 
-```
+```bash
 my_func () {
   $(local_ary input_ary=$1)
   local item
@@ -179,10 +187,12 @@ my_func () {
 }
 ```
 
+`ary` is short for "array".
+
 `local_ary` creates a local array variable, in this case `input_ary`,
 and gives it the contents provided in the string argument.  For the rest
 of the function you use it like a normal array, because it is one.
 
 Note that the `$()` command substitution operator around `local_ary` is
-necessary for it to be able to create the `input_ary` variable in the
-calling function's (that's `my_func`'s) local scope.
+necessary.  Without it, `local_ary` can't create a local variable in the
+scope of the calling function.
