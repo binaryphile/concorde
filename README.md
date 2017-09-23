@@ -262,3 +262,22 @@ member_of __ "item one" && echo "'item one' is in array"
 contains the item.  Since `repr` returns the string representation of
 the array in `__`, you can feed the name `__` to `member_of` instead of
 the expansion `$__`.  Of course, the expansion will work as well.
+
+Concorde supports passing by name for array and hash representations,
+but not normal strings.
+
+### A Caveat
+
+The one caveat introduced by the pass-by-name functionality is that when
+*not* passing by name, an array representation containing a single item
+which happens to be a variable name will be expanded instead of used
+literally.
+
+This is not a problem for hashes.
+
+Be careful to avoid this situation or you will get unexpected behavior.
+One workaround is to always pass by name.  Another is to add an empty
+item to the array or a non-identifier character to the item, such as a
+space.
+
+A future version of concorde will limit the impact of this issue.
