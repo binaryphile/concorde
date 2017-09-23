@@ -268,16 +268,17 @@ but not normal strings.
 
 ### A Caveat
 
-The one caveat introduced by the pass-by-name functionality is that when
-*not* passing by name, an array representation containing a single item
-which happens to be a variable name will be expanded instead of used
-literally.
+The recommended way to use `local_ary` and `local_hsh` (and functions
+that employ them) is to always pass array parameters by name.
 
-This is not a problem for hashes.
+The caveat introduced by the pass-by-name functionality is that when
+*not* passing by name, an array which happens to contain only one item,
+one that is the name of a variable, it will have that item expanded when
+it wasn't meant to be.
+
+This is not a problem for hashes, only arrays.
 
 Be careful to avoid this situation or you will get unexpected behavior.
-One workaround is to always pass by name.  Another is to add an empty
-item to the array or a non-identifier character to the item, such as a
-space.
-
-A future version of concorde will limit the impact of this issue.
+The recommended way to avoid it is to always pass by variable name.  If
+you do pass a literal, however, ensure that it is not a single-item
+array that is also the name of a variable.
