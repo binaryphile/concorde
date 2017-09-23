@@ -139,15 +139,14 @@ value=$__
 
 `to_upper` capitalizes the input string and returns it in `__`.
 
-Note that `__` is always a string value.  Your functions which use it to
-return a string should be careful not to store an actual array or hash
-in it (e.g. `__=( "array item" )`).
+Note that `__` is always a string value.  Your functions should be
+careful not to store an actual array or hash in it (e.g. `__=( "array
+item" )`).
 
 This is because some of concorde's features rely on `__`'s type to be
 string.  Since bash automatically converts a string variable to an array
 or hash when assigned, doing so can interfere with concorde.  Once
-assigned, an array or hash variable cannot automatically be converted
-back to a string and concorde cannot safeguard `__`'s type.
+assigned.
 
 Dealing with Hashes and Arrays as Parameters
 --------------------------------------------
@@ -166,20 +165,24 @@ For a variety of reasons, each of these approaches is problematic.
 
 The workaround employed by concorde is to convert arrays and hashes to
 strings (serialize them) when crossing function boundaries, whether as
-arguments or return values. Bash is good at passing strings, and ok at
-returning them too. At least, it's better at it than at returning
-arrays.
+arguments or return values.  This gives you full control of your
+variable namespace. And while it's not good at passing arrays (hashes
+especially), bash is good at passing strings, so why not use that.
 
 Any concorde function which expects an array or hash argument will
-expect a string representation of the array.
+expect a string representation of the array. Although there are a couple
+functions which actually operate on arrays/hashes directly, those are
+clearly noted in the API documentation.
 
 Although bash doesn't have a general-purpose string literal
 representation for an array, it does define such a format in its array
 assignment statements. You can see an example by running `declare -p
 <variable_name>`.
 
-I borrow the same format, with minor changes, for the array literals
-expected by concorde's functions.
+Concorde borrows the same format, with minor changes, for the array
+literals expected by concorde's functions.
+
+### Passing an Array or Hash
 
 For example, to call a function `my_func` which expects a single array
 argument, you might define the array, then use concorde's `repr`
@@ -191,8 +194,12 @@ repr my_ary
 my_func "$__"
 ```
 
-Notice that `repr` takes the name of the array as an argument and
-returns the string representation in `__`.
+Note that `repr` takes the name of the array as an argument and returns
+the string representation in `__`.
+
+The same method works for a hash.
+
+### Receiving an Array
 
 To write a function which receives such an argument, you use concorde's
 `local_ary` function:
@@ -217,3 +224,41 @@ of the function you use it like a normal array, because it is one.
 Note that the `$()` command substitution operator around `local_ary` is
 necessary.  Without it, `local_ary` can't create a local variable in the
 scope of the caller.
+
+To receive a hash instead of an array, simply use the `local_hsh`
+function instead of `local_ary`.
+
+### Just Passing Through
+
+Of course, if your function only needs to receive an array/hash in order
+to pass it to another function, you don't need to convert the string
+representation into its array form, you can simply receive and pass the
+array in its string form:
+
+```bash
+my_function () {
+  local array_representation=$1
+  function2 "$array_representation"
+}
+```
+
+### Passing Arrays/Hashes by Name
+
+Both `local_ary` and `local_hsh` will allow you to pass them the name of
+the variable holding the string representation instead of the
+representation itself, if you so desire. They will detect the variable
+name and expand it themselves.
+
+This means you can call any concorde function which takes an array like
+so:
+
+```bash
+array=( "item one" )
+repr array
+member_of __ "item one" && echo "'item one' is in array"
+```
+
+`member_of` takes an array and an item and returns whether the array
+contains the item.  Since `repr` returns the string representation of
+the array in `__`, you can feed the name `__` to `member_of` instead of
+the expansion `$__`.  Of course, the expansion will work as well.
