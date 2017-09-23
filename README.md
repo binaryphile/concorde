@@ -14,8 +14,7 @@ Features
 
 -   an enhanced-getopt-style option parser - `parse_options`
 
--   array and hash utility functions (hashes are also called associative
-    arrays)
+-   array and hash utility functions (hashes as in "associative arrays")
 
 -   smarter versions of `source`, a.k.a. the `.` operator - `require`
     and `require_relative`
@@ -98,8 +97,8 @@ For example, the result of an `echo` command might be stored like so:
 my_value=$(echo "the value")
 ```
 
-Concorde doesn't use this method, as it is prone to capturing unexpected
-output (among other reasons).
+Concorde doesn't use this method as it is prone to capturing unexpected
+output and also requires an unnecessary subshell.
 
 Any concorde function which returns a string value does so in the global
 variable `__` (double-underscore).
@@ -112,10 +111,11 @@ get <<<"the value"
 my_value=$__
 ```
 
-`get` is a concorde function and `<<<` introduces a here-string.
+`get` is a concorde function which stores a string from `stdin` and
+`<<<` feeds it the supplied string.
 
-This is much like how the value of the `$?` return code variable must be
-treated, since every successive command changes it.
+`__` must be treated much the same as the `$?` return code, since every
+successive command may change it.
 
 Note that because `__` is a global, it is discarded by the subshells
 which are employed by pipelines.  Therefore you cannot use pipelines to
@@ -128,11 +128,32 @@ echo "the value" | get
 my_value=$__
 ```
 
+Because `__`'s value is ephemeral, it can be used to hold interim values
+and feed the output of one operation to the next:
+
+```bash
+get <<<"the value"
+to_upper "$__"
+value=$__
+```
+
+`to_upper` capitalizes the input string and returns it in `__`.
+
+Note that `__` is always a string value.  Your functions which use it to
+return a string should be careful not to store an actual array or hash
+in it (e.g. `__=( "array item" )`).
+
+This is because some of concorde's features rely on `__`'s type to be
+string.  Since bash automatically converts a string variable to an array
+or hash when assigned, doing so can interfere with concorde.  Once
+assigned, an array or hash variable cannot automatically be converted
+back to a string and concorde cannot safeguard `__`'s type.
+
 Dealing with Hashes and Arrays as Parameters
 --------------------------------------------
 
 Bash can pass string variables to functions, but is not able to pass
-arrays (or hashes) as individual parameters to a function.
+arrays nor hashes as individual parameters to a function.
 
 If an array needs to be treated as a singular parameter to a function,
 typical bash practice is to use the shortcut of not passing it at all
@@ -141,13 +162,13 @@ and instead just referring to the global variable directly by name.
 Another approach is to use named references (`declare -n` or
 `${!reference}`) instead of using a normal local variable.
 
-For many reasons, each of these approaches is problematic.
+For a variety of reasons, each of these approaches is problematic.
 
-The workaround employed by concorde is to simply convert arrays and
-hashes to strings (serialize them) when crossing function boundaries,
-whether as arguments or return values.  Bash is good at passing strings.
-It's ok at returning them too, or at least better at it than at
-returning arrays.
+The workaround employed by concorde is to convert arrays and hashes to
+strings (serialize them) when crossing function boundaries, whether as
+arguments or return values. Bash is good at passing strings, and ok at
+returning them too. At least, it's better at it than at returning
+arrays.
 
 Any concorde function which expects an array or hash argument will
 expect a string representation of the array.
@@ -195,4 +216,4 @@ of the function you use it like a normal array, because it is one.
 
 Note that the `$()` command substitution operator around `local_ary` is
 necessary.  Without it, `local_ary` can't create a local variable in the
-scope of the calling function.
+scope of the caller.
