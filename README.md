@@ -12,25 +12,26 @@ Concorde is a toolkit for writing bash scripts and libraries.
 Features
 ========
 
--   an enhanced-getopt-style option parser - `parse_options`
+-   an [enhanced-getopt style] option parser - `parse_options`
 
--   array and hash utility functions (hashes as in "associative arrays")
+-   [array] and hash utility functions - hashes, as in "[associative
+    arrays]"
 
 -   smarter versions of `source`, a.k.a. the `.` operator - `require`
     and `require_relative`
 
--   support for test frameworks - `sourced`
+-   support for test frameworks, such as [shpec]- `sourced`
 
--   `strict_mode` and automatic ruby-style tracebacks
+-   [`strict_mode`] and automatic ruby-style tracebacks
 
--   namespaces to isolate library variables from one another
+-   [namespaces] to isolate library variables from one another
 
 -   importation of only specified functions from libraries - `bring`
 
 Requirements
 ============
 
--   GNU `readlink` on your PATH - for Mac users, `greadlink` is also
+-   [GNU `readlink`] on your PATH - for Mac users, [`greadlink`] is also
     acceptable
 
 -   `sed` on your PATH
@@ -642,4 +643,12 @@ indentation which is not stripped, you can either place no indentation
 on the first line (and possibly add it after the fact if needed), or you
 can use the `get_raw` function which does no stripping at all.
 
+  [enhanced-getopt style]: https://linux.die.net/man/1/getopt
+  [array]: http://wiki.bash-hackers.org/syntax/arrays
+  [associative arrays]: http://wiki.bash-hackers.org/syntax/arrays#associative_bash_4
+  [shpec]: https://github.com/rylnd/shpec/tree/0.2.2
+  [`strict_mode`]: http://redsymbol.net/articles/unofficial-bash-strict-mode/
+  [namespaces]: https://en.wikipedia.org/wiki/Namespace#Computer-science_considerations
+  [GNU `readlink`]: https://linux.die.net/man/1/readlink
+  [`greadlink`]: https://apple.stackexchange.com/questions/69223/how-to-replace-mac-os-x-utilities-with-gnu-core-utilities/88812
   [tutorial]: share/doc/tutorial.md
