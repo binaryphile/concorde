@@ -308,7 +308,7 @@ representation2="an\ item  another\ item"
 Either form, quoted or escaped, is acceptable.
 
 Notice that the representations above are simply the string form of what
-appears between the parentheses in the array declarations.  In fact, an
+appears between the parentheses in array declarations.  In fact, an
 array representation should be usable in the form:
 
 ```bash
@@ -319,9 +319,10 @@ For the most part, an array representation is equivalent to the portion
 of `declare -p`'s output from inside the parentheses, minus the
 bracketed indices.
 
-`repr` returns the escaped form, rather than quoted, and without
-indices.  Therefore concorde doesn't preserve the indexing of sparse
-arrays, since those require the inclusion of indices.
+`repr` returns the escaped form, rather than quoted, and without indices
+(normal array declarations allow numerical indices in literals).
+Therefore concorde can't preserve the indexing of sparse arrays, since
+those require the inclusion of indices.
 
 The following are both examples of valid array literals:
 
@@ -441,10 +442,11 @@ To see an example of this, look at the `die` function.
 
 ### The Other Array Literal, or Nested Arrays
 
-You can construct multidimensional arrays with concorde fairly simply.
+You can construct nested array representations with concorde fairly
+simply.
 
-Let's start with a function which expects a two-dimensional array as its
-only argument:
+Let's start with a function which expects a nested array as its only
+argument:
 
 ```bash
 my_function () {
@@ -495,3 +497,69 @@ first array, item two
 second array, item one
 second array, item two
 ```
+
+Working With Strings
+--------------------
+
+Concorde includes several functions for working with strings.
+
+### Getting a Heredoc
+
+Heredocs are multiline strings which bash can read without requiring
+quotes.  It instead uses a user-specified marker to delimit the
+beginning and end of the string.  Here's an example:
+
+```bash
+read -d '' value <<'EOS'
+a multiline
+string value
+EOS
+echo "$value"
+```
+
+This gives the output:
+
+```bash
+a multiline
+string value
+```
+
+`EOS` is simply the terminal marker chosen by the user to end the
+string.  The terminal marker must appear on the last line by itself.
+
+The quotes around the initial `<<'EOS'` tell bash not to interpolate any
+variables appearing in the string.  They can be left off if you want the
+dollar-sign expansion of a variable to take place in the string.
+
+Concorde's `get` function reads such a string into the `__` variable.
+You can use either a quoted or non-quoted heredoc.
+
+In other languages, some heredoc implementations allow you to strip
+leading indentation of a block of text so that:
+
+```bash
+get <<'EOS'
+  a multiline
+  string value
+EOS
+echo "$__"
+```
+
+Also yields the same output without indentation:
+
+```bash
+a multiline
+string value
+```
+
+If the first line of a string has indentation, concorde's `get` will
+strip all matching indentation from the rest of the lines in the string.
+So the above output is what you will obtain from `get`.
+
+The indentation has to match exactly to be stripped,
+character-for-character, tab or space.
+
+This behavior works for most needs.  If you want leading indentation
+that is not stripped, you can either place no indentation on the first
+line (and possibly add it after the fact if needed), or you can use the
+`get_raw` function which does no stripping at all.
