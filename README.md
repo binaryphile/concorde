@@ -465,15 +465,19 @@ my_function () {
 
 `local_nry` introduces the idea of a newline-delimited array
 representation.  It creates a normal, local array named `outer_ary`, but
-expects a slightly different input.
+expects a slightly different input than `local_ary`.
 
-It expects a multiline array literal, separated by newlines.  This is
-different from `local_ary` because it only splits on newlines, not
+It expects a multiline array literal, separated only by newlines, not
 spaces or tabs.  In fact, that's the only difference between the two.
 
-That means that each row of the array representation can also contain an
-array representation, although those arrays can't hold unescaped
-newlines, just whitespace and escaped newlines.
+That means each row of the array representation can also contain its own
+array representation, although those arrays can't hold newlines, just
+other whitespace.
+
+If the inner arrays need to hold newlines, the newlines must be escaped.
+Quoting them won't suffice.  For example: `$'a multiline\nstring value'`
+is a valid value.  The escaped newline will be turned into a regular
+newline by the call to `local_ary`.
 
 The function above creates the outer array from the newline-delimited
 representation, then interprets each row as a regular array
@@ -483,7 +487,7 @@ Here's what such a representation looks like, using `get` and a heredoc:
 
 ```bash
 get <<'EOS'
-  "first array, item one"  "first array, item two"
+  "first array, item one"  "first array, item two" $'first array\nsecond line'
   "second array, item one" "second array, item two"
 EOS
 my_func __
@@ -494,8 +498,20 @@ which would output:
 ```bash
 first array, item one
 first array, item two
+first array
+second line
 second array, item one
 second array, item two
+```
+
+If using an unquoted heredoc, the dollar-sign needs to be escaped to
+delay interpolation:
+
+```bash
+get <<EOS
+  "first array, item one"  "first array, item two" \$'first array\nsecond line'
+  "second array, item one" "second array, item two"
+EOS
 ```
 
 Working With Strings
@@ -506,11 +522,12 @@ Concorde includes several functions for working with strings.
 ### Getting a Heredoc
 
 Heredocs are multiline strings which bash can read without requiring
-quotes.  It instead uses a user-specified marker to delimit the
-beginning and end of the string.  Here's an example:
+quotes.  Instead, bash uses a user-specified marker to delimit the
+beginning and end of the string.  Here's an example, where the marker is
+the string `EOS`:
 
 ```bash
-read -d '' value <<'EOS'
+read -rd '' value <<'EOS'
 a multiline
 string value
 EOS
@@ -525,7 +542,10 @@ string value
 ```
 
 `EOS` is simply the terminal marker chosen by the user to end the
-string.  The terminal marker must appear on the last line by itself.
+string.  The terminal marker must appear after the last line of the
+string, by itself.  Bash will strip any leading and trailing whitespace,
+as specified by `IFS`, from the just the first and last lines
+respectively.
 
 The quotes around the initial `<<'EOS'` tell bash not to interpolate any
 variables appearing in the string.  They can be left off if you want the
@@ -552,15 +572,15 @@ a multiline
 string value
 ```
 
-If the first line of a string has indentation, concorde's `get` will
-strip all matching indentation from the rest of the lines in the string.
-So the above output is what you will obtain from `get`.
+Concorde's `get` will do this if the first line of a string has
+indentation.  It strips all matching indentation from the rest of the
+lines in the string.
 
 The indentation of a line needs to match precisely,
-character-for-character, in order to be stripped.  Non-matching
-characters are not stripped.
+character-for-character, in order to be stripped.  Lines which start
+with non-matching characters are simply left alone and not altered.
 
-This behavior works for most needs.  If you want leading indentation
-that is not stripped, you can either place no indentation on the first
-line (and possibly add it after the fact if needed), or you can use the
-`get_raw` function which does no stripping at all.
+This behavior works for most needs.  If you happen to need leading
+indentation which is not stripped, you can either place no indentation
+on the first line (and possibly add it after the fact if needed), or you
+can use the `get_raw` function which does no stripping at all.
