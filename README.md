@@ -97,9 +97,9 @@ script_main () {
   # process the positional arguments
   while (( $# )); do                      # true while there are args
     case $1 in
-      "alternative 1" ) do_alternative_1;;
-      "alternative 2" ) do_alternative_2;;
-      * ) raise "unknown argument '$1'";;
+      "alternative 1" ) do_alternative_1    ;;
+      "alternative 2" ) do_alternative_2    ;;
+      * ) $(raise "unknown argument '$1'")  ;;
     esac
     shift                                 # move to next argument
   done
