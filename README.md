@@ -90,6 +90,7 @@ printf -v usage '\n%s\n' "$__"
 
 script_main () {
   $(grab 'option_var f_flag' from "$1")   # make locals of the options
+  shift
 
   do_something_with "$option_var"         # use the option value
   (( f_flag )) && do_something_with_flag  # this tests if -f was supplied
