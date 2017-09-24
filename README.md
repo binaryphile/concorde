@@ -98,8 +98,8 @@ script_main () {
   # process the positional arguments
   while (( $# )); do                      # true while there are args
     case $1 in
-      "alternative 1" ) do_alternative_1          ;;
-      "alternative 2" ) do_alternative_2          ;;
+      'alternative 1' ) do_alternative_1          ;;
+      'alternative 2' ) do_alternative_2          ;;
       * ) $(raise "Error: unknown argument '$1'") ;;
     esac
     shift                                 # move to next argument
@@ -122,6 +122,10 @@ EOS
 $(parse_options __ "$@")  || die "$usage" rc=0
 script_main     __ "$@"   || die "$usage" rc=0
 ```
+
+Read the rest of the usage section for a full explanation of the
+features used above, or look at the [tutorial] for a walkthrough which
+develops a script from the ground up.
 
 Functions Which Return Boolean Values
 -------------------------------------
@@ -637,3 +641,5 @@ This behavior works for most needs.  If you happen to need leading
 indentation which is not stripped, you can either place no indentation
 on the first line (and possibly add it after the fact if needed), or you
 can use the `get_raw` function which does no stripping at all.
+
+[tutorial]: share/doc/tutorial.md
