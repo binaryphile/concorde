@@ -440,7 +440,7 @@ my_function "required value" optional_arg="optional value"
 
 To see an example of this, look at the `die` function.
 
-### The Other Array Literal, or Nested Arrays
+### Newline-delimited Array Literals, or Nested Arrays
 
 You can construct nested array representations with concorde fairly
 simply.
@@ -556,8 +556,9 @@ If the first line of a string has indentation, concorde's `get` will
 strip all matching indentation from the rest of the lines in the string.
 So the above output is what you will obtain from `get`.
 
-The indentation has to match exactly to be stripped,
-character-for-character, tab or space.
+The indentation of a line needs to match precisely,
+character-for-character, in order to be stripped.  Non-matching
+characters are not stripped.
 
 This behavior works for most needs.  If you want leading indentation
 that is not stripped, you can either place no indentation on the first
