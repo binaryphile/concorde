@@ -48,7 +48,7 @@ Requirements
 Reserved Global Variables
 =========================
 
-Concorde reserves a couple global variables for its own use.  They begin
+Concorde reserves a couple global variables for its own use. They begin
 with `__` (double-underscore)
 
 -   `__` - double-underscore itself
@@ -74,7 +74,7 @@ Consult the API specification below for full details.
 A Sample Script Template
 ------------------------
 
-```bash
+``` bash
 #!/usr/bin/env bash
 
 source concorde.bash
@@ -135,7 +135,7 @@ in order to trigger actions.
 
 For example the `sourced` function typically is used like so:
 
-```bash
+``` bash
 sourced && return
 ```
 
@@ -150,7 +150,7 @@ to use command substitution.
 
 For example, the result of an `echo` command might be stored like so:
 
-```bash
+``` bash
 # This is not concorde's method of doing this
 my_value=$(echo "the value")
 ```
@@ -164,7 +164,7 @@ variable `__` (double-underscore).
 Because any function is allowed to overwrite `__` to return a value, you
 want to save that value before calling any other functions like so:
 
-```bash
+``` bash
 get <<<"the value"
 my_value=$__
 ```
@@ -176,11 +176,10 @@ my_value=$__
 successive command may change it.
 
 Note that because `__` is a global, it is discarded by the subshells
-which are employed by pipelines.  Therefore you cannot use pipelines to
-return strings from concorde functions.  For example, this will not
-work:
+which are employed by pipelines. Therefore you cannot use pipelines to
+return strings from concorde functions. For example, this will not work:
 
-```bash
+``` bash
 # Doesn't work
 echo "the value" | get
 my_value=$__
@@ -189,7 +188,7 @@ my_value=$__
 Because `__`'s value is ephemeral, it can be used to hold interim values
 and feed the output of one operation to the next:
 
-```bash
+``` bash
 get <<<"the value"
 to_upper "$__"
 value=$__
@@ -197,12 +196,12 @@ value=$__
 
 `to_upper` capitalizes the input string and returns it in `__`.
 
-Note that `__` is always a string value.  Your functions should be
-careful not to store an actual array or hash in it, e.g. `__=( "array
-item" )`.
+Note that `__` is always a string value. Your functions should be
+careful not to store an actual array or hash in it, e.g.
+`__=( "array item" )`.
 
 This is because some of concorde's features rely on `__`'s type to be
-string.  Since bash automatically converts a string variable to an array
+string. Since bash automatically converts a string variable to an array
 or hash when assigned, doing so can interfere with concorde.
 
 Dealing with Hashes and Arrays as Parameters
@@ -222,8 +221,8 @@ For a variety of reasons, each of these approaches is problematic.
 
 The workaround employed by concorde is to convert arrays and hashes to
 strings (serialize them) when crossing function boundaries, whether as
-arguments or return values.  This gives you full control of your
-variable namespace. And while it's not good at passing arrays (hashes
+arguments or return values. This gives you full control of your variable
+namespace. And while it's not good at passing arrays (hashes
 especially), bash is good at passing strings, so why not use that.
 
 Any concorde function which expects an array or hash argument will
@@ -233,8 +232,8 @@ clearly noted in the API documentation.
 
 Although bash doesn't have a general-purpose string literal
 representation for an array, it does define such a format in its array
-assignment statements. You can see an example by running `declare -p
-<variable_name>`.
+assignment statements. You can see an example by running
+`declare -p <variable_name>`.
 
 Concorde borrows the same format for the array literals expected by
 concorde's functions, with minor changes.
@@ -245,7 +244,7 @@ For example, to call a function `my_function` which expects a single
 array argument, you might define the array, then use concorde's `repr`
 function to generate the string format:
 
-```bash
+``` bash
 my_ary=( "first item" "second item" )
 repr my_ary
 my_function "$__"
@@ -261,7 +260,7 @@ The same method works for a hash.
 To write a function which receives such an argument, you use concorde's
 `local_ary` function:
 
-```bash
+``` bash
 my_func () {
   $(local_ary input_ary=$1)
   local item
@@ -275,11 +274,11 @@ my_func () {
 `ary` is short for "array".
 
 `local_ary` creates a local array variable, in this case `input_ary`,
-and gives it the contents provided in the string argument.  For the rest
+and gives it the contents provided in the string argument. For the rest
 of the function you use it like a normal array, because it is one.
 
 Note that the `$()` command substitution operator around `local_ary` is
-necessary.  Without it, `local_ary` can't create a local variable in the
+necessary. Without it, `local_ary` can't create a local variable in the
 scope of the caller.
 
 To receive a hash instead of an array, simply use the `local_hsh`
@@ -292,7 +291,7 @@ to pass it to another function, you don't need to convert the string
 representation into its array form, you can simply receive and pass the
 array in its string form:
 
-```bash
+``` bash
 my_function () {
   local array_representation=$1
   function2 "$array_representation"
@@ -304,22 +303,22 @@ my_function () {
 Both `local_ary` and `local_hsh` will allow you to pass them the name of
 the variable holding the string representation instead of the
 representation itself. They will detect the variable name and expand it
-themselves.  This is the recommended method of calling them, as detailed
+themselves. This is the recommended method of calling them, as detailed
 in the "caveat" section below.
 
 This means you can call any concorde function which takes an array like
 so:
 
-```bash
+``` bash
 array=( "item one" )
 repr array
 member_of __ "item one" && echo "'item one' is in array"
 ```
 
 `member_of` takes an array and an item and returns whether the array
-contains the item.  `repr` returns the string representation of the
-array in `__`. Concorde lets you feed the name `__` as the first
-argument to `member_of` instead of the expansion `$__`.
+contains the item. `repr` returns the string representation of the array
+in `__`. Concorde lets you feed the name `__` as the first argument to
+`member_of` instead of the expansion `$__`.
 
 Concorde supports passing by name for array and hash representations,
 but not normal strings.
@@ -337,7 +336,7 @@ it wasn't meant to be.
 This is not a problem for hashes, only arrays.
 
 Be careful to avoid this situation or you will get unexpected behavior.
-The recommended way to avoid it is to always pass by variable name.  If
+The recommended way to avoid it is to always pass by variable name. If
 you do pass a literal, however, ensure that it is not a single-item
 array that is also the name of a variable.
 
@@ -349,12 +348,12 @@ follows its own, slightly different, rule.
 #### Arrays (Not Hashes)
 
 The array syntax is to use a string which contains whitespace-separated
-items.  Whitespace includes spaces, tabs and newlines, the normal
-values in the field separator variable `IFS`.
+items. Whitespace includes spaces, tabs and newlines, the normal values
+in the field separator variable `IFS`.
 
 Array items which contain whitespace must either be quoted or escaped:
 
-```bash
+``` bash
 # example actual arrays and equivalent representations
 array1=( 'an item' 'another item' )
 representation1="'an item' 'another item'"
@@ -366,10 +365,10 @@ representation2="an\ item  another\ item"
 Either form, quoted or escaped, is acceptable.
 
 Notice that the representations above are simply the string form of what
-appears between the parentheses in array declarations.  In fact, an
-array representation should be usable in the form:
+appears between the parentheses in array declarations. In fact, an array
+representation should be usable in the form:
 
-```bash
+``` bash
 eval "array=( $representation )"
 ```
 
@@ -384,7 +383,7 @@ those require the inclusion of indices.
 
 The following are both examples of valid array literals:
 
-```bash
+``` bash
 # newlines separating items (spaced items still require quotes)
 my_literal='
 one
@@ -394,14 +393,15 @@ two
 
 another_literal='one two "three and four"'
 ```
+
 ### Hashes
 
 Hashes, like arrays, are similar to the portion of `declare -p`'s output
-from inside the parentheses.  Unlike arrays, hash literals must include
-indices.  Unlike the regular form of hash declarations though, the
-indices are not in brackets.  For example:
+from inside the parentheses. Unlike arrays, hash literals must include
+indices. Unlike the regular form of hash declarations though, the
+indices are not in brackets. For example:
 
-```bash
+``` bash
 my_literal="one=1 two=2 three_and_four='3 and 4'"
 ```
 
@@ -412,7 +412,7 @@ Escaping works as well.
 
 Notably, the following does *not* work on a hash representation:
 
-```bash
+``` bash
 # does NOT work
 eval "declare -A my_hsh=( $representation )"
 ```
@@ -420,10 +420,10 @@ eval "declare -A my_hsh=( $representation )"
 That's because of the missing brackets on indices.
 
 Because the indices do not have brackets, concorde also doesn't support
-hash indices with spaces.  In general, concorde only supports hash
-indices which are also usable as variable names.  That is, keys which
-are composed only of alphanumeric and underscore characters, and don't
-start with a number.
+hash indices with spaces. In general, concorde only supports hash
+indices which are also usable as variable names. That is, keys which are
+composed only of alphanumeric and underscore characters, and don't start
+with a number.
 
 ### Passing Arrays as Multiple Arguments
 
@@ -431,7 +431,7 @@ start with a number.
 This can be useful when converting positional arguments into a named
 array:
 
-```bash
+``` bash
 my_function () {
   $(local_ary my_ary="$@")
   local item
@@ -446,7 +446,7 @@ my_function () {
 
 `local_hsh` can do the same thing with multiple arguments:
 
-```bash
+``` bash
 my_function () {
   $(local_hsh my_hsh="$@")
   local key
@@ -459,7 +459,7 @@ my_function () {
 
 Calling a function like this looks familiar from other languages:
 
-```bash
+``` bash
 my_function one=1 two=2 threeandfour="3 and 4"
 ```
 
@@ -468,10 +468,10 @@ via keywords like the above.
 
 Concorde's functions specify that any required arguments are passed
 first as positional arguments, and optional arguments are passed last as
-keyword arguments.  Optional arguments typically have built-in default
-values.  Here is an example of how such a function is implemented:
+keyword arguments. Optional arguments typically have built-in default
+values. Here is an example of how such a function is implemented:
 
-```bash
+``` bash
 my_function () {
   local required_arg=$1; shift
   local optional_arg="default value"
@@ -484,12 +484,12 @@ my_function () {
 
 Any required arguments are stored and `shift`ed out of the positional
 arguments, then the remainder of optional arguments are `grab`bed from
-the remaining arguments.  `grab` just passes them to `local_hsh` before
+the remaining arguments. `grab` just passes them to `local_hsh` before
 extracting them into local variables based on the key name(s).
 
 This is what it looks like calling `my_function`:
 
-```bash
+``` bash
 my_function "required value" optional_arg="optional value"
 ```
 
@@ -506,7 +506,7 @@ simply.
 Let's start with a function which expects a nested array as its only
 argument:
 
-```bash
+``` bash
 my_function () {
   $(local_nry outer_ary=$1)
   local item
@@ -522,28 +522,28 @@ my_function () {
 ```
 
 `local_nry` introduces the idea of a newline-delimited array
-representation.  It creates a normal, local array named `outer_ary`, but
+representation. It creates a normal, local array named `outer_ary`, but
 expects a slightly different input than `local_ary`.
 
 It expects a multiline array literal, separated only by newlines, not
-spaces or tabs.  In fact, that's the only difference between the two.
+spaces or tabs. In fact, that's the only difference between the two.
 
 That means each row of the array representation can also contain its own
 array representation, although those arrays can't hold newlines, just
 other whitespace.
 
 If the inner arrays need to hold newlines, the newlines must be escaped.
-Quoting them won't suffice.  For example: `$'a multiline\nstring value'`
-is a valid value.  The escaped newline will be turned into a regular
+Quoting them won't suffice. For example: `$'a multiline\nstring value'`
+is a valid value. The escaped newline will be turned into a regular
 newline by the call to `local_ary`.
 
 The function above creates the outer array from the newline-delimited
 representation, then interprets each row as a regular array
-representation.  That makes a nested array.
+representation. That makes a nested array.
 
 Here's what such a representation looks like, using `get` and a heredoc:
 
-```bash
+``` bash
 get <<'EOS'
   "first array, item one"  $'first array\nitem two with newline'
   "second array, item one" "second array, item two"
@@ -553,7 +553,7 @@ my_func __
 
 which would output:
 
-```bash
+``` bash
 first array, item one
 first array
 item two with newline
@@ -564,7 +564,7 @@ second array, item two
 If using an unquoted heredoc, the dollar-sign needs to be escaped to
 delay interpolation:
 
-```bash
+``` bash
 get <<EOS
   "first array, item one"  \$'first array\nitem two with newline'
   "second array, item one" "second array, item two"
@@ -579,11 +579,11 @@ Concorde includes several functions for working with strings.
 ### Getting a Heredoc
 
 Heredocs are multiline strings which bash can read without requiring
-quotes.  Instead, bash uses a user-specified marker to delimit the
-beginning and end of the string.  Here's an example, where the marker is
+quotes. Instead, bash uses a user-specified marker to delimit the
+beginning and end of the string. Here's an example, where the marker is
 the string `EOS`:
 
-```bash
+``` bash
 read -rd '' value <<'EOS'
 a multiline
 string value
@@ -593,19 +593,19 @@ echo "$value"
 
 This gives the output:
 
-```bash
+``` bash
 a multiline
 string value
 ```
 
 `EOS` is simply the terminal marker chosen by the user to end the
-string.  The terminal marker must appear after the last line of the
-string, by itself.  Bash will strip any leading and trailing whitespace,
+string. The terminal marker must appear after the last line of the
+string, by itself. Bash will strip any leading and trailing whitespace,
 as specified by `IFS`, from the just the first and last lines
 respectively.
 
 The quotes around the initial `<<'EOS'` tell bash not to interpolate any
-variables appearing in the string.  They can be left off if you want the
+variables appearing in the string. They can be left off if you want the
 dollar-sign expansion of a variable to take place in the string.
 
 Concorde's `get` function reads such a string into the `__` variable.
@@ -614,7 +614,7 @@ You can use either a quoted or non-quoted heredoc.
 In other languages, some heredoc implementations allow you to strip
 leading indentation of a block of text so that:
 
-```bash
+``` bash
 get <<'EOS'
   a multiline
   string value
@@ -624,22 +624,22 @@ echo "$__"
 
 Also yields the same output without indentation:
 
-```bash
+``` bash
 a multiline
 string value
 ```
 
 Concorde's `get` will do this if the first line of a string has
-indentation.  It strips all matching indentation from the rest of the
+indentation. It strips all matching indentation from the rest of the
 lines in the string.
 
 The indentation of a line needs to match precisely,
-character-for-character, in order to be stripped.  Lines which start
-with non-matching characters are simply left alone and not altered.
+character-for-character, in order to be stripped. Lines which start with
+non-matching characters are simply left alone and not altered.
 
-This behavior works for most needs.  If you happen to need leading
+This behavior works for most needs. If you happen to need leading
 indentation which is not stripped, you can either place no indentation
 on the first line (and possibly add it after the fact if needed), or you
 can use the `get_raw` function which does no stripping at all.
 
-[tutorial]: share/doc/tutorial.md
+  [tutorial]: share/doc/tutorial.md
