@@ -21,6 +21,8 @@ Features
 
 -   support for test frameworks - `sourced`
 
+-   `strict_mode` and automatic ruby-style tracebacks
+
 -   namespaces to isolate library variables from one another
 
 -   importation of only specified functions from libraries - `bring`
@@ -95,8 +97,9 @@ script_main () {
   # process the positional arguments
   while (( $# )); do                      # true while there are args
     case $1 in
-      "alternative 1" ) do_something_with      "$1";;
-      "alternative 2" ) do_something_else_with "$1";;
+      "alternative 1" ) do_alternative_1;;
+      "alternative 2" ) do_alternative_2;;
+      * ) raise "unknown argument '$1'";;
     esac
     shift                                 # move to next argument
   done
@@ -104,8 +107,8 @@ script_main () {
 
 [other functions...]
 
-sourced && return       # stop here for test frameworks
-strict_mode on          # stop on errors and issue traceback
+sourced && return       # stop here when testing the script
+strict_mode on          # stop on errors and issue a traceback
 
 # define command-line options
 # short   long      var name    help
