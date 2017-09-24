@@ -90,17 +90,17 @@ printf -v usage '\n%s\n' "$__"
 
 script_main () {
   $(grab 'option_var f_flag' from "$1")   # make locals of the options
-  shift
+  shift                                   # make ready to process args
 
   do_something_with "$option_var"         # use the option value
-  (( f_flag )) && do_something_with_flag  # this tests if -f was supplied
+  (( f_flag )) && do_something_with_flag  # test if -f was supplied
 
   # process the positional arguments
   while (( $# )); do                      # true while there are args
     case $1 in
-      "alternative 1" ) do_alternative_1    ;;
-      "alternative 2" ) do_alternative_2    ;;
-      * ) $(raise "unknown argument '$1'")  ;;
+      "alternative 1" ) do_alternative_1          ;;
+      "alternative 2" ) do_alternative_2          ;;
+      * ) $(raise "Error: unknown argument '$1'") ;;
     esac
     shift                                 # move to next argument
   done
@@ -119,8 +119,8 @@ get <<'EOS'
   -f      ''        ''          "a flag that is true when given"
 EOS
 
-$(parse_options __ "$@") || die "$usage" rc=0
-script_main     __ "$@"
+$(parse_options __ "$@")  || die "$usage" rc=0
+script_main     __ "$@"   || die "$usage" rc=0
 ```
 
 Functions Which Return Boolean Values
