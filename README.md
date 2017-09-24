@@ -69,6 +69,56 @@ Usage
 
 Consult the API specification below for full details.
 
+A Sample Script Template
+------------------------
+
+```bash
+#!/usr/bin/env bash
+
+source concorde.bash
+
+get <<'EOS'
+  Usage:  script [options] arguments...
+
+    Options:
+      -o | --option   <value>     a value to pass into the script
+      -f                          a flag that is true when given
+EOS
+printf -v usage '\n%s\n' "$__"
+
+script_main () {
+  $(grab 'option_var f_flag' from "$1")   # make locals of the options
+
+  do_something_with "$option_var"         # use the option value
+  (( f_flag )) && do_something_with_flag  # this tests if -f was supplied
+
+  # process the positional arguments
+  while (( $# )); do                      # true while there are args
+    case $1 in
+      "alternative 1" ) do_something_with      "$1";;
+      "alternative 2" ) do_something_else_with "$1";;
+    esac
+    shift                                 # move to next argument
+  done
+}
+
+[other functions...]
+
+sourced && return       # stop here for test frameworks
+strict_mode on          # stop on errors and issue traceback
+
+# define command-line options
+# short   long      var name    help
+# -----   ----      --------    ----
+get <<'EOS'
+  -o      --option  option_var  "a value to pass into the script"
+  -f      ''        ''          "a flag that is true when given"
+EOS
+
+$(parse_options __ "$@") || die "$usage" rc=0
+script_main     __ "$@"
+```
+
 Functions Which Return Boolean Values
 -------------------------------------
 
@@ -487,7 +537,7 @@ Here's what such a representation looks like, using `get` and a heredoc:
 
 ```bash
 get <<'EOS'
-  "first array, item one"  "first array, item two" $'first array\nsecond line'
+  "first array, item one"  $'first array\nitem two with newline'
   "second array, item one" "second array, item two"
 EOS
 my_func __
@@ -497,9 +547,8 @@ which would output:
 
 ```bash
 first array, item one
-first array, item two
 first array
-second line
+item two with newline
 second array, item one
 second array, item two
 ```
@@ -509,7 +558,7 @@ delay interpolation:
 
 ```bash
 get <<EOS
-  "first array, item one"  "first array, item two" \$'first array\nsecond line'
+  "first array, item one"  \$'first array\nitem two with newline'
   "second array, item one" "second array, item two"
 EOS
 ```
