@@ -22,7 +22,8 @@ Features
 
 -   support for test frameworks, such as [shpec]- `sourced`
 
--   [`strict_mode`] and automatic ruby-style tracebacks
+-   automatic ruby-style tracebacks on errors - [`strict_mode`] minus
+    Aaron Maxwell's `IFS` change
 
 -   [namespaces] to isolate library variables from one another
 
