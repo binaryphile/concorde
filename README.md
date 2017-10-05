@@ -313,25 +313,30 @@ my_function () {
 Both `local_ary` and `local_hsh` will allow you to pass them the name of
 the variable holding the string representation instead of the
 representation itself. They will detect the variable name and expand it
-themselves. This is the recommended method of calling them, as detailed
-in the "caveat" section below.
+themselves. In general, you should pass variable names instead of
+[expansions] wherever possible.
 
-This means you can call any concorde function which takes an array like
-so:
+Let's look at an example.  The following lines prepare an array
+representation in `__`:
 
 ``` bash
 array=( "item one" )
 repr array
-member_of __ "item one" && echo "'item one' is in array"
 ```
 
-`member_of` takes an array and an item and returns whether the array
-contains the item. `repr` returns the string representation of the array
-in `__`. Concorde lets you feed the name `__` as the first argument to
-`member_of` instead of the expansion `$__`.
+Concorde's `member_of` function takes an array representation, along
+with an array item we're looking for, and returns a boolean indicating
+whether the item was found in the array.  Instead of using the array
+expansion `$__`, you can give it the name of the array variable instead
+(`__`):
+
+``` bash
+member_of __ "item one" && put "'item one' is in the array"
+```
 
 Concorde supports passing by name for array and hash representations,
-but not normal strings.
+but not normal string variables.  You still have to use expansions for
+regular strings.
 
 ### A Caveat
 
@@ -664,3 +669,4 @@ can use the `get_raw` function which does no stripping at all.
   [tutorial]: share/doc/tutorial.md
   [command substitution]: http://wiki.bash-hackers.org/syntax/expansion/cmdsubst
   [array assignment]: http://wiki.bash-hackers.org/syntax/arrays
+  [expansions]: http://wiki.bash-hackers.org/syntax/pe
