@@ -345,31 +345,33 @@ that employ them) is to always pass array parameters by name.
 
 The caveat introduced by the pass-by-name functionality is that when
 *not* passing by name, an array which happens to contain only one item,
-one that is the name of a variable, it will have that item expanded when
-it wasn't meant to be.
+where that one item is the name of a variable, the variable will
+mistakenly be expanded since it's not possible to tell the difference
+between that and a normal array variable expansion.
 
 This is not a problem for hashes, only arrays.
 
 Be careful to avoid this situation or you will get unexpected behavior.
-The recommended way to avoid it is to always pass by variable name. If
-you do pass a literal, however, ensure that it is not a single-item
-array that is also the name of a variable.
+The recommended way to avoid it is to always pass array representations
+by variable name. If you do pass a literal, however, ensure that it is
+not a single-item array that is also the name of a variable.
 
 ### Passing by Literal
 
-You may also construct your own literals for arrays or hashes but each
-follows its own, slightly different, rule.
+You may also construct your own literals for arrays or hashes, but the
+two each follow their own, slightly different, rule.
 
 #### Arrays (Not Hashes)
 
-The array syntax is to use a string which contains whitespace-separated
-items. Whitespace includes spaces, tabs and newlines, the normal values
-in the field separator variable `IFS`.
+The array syntax consists of whitespace-separated items. Whitespace
+includes spaces, tabs and newlines; the normal values in the field
+separator variable `IFS`.
 
-Array items which contain whitespace must either be quoted or escaped:
+Individual array items which contain whitespace must either be quoted or
+escaped:
 
 ``` bash
-# example actual arrays and equivalent representations
+# actual arrays and equivalent representations
 array1=( 'an item' 'another item' )
 representation1="'an item' 'another item'"
 
@@ -377,24 +379,23 @@ array2=( an\ item  another\ item )
 representation2="an\ item  another\ item"
 ```
 
-Either form, quoted or escaped, is acceptable.
+Either form shown above, quoted or escaped, is acceptable.
 
 Notice that the representations above are simply the string form of what
 appears between the parentheses in array declarations. In fact, an array
-representation should be usable in the form:
+representation should be usable in the statement:
 
 ``` bash
 eval "array=( $representation )"
 ```
 
 For the most part, an array representation is equivalent to the portion
-of `declare -p`'s output from inside the parentheses, minus the
-bracketed indices.
+inside the parentheses of `declare -p`'s output, minus the bracketed
+indices.
 
-`repr` returns the escaped form, rather than quoted, and without indices
-(normal array declarations allow numerical indices in literals).
-Therefore concorde can't preserve the indexing of sparse arrays, since
-those require the inclusion of indices.
+`repr` returns the escaped form, rather than quoted, and without
+indices.  Therefore concorde can't preserve the indexing of sparse
+arrays, since those require that indices be preserved.
 
 The following are both examples of valid array literals:
 
@@ -411,17 +412,17 @@ another_literal='one two "three and four"'
 
 ### Hashes
 
-Hashes, like arrays, are similar to the portion of `declare -p`'s output
-from inside the parentheses. Unlike arrays, hash literals must include
-indices. Unlike the regular form of hash declarations though, the
-indices are not in brackets. For example:
+Hashes, like arrays, are similar to the portion inside the parentheses
+of `declare -p`'s output.  Unlike arrays, however, hash literals must
+include indices. Unlike the regular form of hash declarations though,
+concorde's indices are not in brackets. For example:
 
 ``` bash
 my_literal="one=1 two=2 three_and_four='3 and 4'"
 ```
 
-In this case, quoted items are quoted after the index and equals sign.
-Escaping works as well.
+In this case, quoted items are quoted after the index and equals sign
+(as in `'3 and 4'`).  Escaping works as well.
 
 `repr` generates this format when invoked on a hash.
 
@@ -457,7 +458,7 @@ my_function () {
 }
 ```
 
-### Passing Hashes as Multiple Arguments (a.k.a. Keyword Arguments)
+### Passing Hashes as Multiple Arguments (a.k.a. [Keyword Arguments])
 
 `local_hsh` can do the same thing with multiple arguments:
 
@@ -481,10 +482,13 @@ my_function one=1 two=2 threeandfour="3 and 4"
 Languages such as python and ruby allow you to specify named arguments
 via keywords like the above.
 
-Concorde's functions specify that any required arguments are passed
-first as positional arguments, and optional arguments are passed last as
-keyword arguments. Optional arguments typically have built-in default
-values. Here is an example of how such a function is implemented:
+Required arguments must be passed first in line, as positional
+arguments. Optional arguments may then be passed last as keyword
+arguments.
+
+Optional arguments have default values defined by the function.
+
+Here is an example of how such a function is implemented:
 
 ``` bash
 my_function () {
@@ -498,9 +502,8 @@ my_function () {
 ```
 
 Any required arguments are stored and `shift`ed out of the positional
-arguments, then the remainder of optional arguments are `grab`bed from
-the remaining arguments. `grab` just passes them to `local_hsh` before
-extracting them into local variables based on the key name(s).
+arguments, then the optional values are `grab`bed by name from the
+residual arguments.
 
 This is what it looks like calling `my_function`:
 
@@ -508,15 +511,13 @@ This is what it looks like calling `my_function`:
 my_function "required value" optional_arg="optional value"
 ```
 
-`optional_arg` can be left off, in which case it will get the value
-`"default value"`.
-
-To see an example of this, look at the `die` function.
+`optional_arg=...` can be left off, in which case the function will get
+the default value.
 
 ### Newline-delimited Array Literals, or Nested Arrays
 
 You can construct nested array representations with concorde fairly
-simply.
+easily.
 
 Let's start with a function which expects a nested array as its only
 argument:
@@ -536,16 +537,21 @@ my_function () {
 }
 ```
 
+You've seen `local_ary` so far, but `local_nry` is new.
+
 `local_nry` introduces the idea of a newline-delimited array
-representation. It creates a normal, local array named `outer_ary`, but
-expects a slightly different input than `local_ary`.
+representation. Like `local_ary`, it creates a local array (named
+`outer_ary`), but expects a slightly different input than `local_ary`
+would.
 
 It expects a multiline array literal, separated only by newlines, not
-spaces or tabs. In fact, that's the only difference between the two.
+spaces or tabs. In fact, the only difference between the two is that
+`local_ary` separates items on tabs and spaces in addition to newlines,
+while `local_nry` only separates on newlines.
 
-That means each row of the array representation can also contain its own
-array representation, although those arrays can't hold newlines, just
-other whitespace.
+That means each row of the newline-array representation can contain a
+regular array representation, so long as those representations don't
+employ newlines.
 
 If the inner arrays need to hold newlines, the newlines must be escaped.
 Quoting them won't suffice. For example: `$'a multiline\nstring value'`
@@ -556,7 +562,7 @@ The function above creates the outer array from the newline-delimited
 representation, then interprets each row as a regular array
 representation. That makes a nested array.
 
-Here's what such a representation looks like, using `get` and a heredoc:
+Here's how you would call such a function:
 
 ``` bash
 get <<'EOS'
@@ -566,7 +572,7 @@ EOS
 my_func __
 ```
 
-which would output:
+Its output would be:
 
 ``` bash
 first array, item one
@@ -576,8 +582,8 @@ second array, item one
 second array, item two
 ```
 
-If using an unquoted heredoc, the dollar-sign needs to be escaped to
-delay interpolation:
+If using an unquoted heredoc (no quotes around our marker `EOS`), the
+dollar-sign needs to be escaped to delay expansion:
 
 ``` bash
 get <<EOS
@@ -593,15 +599,15 @@ Concorde includes several functions for working with strings.
 
 ### Getting a Heredoc
 
-Heredocs are multiline strings which bash can read without requiring
+Heredocs are multiline strings which bash reads without requiring
 quotes. Instead, bash uses a user-specified marker to delimit the
 beginning and end of the string. Here's an example, where the marker is
 the string `EOS`:
 
 ``` bash
 read -rd '' value <<'EOS'
-a multiline
-string value
+  a multiline
+  string value
 EOS
 echo "$value"
 ```
@@ -610,21 +616,23 @@ This gives the output:
 
 ``` bash
 a multiline
-string value
+  string value
 ```
 
 `EOS` is simply the terminal marker chosen by the user to end the
 string. The terminal marker must appear after the last line of the
-string, by itself. Bash will strip any leading and trailing whitespace,
-as specified by `IFS`, from the just the first and last lines
-respectively.
+string, by itself. Bash will strip leading whitespace from the first
+line of content and trailing whitespace from the last line of content.
+This is what causes the peculiar indentation of the above output.
 
-The quotes around the initial `<<'EOS'` tell bash not to interpolate any
-variables appearing in the string. They can be left off if you want the
-dollar-sign expansion of a variable to take place in the string.
+The quotes around the initial `<<'EOS'` tell bash not to expand any
+variables appearing in the string. They can be left off if you *want*
+the dollar-sign expansion of a variable to take place in the string.
 
 Concorde's `get` function reads such a string into the `__` variable.
 You can use either a quoted or non-quoted heredoc.
+
+### Getting a Heredoc with Sensible Indentation
 
 In other languages, some heredoc implementations allow you to strip
 leading indentation of a block of text so that:
@@ -637,16 +645,16 @@ EOS
 echo "$__"
 ```
 
-Also yields the same output without indentation:
+yields the output without indentation:
 
 ``` bash
 a multiline
 string value
 ```
 
-Concorde's `get` will do this if the first line of a string has
-indentation. It strips all matching indentation from the rest of the
-lines in the string.
+Concorde's `get` will do this, provided that the first line of a string
+has indentation. `get` strips all matching indentation from the rest of
+the lines in the string.
 
 The indentation of a line needs to match precisely,
 character-for-character, in order to be stripped. Lines which start with
@@ -654,8 +662,8 @@ non-matching characters are simply left alone and not altered.
 
 This behavior works for most needs. If you happen to need leading
 indentation which is not stripped, you can either place no indentation
-on the first line (and possibly add it after the fact if needed), or you
-can use the `get_raw` function which does no stripping at all.
+on just the first line, then add it yourself later, or you can use the
+`get_raw` function which does no stripping at all.
 
   [enhanced-getopt style]: https://linux.die.net/man/1/getopt
   [array]: http://wiki.bash-hackers.org/syntax/arrays
