@@ -14,8 +14,8 @@ Features
 
 -   an [enhanced-getopt style] option parser: `parse_options`
 
--   [array] and [hash][associative arrays] utility functions (hashes,
-    a.k.a. "[associative arrays]")
+-   [array] and [hash] utility functions (hashes, a.k.a. "[associative
+    arrays][hash]")
 
 -   smarter versions of `source`, a.k.a. the `.` operator: `require` and
     `require_relative`
@@ -23,11 +23,12 @@ Features
 -   support for test frameworks, such as [shpec]: `sourced`
 
 -   automatic ruby-style tracebacks on errors: [`strict_mode`] with
-    tracebacks (without Aaron Maxwell's `IFS` change)
+    tracebacks (but no change to `IFS`)
 
 -   [namespaces] to isolate library variables from one another
 
--   selective imports of functions from libraries: `bring`
+-   python-style [selective importation] of functions from libraries:
+    `bring`
 
 -   [keyword arguments] for functions
 
@@ -221,8 +222,8 @@ bash practice is to either pass the expanded array as multiple
 arguments, or to use the shortcut of not passing it at all and instead
 just refer to the global variable itself.
 
-Another approach is to use named references (`declare -n` or
-`${!reference}`) instead of using a normal local variable.
+Another approach is to use named references ([`declare -n`] or
+[`${!reference}`]) instead of using a normal local variable.
 
 For a variety of reasons, each of these approaches is problematic.
 
@@ -236,14 +237,14 @@ good at passing strings, so why not use that.
 
 By the same token, concorde's functions are written to expect the string
 representations of arrays and hashes, when those argument types are
-called for.  While there are a couple of concorde functions which
+called for. While there are a couple of concorde functions which
 actually do operate on real (non-string) arrays/hashes, that is clearly
 noted in the API documentation for them.
 
 Although bash doesn't have a general-purpose string literal
 representation for an array, it does define such a format in its [array
-assignment] statements. You can see an example by running `declare -p
-<variable_name>`.
+assignment] statements. You can see an example by running
+`declare -p <variable_name>`.
 
 Concorde borrows the same format for the array literals expected by
 concorde's functions, with minor changes.
@@ -284,8 +285,8 @@ my_func () {
 `ary` is short for "array".
 
 `local_ary` creates a local array variable, in this case `input_ary`,
-and gives it the contents provided in the string argument. For the rest
-of the function you use it like a normal array, because it is one.
+and gives it the contents provided in `$1`. For the rest of the function
+you use `input_ary` like a normal array, because it is one.
 
 Note that the `$()` command substitution operator around `local_ary` is
 necessary. Without it, `local_ary` can't create a local variable in the
@@ -294,29 +295,15 @@ scope of the caller.
 To receive a hash instead of an array, simply use the `local_hsh`
 function instead of `local_ary`.
 
-### Just Passing Through
-
-Of course, if your function only needs to receive an array/hash in order
-to pass it to another function, you don't need to convert the string
-representation into its array form, you can simply receive and pass the
-array in its string form:
-
-``` bash
-my_function () {
-  local array_representation=$1
-  function2 "$array_representation"
-}
-```
-
 ### Passing Arrays/Hashes by Name
 
 Both `local_ary` and `local_hsh` will allow you to pass them the name of
-the variable holding the string representation instead of the
-representation itself. They will detect the variable name and expand it
-themselves. In general, you should pass variable names instead of
+the variable holding the array representation instead of the
+representation itself. They will detect the variable name and expand it.
+In general, you should pass variable names to them instead of
 [expansions] wherever possible.
 
-Let's look at an example.  The following lines prepare an array
+Let's look at an example. The following lines prepare an array
 representation in `__`:
 
 ``` bash
@@ -326,7 +313,7 @@ repr array
 
 Concorde's `member_of` function takes an array representation, along
 with an array item we're looking for, and returns a boolean indicating
-whether the item was found in the array.  Instead of using the array
+whether the item was found in the array. Instead of using the array
 expansion `$__`, you can give it the name of the array variable instead
 (`__`):
 
@@ -334,20 +321,41 @@ expansion `$__`, you can give it the name of the array variable instead
 member_of __ "item one" && put "'item one' is in the array"
 ```
 
-Concorde supports passing by name for array and hash representations,
-but not normal string variables.  You still have to use expansions for
-regular strings.
+Concorde supports passing by variable name for array and hash
+representations, but not for regular string variables. You still have to
+use expansions to pass regular strings:
+
+``` bash
+value="item one"
+# passing "value" doesn't expand it to "item one", so doesn't work:
+member_of __ value
+```
+
+### Just Passing Through
+
+Of course, if your function only needs to receive an array/hash in order
+to pass it to another function, you don't need to convert the string
+representation into its actual array form, you can simply receive and
+pass the string representation (note the call by variable name):
+
+``` bash
+my_function () {
+  local array_representation=$1
+
+  another_function array_representation
+}
+```
 
 ### A Caveat
 
 The recommended way to use `local_ary` and `local_hsh` (and functions
 that employ them) is to always pass array parameters by name.
 
-The caveat introduced by the pass-by-name functionality is that when
-*not* passing by name, an array which happens to contain only one item,
-where that one item is the name of a variable, the variable will
-mistakenly be expanded since it's not possible to tell the difference
-between that and a normal array variable expansion.
+The caveat introduced by the pass-by-name functionality is that if you
+pass an array which happens to contain only one item, and that one item
+is the name of a variable, it will be mistaken for a variable holding an
+array representation itself and expanded, when that is not what you
+intended.
 
 This is not a problem for hashes, only arrays.
 
@@ -394,8 +402,8 @@ inside the parentheses of `declare -p`'s output, minus the bracketed
 indices.
 
 `repr` returns the escaped form, rather than quoted, and without
-indices.  Therefore concorde can't preserve the indexing of sparse
-arrays, since those require that indices be preserved.
+indices. Therefore concorde can't preserve the indexing of sparse
+arrays, since those require preservation of indices.
 
 The following are both examples of valid array literals:
 
@@ -413,7 +421,7 @@ another_literal='one two "three and four"'
 ### Hashes
 
 Hashes, like arrays, are similar to the portion inside the parentheses
-of `declare -p`'s output.  Unlike arrays, however, hash literals must
+of `declare -p`'s output. Unlike arrays, however, hash literals must
 include indices. Unlike the regular form of hash declarations though,
 concorde's indices are not in brackets. For example:
 
@@ -422,7 +430,7 @@ my_literal="one=1 two=2 three_and_four='3 and 4'"
 ```
 
 In this case, quoted items are quoted after the index and equals sign
-(as in `'3 and 4'`).  Escaping works as well.
+(as in `'3 and 4'`). Escaping works as well.
 
 `repr` generates this format when invoked on a hash.
 
@@ -430,7 +438,7 @@ Notably, the following does *not* work on a hash representation:
 
 ``` bash
 # does NOT work
-eval "declare -A my_hsh=( $representation )"
+eval "declare -A hash=( $representation )"
 ```
 
 That's because of the missing brackets on indices.
@@ -458,7 +466,7 @@ my_function () {
 }
 ```
 
-### Passing Hashes as Multiple Arguments (a.k.a. [Keyword Arguments])
+### Passing Hashes as Multiple Arguments (a.k.a. [Keyword Arguments][keyword arguments])
 
 `local_hsh` can do the same thing with multiple arguments:
 
@@ -476,17 +484,17 @@ my_function () {
 Calling a function like this looks familiar from other languages:
 
 ``` bash
-my_function one=1 two=2 threeandfour="3 and 4"
+my_function one=1 two=2 three_and_four="3 and 4"
 ```
 
 Languages such as python and ruby allow you to specify named arguments
 via keywords like the above.
 
-Required arguments must be passed first in line, as positional
-arguments. Optional arguments may then be passed last as keyword
-arguments.
+Required (non-keyword) arguments must always be passed before keyword
+arguments, as positional arguments. Optional arguments may then be
+passed last as keyword arguments.
 
-Optional arguments have default values defined by the function.
+Optional arguments have their default values defined by the function.
 
 Here is an example of how such a function is implemented:
 
@@ -503,7 +511,7 @@ my_function () {
 
 Any required arguments are stored and `shift`ed out of the positional
 arguments, then the optional values are `grab`bed by name from the
-residual arguments.
+residual arguments, which should all be keywords.
 
 This is what it looks like calling `my_function`:
 
@@ -511,8 +519,8 @@ This is what it looks like calling `my_function`:
 my_function "required value" optional_arg="optional value"
 ```
 
-`optional_arg=...` can be left off, in which case the function will get
-the default value.
+`optional_arg=...` can be left off, in which case the function will use
+its default value.
 
 ### Newline-delimited Array Literals, or Nested Arrays
 
@@ -553,10 +561,12 @@ That means each row of the newline-array representation can contain a
 regular array representation, so long as those representations don't
 employ newlines.
 
-If the inner arrays need to hold newlines, the newlines must be escaped.
-Quoting them won't suffice. For example: `$'a multiline\nstring value'`
-is a valid value. The escaped newline will be turned into a regular
-newline by the call to `local_ary`.
+If the inner arrays need to hold newlines, the newlines must appear in
+an [ANSI C-like string]. Normal quotes won't suffice.
+
+For example: `$'a multiline\nstring value'` has a protected newline in
+it. The escaped newline will not be caught by `local_nry`, but *will*
+then be turned into a regular newline by the call to `local_ary`.
 
 The function above creates the outer array from the newline-delimited
 representation, then interprets each row as a regular array
@@ -582,7 +592,7 @@ second array, item one
 second array, item two
 ```
 
-If using an unquoted heredoc (no quotes around our marker `EOS`), the
+If using an unquoted [heredoc] (no quotes around our marker `EOS`), the
 dollar-sign needs to be escaped to delay expansion:
 
 ``` bash
@@ -667,14 +677,19 @@ on just the first line, then add it yourself later, or you can use the
 
   [enhanced-getopt style]: https://linux.die.net/man/1/getopt
   [array]: http://wiki.bash-hackers.org/syntax/arrays
-  [associative arrays]: http://wiki.bash-hackers.org/syntax/arrays#associative_bash_4
+  [hash]: http://wiki.bash-hackers.org/syntax/arrays#associative_bash_4
   [shpec]: https://github.com/rylnd/shpec/tree/0.2.2
   [`strict_mode`]: http://redsymbol.net/articles/unofficial-bash-strict-mode/
   [namespaces]: https://en.wikipedia.org/wiki/Namespace#Computer-science_considerations
+  [selective importation]: http://www.diveintopython.net/object_oriented_framework/importing_modules.html
   [keyword arguments]: https://en.wikipedia.org/wiki/Named_parameter
   [GNU `readlink`]: https://linux.die.net/man/1/readlink
   [`greadlink`]: https://apple.stackexchange.com/questions/69223/how-to-replace-mac-os-x-utilities-with-gnu-core-utilities/88812
   [tutorial]: share/doc/tutorial.md
   [command substitution]: http://wiki.bash-hackers.org/syntax/expansion/cmdsubst
-  [array assignment]: http://wiki.bash-hackers.org/syntax/arrays
-  [expansions]: http://wiki.bash-hackers.org/syntax/pe
+  [`declare -n`]: http://wiki.bash-hackers.org/commands/builtin/declare#nameref
+  [`${!reference}`]: http://wiki.bash-hackers.org/syntax/pe#indirection
+  [array assignment]: http://wiki.bash-hackers.org/syntax/arrays#storing_values
+  [expansions]: http://wiki.bash-hackers.org/syntax/pe#simple_usage
+  [ANSI C-like string]: http://wiki.bash-hackers.org/syntax/quoting#ansi_c_like_strings
+  [heredoc]: http://wiki.bash-hackers.org/syntax/redirection#here_documents
