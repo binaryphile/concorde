@@ -381,7 +381,9 @@ includes spaces, tabs and newlines; the normal values in the field
 separator variable `IFS`.
 
 Individual array items which contain whitespace must either be quoted or
-escaped:
+escaped. Here is a comparison of regular [array assignment][array
+assignment] and the equivalent literals used by concorde for both quoted
+and escaped forms:
 
 ``` bash
 # actual arrays and equivalent representations
@@ -407,8 +409,8 @@ inside the parentheses of `declare -p`'s output, minus the bracketed
 indices.
 
 `repr` returns the escaped form, rather than quoted, and without
-indices. Therefore concorde can't preserve the indexing of sparse
-arrays, since those require preservation of indices.
+indices. Therefore concorde can't preserve the indexing of [sparse
+arrays], since those require preservation of indices.
 
 The following are both examples of valid array literals:
 
@@ -702,5 +704,6 @@ on just the first line, then add it yourself later, or you can use the
   [`${!reference}`]: http://wiki.bash-hackers.org/syntax/pe#indirection
   [array assignment]: http://wiki.bash-hackers.org/syntax/arrays#storing_values
   [expansions]: http://wiki.bash-hackers.org/syntax/pe#simple_usage
+  [sparse arrays]: http://wiki.bash-hackers.org/syntax/arrays#indexing
   [ANSI C-like string]: http://wiki.bash-hackers.org/syntax/quoting#ansi_c_like_strings
   [heredoc]: http://wiki.bash-hackers.org/syntax/redirection#here_documents
