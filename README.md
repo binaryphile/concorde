@@ -55,12 +55,14 @@ Requirements
 Reserved Global Variables
 =========================
 
-Concorde reserves a couple global variables for its own use. They begin
+Concorde reserves a few global variables for its own use. They begin
 with `__` (double-underscore)
 
 -   `__` - double-underscore itself
 
 -   `__ns` - short for "namespace"
+
+-   `__errmsg` - an error message passed by `raise`
 
 Any script or library used with concorde cannot change the purpose of
 these variables.
@@ -87,11 +89,11 @@ A Sample Script Template
 source concorde.bash
 
 get <<'EOS'
-  Usage:  script [options] arguments...
+  Usage:  script [options] <positional_arguments>...
 
     Options:
-      -o | --option   <value>     a value to pass into the script
-      -f                          a flag that is true when given
+      -o <value>, --option=<value>    a value to pass into the script
+      -f                              a flag that is true when given
 EOS
 printf -v usage '\n%s\n' "$__"
 
@@ -105,8 +107,8 @@ script_main () {
   # process the positional arguments
   while (( $# )); do                      # true while there are args
     case $1 in
-      'alternative 1' ) do_alternative_1          ;;
-      'alternative 2' ) do_alternative_2          ;;
+      alternative_1 ) do_alternative_1            ;;
+      alternative_2 ) do_alternative_2            ;;
       * ) $(raise "Error: unknown argument '$1'") ;;
     esac
     shift                                 # move to next argument
@@ -126,8 +128,9 @@ get <<'EOS'
   -f      ''        ''          "a flag that is true when given"
 EOS
 
-$(parse_options __ "$@")  || die "$usage" rc=0
-script_main     __ "$@"   || die "$usage" rc=0
+! (( $# ))                && die "$usage"
+$(parse_options __ "$@")  || die "$usage"
+script_main     __ "$@"   || die "$usage"
 ```
 
 Read the rest of the usage section for a full explanation of the
@@ -554,27 +557,32 @@ representation. Like `local_ary`, it creates a local array (named
 `outer_ary`), but expects a slightly different input than `local_ary`
 would.
 
-It expects a multiline array literal, separated only by newlines, not
-spaces or tabs. In fact, the only difference between the two is that
-`local_ary` separates items on tabs and spaces in addition to newlines,
-while `local_nry` only separates on newlines.
+`local_nry` expects a multiline array literal, separated only by
+newlines, not spaces or tabs like `local_ary`. In fact, there are two
+differences between the two. One is that `local_ary` separates items on
+tabs and spaces in addition to newlines, while `local_nry` only
+separates on newlines. The other is that `local_nry` escapes all of the
+items in each row, so they can be passed unchanged to `local_ary` when
+you call it.
 
 That means each row of the newline-array representation can contain a
 regular array representation, so long as those representations don't
-employ newlines.
+contain newlines, since `local_nry` parses those.
 
 If the inner arrays need to hold newlines, the newlines must appear in
 an [ANSI C-like string]. Normal quotes won't suffice.
 
-For example: `$'a multiline\nstring value'` has a protected newline in
-it. The escaped newline will not be caught by `local_nry`, but *will*
-then be turned into a regular newline by the call to `local_ary`.
+For example: `$'a multiline\nstring value'` is an ANSI C-like string
+which has a protected newline in it. The escaped newline will not be
+caught by `local_nry`, but *will* then be turned into a regular newline
+by the call to `local_ary`.
 
 The function above creates the outer array from the newline-delimited
 representation, then interprets each row as a regular array
 representation. That makes a nested array.
 
-Here's how you would call such a function:
+Here's how you would call such a function (note that it is `get`ting a
+quoted [heredoc]):
 
 ``` bash
 get <<'EOS'

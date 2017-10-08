@@ -190,9 +190,7 @@ load () { require "$1" reload=1 ;}
 local_ary () {
   [[ $1 == *=* ]] || return
   local first=$1; shift
-  local IFS=$IFS
   local ary=()
-  local item
   local name
   local value
 
