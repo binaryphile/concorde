@@ -32,6 +32,9 @@ Features
 
 -   [keyword arguments] for functions
 
+-   variable-based [macros] which avoid common pitfalls with system
+    commands
+
 Requirements
 ============
 
@@ -592,7 +595,7 @@ second array, item one
 second array, item two
 ```
 
-If using an unquoted [heredoc] (no quotes around our marker `EOS`), the
+If using an unquoted [heredoc] (no quotes around our `EOS` tag), the
 dollar-sign needs to be escaped to delay expansion:
 
 ``` bash
@@ -610,9 +613,9 @@ Concorde includes several functions for working with strings.
 ### Getting a Heredoc
 
 Heredocs are multiline strings which bash reads without requiring
-quotes. Instead, bash uses a user-specified marker to delimit the
-beginning and end of the string. Here's an example, where the marker is
-the string `EOS`:
+quotes. Instead, bash uses a user-specified tag to delimit the beginning
+and end of the string. Here's an example, where the tag is the string
+`EOS`:
 
 ``` bash
 read -rd '' value <<'EOS'
@@ -629,11 +632,11 @@ a multiline
   string value
 ```
 
-`EOS` is simply the terminal marker chosen by the user to end the
-string. The terminal marker must appear after the last line of the
-string, by itself. Bash will strip leading whitespace from the first
-line of content and trailing whitespace from the last line of content.
-This is what causes the peculiar indentation of the above output.
+`EOS` is simply the terminal tag chosen by the user to end the string.
+The terminal tag must appear after the last line of the string, by
+itself. Bash will strip leading whitespace from the first line of
+content and trailing whitespace from the last line of content.  This is
+what causes the peculiar indentation of the above output.
 
 The quotes around the initial `<<'EOS'` tell bash not to expand any
 variables appearing in the string. They can be left off if you *want*
