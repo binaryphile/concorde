@@ -32,8 +32,7 @@ Features
 
 -   [keyword arguments] for functions
 
--   variable-based [macros] which avoid common pitfalls with system
-    commands
+-   command [macros] which avoid common pitfalls with system commands
 
 Requirements
 ============
@@ -635,7 +634,7 @@ a multiline
 `EOS` is simply the terminal tag chosen by the user to end the string.
 The terminal tag must appear after the last line of the string, by
 itself. Bash will strip leading whitespace from the first line of
-content and trailing whitespace from the last line of content.  This is
+content and trailing whitespace from the last line of content. This is
 what causes the peculiar indentation of the above output.
 
 The quotes around the initial `<<'EOS'` tell bash not to expand any
@@ -686,6 +685,7 @@ on just the first line, then add it yourself later, or you can use the
   [namespaces]: https://en.wikipedia.org/wiki/Namespace#Computer-science_considerations
   [selective importation]: http://www.diveintopython.net/object_oriented_framework/importing_modules.html
   [keyword arguments]: https://en.wikipedia.org/wiki/Named_parameter
+  [macros]: https://en.wikipedia.org/wiki/Macro_instruction
   [GNU `readlink`]: https://linux.die.net/man/1/readlink
   [`greadlink`]: https://apple.stackexchange.com/questions/69223/how-to-replace-mac-os-x-utilities-with-gnu-core-utilities/88812
   [tutorial]: share/doc/tutorial.md
