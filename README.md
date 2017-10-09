@@ -703,14 +703,14 @@ for item in "${path_ary}"; do
 done
 ```
 
-`path` has a dummy string, `on`, as it's second argument.  A few
-concorde functions do this for readability.  It's an affectation of my
-own, although the dummy string actually does function as a flag to some
-of the other functions.
+`path` has a dummy string, `on`, as it's second argument. A few concorde
+functions do this for readability. It's an affectation of my own,
+although the dummy string actually does function as a flag to some of
+the other functions.
 
 Note that like any concorde function which accepts a string argument,
-`"$PATH"` must be expanded as it is being passed.  String arguments
-can't be passed by variable name.
+`"$PATH"` must be expanded as it is being passed. String arguments can't
+be passed by variable name.
 
 The same is not true of the array result from `part`, which can be
 passed to `local_ary` by name (`__`), since `local_ary` is expecting an
@@ -724,25 +724,64 @@ with.
 
 Rather than forcing you to work inside the hash, however, it's
 frequently simpler to extract variables into the local namespace from
-the hash.  It's frequently easier to read and reason about local
-variable names than hash reference notation.  For example, which is
-easier to read?
+the hash. It's frequently easier to read and reason about local variable
+names than hash reference notation. For example, which is easier to
+read?
 
 ``` bash
-my_hsh=( [zero]=0 [one]=1 )
-put "Zero is ${my_hsh[zero]} and one is ${my_hsh[one]}."
+declare -A number_hsh=( [zero]=0 [one]=1 )
+put "Zero is ${number_hsh[zero]} and one is ${number_hsh[one]}."
 ```
 
 or:
 
 ``` bash
-my_hsh=( [zero]=0 [one]=1 )
-$(grab 'zero one' from my_hsh)       # extract zero and one
+numberh='zero=0 one=1'                # grab expects a hash representation
+$(grab 'zero one' from numberh)       # extract zero and one
 put "Zero is $zero and one is $one."
 ```
 
+While these examples are contrived, the point is that it is frequently
+nicer to avoid using bash's verbose hash syntax in favor of short and
+readable variable names. `grab` makes that easier.
+
+`grab` is capable of extracting a single key, a list of keys or all keys
+from a hash, and can do so from a variable name or a literal:
+
+``` bash
+# single key
+$(grab zero from my_hsh)
+
+# list of keys
+$(grab 'zero one two' from my_hsh)
+
+# all keys
+$(grab '*' from my_hsh)
+
+# grab from a literal
+$(grab zero from zero=0)
+```
+
 `grab` creates local variables from the keys and values in the provided
-hash.
+hash. It requires `$()` command substitution because it creates
+variables in the local scope.
+
+The asterisk needs to be quoted in the "all keys" example to prevent
+[globbing].
+
+`grab`'s first argument, the key(s), is never expanded as a variable
+name so that you can reliably hand it a single key name. This makes the
+argument a list, rather than an array representation. A list is simply a
+string of whitespace-separated items which are key identifiers.
+
+`grab` only supports hashes with keys that are formatted the same as
+variable identifiers, namely, composed of alphanumeric and underscore
+characters, and not starting with a number.
+
+There is also the dummy `from` argument for readability, which we will
+actually see plays a role as a flag as well.
+
+### Grabbing Arguments
 
   [enhanced-getopt style]: https://linux.die.net/man/1/getopt
   [array]: http://wiki.bash-hackers.org/syntax/arrays
@@ -764,3 +803,4 @@ hash.
   [sparse arrays]: http://wiki.bash-hackers.org/syntax/arrays#indexing
   [ANSI C-like string]: http://wiki.bash-hackers.org/syntax/quoting#ansi_c_like_strings
   [heredoc]: http://wiki.bash-hackers.org/syntax/redirection#here_documents
+  [globbing]: http://wiki.bash-hackers.org/syntax/expansion/globs
