@@ -412,10 +412,10 @@ indices.
 indices. Therefore concorde can't preserve the indexing of [sparse
 arrays], since those require preservation of indices.
 
-The following are both examples of valid array literals:
+The following are both examples of equivalent array literals:
 
 ``` bash
-# newlines separating items (spaced items still require quotes)
+# newlines separating items (items containing spaces require quotes or will be split)
 my_literal='
 one
 two
@@ -430,7 +430,8 @@ another_literal='one two "three and four"'
 Hashes, like arrays, are similar to the portion inside the parentheses
 of `declare -p`'s output. Unlike arrays, however, hash literals must
 include indices. Unlike the regular form of hash declarations though,
-concorde's indices are not in brackets. For example:
+concorde's indices are not in brackets. They are more like keyword
+parameters in other languages. For example:
 
 ``` bash
 my_literal="one=1 two=2 three_and_four='3 and 4'"
@@ -459,8 +460,8 @@ with a number.
 ### Passing Arrays as Multiple Arguments
 
 `local_ary` is also geared to accept multiple arguments as an array.
-This can be useful when converting positional arguments into a named
-array:
+This can be useful when converting positional arguments (`$@`) into a
+named array:
 
 ``` bash
 my_function () {
@@ -518,7 +519,7 @@ my_function () {
 
 Any required arguments are stored and `shift`ed out of the positional
 arguments, then the optional values are `grab`bed by name from the
-residual arguments, which should all be keywords.
+residual arguments, which must all be keywords at that point.
 
 This is what it looks like calling `my_function`:
 
@@ -557,19 +558,18 @@ You've seen `local_ary` so far, but `local_nry` is new.
 `local_nry` introduces the idea of a newline-delimited array
 representation. Like `local_ary`, it creates a local array (named
 `outer_ary`), but expects a slightly different input than `local_ary`
-would.
+would. `local_nry` expects a multiline array literal, separated only by
+newlines, not spaces or tabs such as `local_ary`.
 
-`local_nry` expects a multiline array literal, separated only by
-newlines, not spaces or tabs like `local_ary`. In fact, there are two
-differences between the two. One is that `local_ary` separates items on
-tabs and spaces in addition to newlines, while `local_nry` only
-separates on newlines. The other is that `local_nry` escapes all of the
-items in each row, so they can be passed unchanged to `local_ary` when
-you call it.
+In fact, there are two differences between the two functions. One is
+that `local_ary` separates items on tabs and spaces in addition to
+newlines, while `local_nry` only separates on newlines. The other is
+that `local_nry` escapes all of the items in each row, so they can be
+passed unchanged to `local_ary` when you call it.
 
 That means each row of the newline-array representation can contain a
-regular array representation, so long as those representations don't
-contain newlines, since `local_nry` parses those.
+standard array representation, so long as they don't contain newlines,
+since `local_nry` parses those.
 
 If the inner arrays need to hold newlines, the newlines must appear in
 an [ANSI C-like string]. Normal quotes won't suffice.
@@ -686,6 +686,63 @@ This behavior works for most needs. If you happen to need leading
 indentation which is not stripped, you can either place no indentation
 on just the first line, then add it yourself later, or you can use the
 `get_raw` function which does no stripping at all.
+
+### Splitting a String
+
+`part` takes string and delimiter arguments and returns an array
+representation of the split string in `__`. To create an array from
+PATH, for example, you might use:
+
+``` bash
+local item
+
+part "$PATH" on :
+$(local_ary path_ary=__)
+for item in "${path_ary}"; do
+  put "item is: $item"
+done
+```
+
+`path` has a dummy string, `on`, as it's second argument.  A few
+concorde functions do this for readability.  It's an affectation of my
+own, although the dummy string actually does function as a flag to some
+of the other functions.
+
+Note that like any concorde function which accepts a string argument,
+`"$PATH"` must be expanded as it is being passed.  String arguments
+can't be passed by variable name.
+
+The same is not true of the array result from `part`, which can be
+passed to `local_ary` by name (`__`), since `local_ary` is expecting an
+array representation.
+
+Working with Hashes and Variables
+---------------------------------
+
+Hashes can act as mini-namespaces for storing variables you wish to work
+with.
+
+Rather than forcing you to work inside the hash, however, it's
+frequently simpler to extract variables into the local namespace from
+the hash.  It's frequently easier to read and reason about local
+variable names than hash reference notation.  For example, which is
+easier to read?
+
+``` bash
+my_hsh=( [zero]=0 [one]=1 )
+put "Zero is ${my_hsh[zero]} and one is ${my_hsh[one]}."
+```
+
+or:
+
+``` bash
+my_hsh=( [zero]=0 [one]=1 )
+$(grab 'zero one' from my_hsh)       # extract zero and one
+put "Zero is $zero and one is $one."
+```
+
+`grab` creates local variables from the keys and values in the provided
+hash.
 
   [enhanced-getopt style]: https://linux.die.net/man/1/getopt
   [array]: http://wiki.bash-hackers.org/syntax/arrays
