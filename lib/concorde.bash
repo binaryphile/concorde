@@ -296,6 +296,7 @@ parse_options () {
     esac
     option=${1#-}
     option=${option#-}
+    option=${option//-/_}
     [[ $1 =~ ^-{1,2}[^-] && -n ${option_hsh[$option]:-} ]] && {
       $(grab 'argument name' from "${option_hsh[$option]}")
       case $argument in

@@ -843,6 +843,16 @@ describe parse_options
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
+  it "accepts a hyphenated long flag option"; ( _shpec_failures=0
+    get <<'    EOS'
+      '' --hyphen-option '' 'a flag'
+    EOS
+    $(parse_options __ --hyphen-option)
+    $(grab hyphen_option_flag from __ )
+    assert equal 1 "$hyphen_option_flag"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
   it "accepts a short argument option"; ( _shpec_failures=0
     get <<'    EOS'
       -o '' argument 'an argument'
