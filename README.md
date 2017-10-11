@@ -518,8 +518,13 @@ my_function () {
 ```
 
 Any required arguments are stored and `shift`ed out of the positional
-arguments, then the optional values are `grab`bed by name from the
-residual arguments, which must all be keywords at that point.
+arguments.
+
+Then the optional values are `grab`bed by name from the residual
+arguments, which must all be keywords at that point.  Grab just passes
+them to `local_hsh` internally to create a true hash from them, then
+extracts `optional_arg` from the hash into a local variable.  More on
+`grab` later.
 
 This is what it looks like calling `my_function`:
 
@@ -532,8 +537,9 @@ its default value.
 
 ### Newline-delimited Array Literals, or Nested Arrays
 
-You can construct nested array representations with concorde fairly
-easily.
+You can construct an array representation with another array nested
+inside fairly easily, but it requires a different type of array
+representation on the outside.
 
 Let's start with a function which expects a nested array as its only
 argument:
@@ -575,9 +581,9 @@ If the inner arrays need to hold newlines, the newlines must appear in
 an [ANSI C-like string]. Normal quotes won't suffice.
 
 For example: `$'a multiline\nstring value'` is an ANSI C-like string
-which has a protected newline in it. The escaped newline will not be
-caught by `local_nry`, but *will* then be turned into a regular newline
-by the call to `local_ary`.
+which has a protected newline in it. The newline will not be parsed as a
+separator by `local_nry`, but *will* then be turned into a regular
+newline by the call to `local_ary`.
 
 The function above creates the outer array from the newline-delimited
 representation, then interprets each row as a regular array
@@ -621,10 +627,10 @@ Concorde includes several functions for working with strings.
 
 ### Getting a Heredoc
 
-Heredocs are multiline strings which bash reads without requiring
-quotes. Instead, bash uses a user-specified tag to delimit the beginning
-and end of the string. Here's an example, where the tag is the string
-`EOS`:
+[Heredocs][heredoc] are multiline strings which bash reads without
+requiring quotes. Instead, bash uses a user-specified tag to delimit the
+beginning and end of the string. Here's an example, where the tag is the
+string `EOS`:
 
 ``` bash
 read -rd '' value <<'EOS'
@@ -643,13 +649,14 @@ a multiline
 
 `EOS` is simply the terminal tag chosen by the user to end the string.
 The terminal tag must appear after the last line of the string, by
-itself. Bash will strip leading whitespace from the first line of
-content and trailing whitespace from the last line of content. This is
-what causes the peculiar indentation of the above output.
+itself. Bash automatically strips leading whitespace from the first line
+of content and trailing whitespace from the last line of content.  This
+is what causes the peculiar indentation of the above output.
 
 The quotes around the initial `<<'EOS'` tell bash not to expand any
-variables appearing in the string. They can be left off if you *want*
-the dollar-sign expansion of a variable to take place in the string.
+variables appearing in the string. The quotes can be left off if you
+*want* the dollar-sign expansion of a variable to take place in the
+string.
 
 Concorde's `get` function reads such a string into the `__` variable.
 You can use either a quoted or non-quoted heredoc.
@@ -678,9 +685,9 @@ Concorde's `get` will do this, provided that the first line of a string
 has indentation. `get` strips all matching indentation from the rest of
 the lines in the string.
 
-The indentation of a line needs to match precisely,
-character-for-character, in order to be stripped. Lines which start with
-non-matching characters are simply left alone and not altered.
+The indentation of a line needs to match precisely, character for
+character, in order to be stripped. Lines which start with non-matching
+characters are simply left alone and not altered.
 
 This behavior works for most needs. If you happen to need leading
 indentation which is not stripped, you can either place no indentation
@@ -690,27 +697,29 @@ on just the first line, then add it yourself later, or you can use the
 ### Splitting a String
 
 `part` takes string and delimiter arguments and returns an array
-representation of the split string in `__`. To create an array from
-PATH, for example, you might use:
+representation of the split string (minus delimiters) in `__`. To create
+an array from PATH, for example, you might use:
 
 ``` bash
-local item
+split_path () {
+  local item
 
-part "$PATH" on :
-$(local_ary path_ary=__)
-for item in "${path_ary}"; do
-  put "item is: $item"
-done
+  part "$PATH" on :
+  $(local_ary path_ary=__)
+  for item in "${path_ary}"; do
+    put "item is: $item"
+  done
+}
 ```
 
-`path` has a dummy string, `on`, as it's second argument. A few concorde
-functions do this for readability. It's an affectation of my own,
-although the dummy string actually does function as a flag to some of
-the other functions.
+`path` has a dummy argument, `on`, as it's second argument. A few
+concorde functions do this for readability. It's an affectation of my
+own, although dummy arguments to other concorde functions actually work
+as a flag in some cases.
 
-Note that like any concorde function which accepts a string argument,
-`"$PATH"` must be expanded as it is being passed. String arguments can't
-be passed by variable name.
+Note in the code above that like any concorde function which accepts a
+string argument, `"$PATH"` must be expanded as it is being passed to
+`part`.  String arguments can't be passed by variable name.
 
 The same is not true of the array result from `part`, which can be
 passed to `local_ary` by name (`__`), since `local_ary` is expecting an
@@ -724,9 +733,8 @@ with.
 
 Rather than forcing you to work inside the hash, however, it's
 frequently simpler to extract variables into the local namespace from
-the hash. It's frequently easier to read and reason about local variable
-names than hash reference notation. For example, which is easier to
-read?
+the hash. It can be easier to read and reason about local variable names
+than hash reference notation. For example, which is easier to read?:
 
 ``` bash
 declare -A number_hsh=( [zero]=0 [one]=1 )
@@ -736,12 +744,11 @@ put "Zero is ${number_hsh[zero]} and one is ${number_hsh[one]}."
 or:
 
 ``` bash
-numberh='zero=0 one=1'                # grab expects a hash representation
-$(grab 'zero one' from numberh)       # extract zero and one
+$(grab 'zero one' from 'zero=0 one=1')    # extract zero and one
 put "Zero is $zero and one is $one."
 ```
 
-While these examples are contrived, the point is that it is frequently
+While this example is contrived, the point is that it is frequently
 nicer to avoid using bash's verbose hash syntax in favor of short and
 readable variable names. `grab` makes that easier.
 
@@ -750,16 +757,17 @@ from a hash, and can do so from a variable name or a literal:
 
 ``` bash
 # single key
-$(grab zero from my_hsh)
+myh='zero=0 one=1 two=2'
+$(grab zero from myh)
 
 # list of keys
-$(grab 'zero one two' from my_hsh)
+$(grab 'zero one two' from myh)
 
 # all keys
-$(grab '*' from my_hsh)
+$(grab '*' from myh)
 
 # grab from a literal
-$(grab zero from zero=0)
+$(grab zero from 'zero=0 one=1')
 ```
 
 `grab` creates local variables from the keys and values in the provided
@@ -778,10 +786,13 @@ string of whitespace-separated items which are key identifiers.
 variable identifiers, namely, composed of alphanumeric and underscore
 characters, and not starting with a number.
 
-There is also the dummy `from` argument for readability, which we will
-actually see plays a role as a flag as well.
+There is also the dummy `from` argument for readability, as is my wont.
 
-### Grabbing Arguments
+### Creating Hashes from Variables
+
+
+Parsing Options
+---------------
 
   [enhanced-getopt style]: https://linux.die.net/man/1/getopt
   [array]: http://wiki.bash-hackers.org/syntax/arrays
