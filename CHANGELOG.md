@@ -7,8 +7,8 @@ The format is based on [Keep a Changelog] and this project adheres to
 Latest Changes
 ==============
 
-[unreleased]
-------------
+[v0.2.2] - 2017-10-12
+---------------------
 
 ### Fixed
 
@@ -204,7 +204,7 @@ Older Changes
 
   [Keep a Changelog]: http://keepachangelog.com/
   [Semantic Versioning]: http://semver.org/
-  [unreleased]: https://github.com/binaryphile/concorde/compare/v0.2.1...v0.2
+  [v0.2.2]: https://github.com/binaryphile/concorde/compare/v0.2.1...v0.2.2
   [v0.2.1]: https://github.com/binaryphile/concorde/compare/v0.2.0...v0.2.1
   [v0.2.0]: https://github.com/binaryphile/concorde/compare/v0.1.0...v0.2.0
   [v0.1.0]: https://github.com/binaryphile/concorde/compare/v0.0.5...v0.1.0
