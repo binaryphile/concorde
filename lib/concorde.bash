@@ -190,9 +190,7 @@ load () { require "$1" reload=1 ;}
 local_ary () {
   [[ $1 == *=* ]] || return
   local first=$1; shift
-  local IFS=$IFS
   local ary=()
-  local item
   local name
   local value
 
@@ -298,6 +296,7 @@ parse_options () {
     esac
     option=${1#-}
     option=${option#-}
+    option=${option//-/_}
     [[ $1 =~ ^-{1,2}[^-] && -n ${option_hsh[$option]:-} ]] && {
       $(grab 'argument name' from "${option_hsh[$option]}")
       case $argument in

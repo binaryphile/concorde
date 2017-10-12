@@ -7,6 +7,13 @@ The format is based on [Keep a Changelog] and this project adheres to
 Latest Changes
 ==============
 
+[v0.2.2] - 2017-10-12
+---------------------
+
+### Fixed
+
+-   hyphenated long options weren't working in `parse_options`
+
 [v0.2.1] - 2017-09-21
 ---------------------
 
@@ -197,6 +204,7 @@ Older Changes
 
   [Keep a Changelog]: http://keepachangelog.com/
   [Semantic Versioning]: http://semver.org/
+  [v0.2.2]: https://github.com/binaryphile/concorde/compare/v0.2.1...v0.2.2
   [v0.2.1]: https://github.com/binaryphile/concorde/compare/v0.2.0...v0.2.1
   [v0.2.0]: https://github.com/binaryphile/concorde/compare/v0.1.0...v0.2.0
   [v0.1.0]: https://github.com/binaryphile/concorde/compare/v0.0.5...v0.1.0
