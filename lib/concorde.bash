@@ -79,6 +79,26 @@ concorde.raise () {
   concorde.xtrace_end
 }
 
+concorde.repr_hash () {
+  concorde.xtrace_begin
+  local __name=$1
+  local __ary=()
+  local __item
+  local __var
+
+  __=$(declare -p "$__name" 2>/dev/null)  || $(concorde.raise ArgumentError)
+  [[ ${__:9:1} == A ]]                    || $(concorde.raise TypeError    )
+  printf -v __ '(( ${#%s[@]} )) && set -- "${!%s[@]}" || { __=''; return ;}' "$__name" "$__name"
+  eval "$__"
+  for __item in "$@"; do
+    __var=$__name[$__item]
+    printf -v __ '%s=%q' "$__item" "${!__var}"
+    __ary+=( "$__" )
+  done
+  __=${__ary[*]}
+  concorde.xtrace_end
+}
+
 concorde.xtrace_begin () {
   (( ${__xtrace:-} )) && return;:
   [[ $- != *x* ]] && __xtrace_set=$? || __xtrace_set=$?

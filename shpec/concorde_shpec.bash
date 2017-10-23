@@ -268,6 +268,46 @@ describe concorde.raise
   end
 end
 
+describe concorde.repr_hash
+  it "errors on an undefined variable"; ( _shpec_failures=0
+    concorde.repr_hash sample
+    assert equal '(113) (1) (ArgumentError) ()' "($?) ($__errcode) ($__errtype) ($__errmsg)"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "generates a representation of an empty hash"; ( _shpec_failures=0
+    declare -A sample_hsh=()
+    concorde.repr_hash sample_hsh
+    eval "declare -A result_hsh=( $__ )"
+    assert equal 0 "${#result_hsh[@]}"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "generates a representation of a nested hash variable"; ( _shpec_failures=0
+    declare -A sample_hsh=( [zero]=0 [one]="two=2 three=3" )
+    concorde.repr_hash sample_hsh
+    $(concorde.hash example_hsh="$__"                )
+    $(concorde.hash result_hsh="${example_hsh[one]}" )
+    for item in $(IFS=$'\n'; sort <<<"${!result_hsh[*]}"); do
+      result_ary+=( "(${result_hsh[$item]})" )
+    done
+    assert equal '(3) (2)' "${result_ary[*]}"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "generates a representation of a nested hash variable with newlines"; ( _shpec_failures=0
+    declare -A sample_hsh=( [zero]=0 [one]="two=$'2\n3' four=4" )
+    concorde.repr_hash sample_hsh
+    $(concorde.hash example_hsh="$__"                )
+    $(concorde.hash result_hsh="${example_hsh[one]}" )
+    for item in $(IFS=$'\n'; sort <<<"${!result_hsh[*]}"); do
+      result_ary+=( "(${result_hsh[$item]})" )
+    done
+    assert equal $'(4) (2\n3)' "${result_ary[*]}"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+end
+
 describe concorde.xtrace_begin
   it "turns off trace if __xtrace is not set"; ( _shpec_failures=0
     stub_command set 'echo "$@"'
