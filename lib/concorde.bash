@@ -1,3 +1,7 @@
+concorde.defined () {
+  declare -p "${1%%[*}" >/dev/null 2>&1 && [[ -n ${!1+x} ]]
+}
+
 concorde.emit () {
   concorde.xtrace_begin
   printf 'eval eval %q' "$1"
