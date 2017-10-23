@@ -8,6 +8,17 @@ concorde.emit () {
   concorde.xtrace_end
 }
 
+concorde.get () {
+  concorde.xtrace_begin
+  local space
+
+  concorde.get_raw
+  space=${__%%[^[:space:]]*}
+  printf -v __ %s "${__#$space}"
+  printf -v __ %s "${__//$'\n'$space/$'\n'}"
+  concorde.xtrace_end
+}
+
 concorde.get_raw () {
   IFS=$'\n' read -rd '' __ ||:
 }

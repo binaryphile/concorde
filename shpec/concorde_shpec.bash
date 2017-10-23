@@ -123,6 +123,35 @@ describe concorde.emit
   end
 end
 
+describe concorde.get
+  it "removes the leading whitespace from each line"; ( _shpec_failures=0
+    concorde.get <<'    EOS'
+      one
+      two
+    EOS
+    assert equal $'one\ntwo' "$__"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "doesn't remove leading whitespace in excess of the first line"; ( _shpec_failures=0
+    concorde.get <<'    EOS'
+      one
+       two
+    EOS
+    assert equal $'one\n two' "$__"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "doesn't touch a line which doesn't match the leading space"; ( _shpec_failures=0
+    concorde.get <<'    EOS'
+      one
+     two
+    EOS
+    assert equal $'one\n     two' "$__"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+end
+
 describe concorde.get_raw
   it "gets stdin in __"; ( _shpec_failures=0
     concorde.get_raw <<<sample
