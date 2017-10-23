@@ -166,6 +166,19 @@ concorde.repr_hash () {
   concorde.xtrace_end
 }
 
+concorde.stuff () {
+  concorde.xtrace_begin
+  [[ $2 == into ]] || $(concorde.raise ArgumentError)
+  local __item
+
+  $(concorde.hash __hash="$3")
+  for __item in $1; do
+    __hash[$__item]=${!__item}
+  done
+  concorde.repr_hash __hash
+  concorde.xtrace_end
+}
+
 concorde.xtrace_begin () {
   (( ${__xtrace:-} )) && return;:
   [[ $- != *x* ]] && __xtrace_set=$? || __xtrace_set=$?

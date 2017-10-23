@@ -436,6 +436,34 @@ describe concorde.repr_hash
   end
 end
 
+describe concorde.stuff
+  it "errors if not given 'into'"; ( _shpec_failures=0
+    concorde.stuff sample otni ''
+    assert equal "(113) (1) (ArgumentError) ()" "($?) ($__errcode) ($__errtype) ($__errmsg)"
+    return "$_shpec_failures" );: $(( _shpec_failures+=$? ))
+  end
+
+  it "inserts a local into a blank hash"; ( _shpec_failures=0
+    sample=zero
+    concorde.stuff sample into ''
+    $(concorde.hash result_hsh="$__")
+    assert equal zero "${result_hsh[sample]}"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "works with multiple variables and a blank hash"; ( _shpec_failures=0
+    zero="0 1"
+    one="2 3"
+    concorde.stuff 'zero one' into ''
+    $(concorde.hash result_hsh="$__")
+    for item in $(IFS=$'\n'; sort <<<"${!result_hsh[*]}"); do
+      result_ary+=( "(${result_hsh[$item]})" )
+    done
+    assert equal '(2 3) (0 1)' "${result_ary[*]}"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+end
+
 describe concorde.xtrace_begin
   it "turns off trace if __xtrace is not set"; ( _shpec_failures=0
     stub_command set 'echo "$@"'
