@@ -123,6 +123,32 @@ describe concorde.emit
   end
 end
 
+describe concorde.get_raw
+  it "gets stdin in __"; ( _shpec_failures=0
+    concorde.get_raw <<<sample
+    assert equal sample "$__"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "returns true"; ( _shpec_failures=0
+    concorde.get_raw <<<sample
+    assert equal 0 $?
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "gets a multiline string"; ( _shpec_failures=0
+    concorde.get_raw <<<$'hey\nthere'
+    assert equal $'hey\nthere' "$__"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "preserves leading and trailing non-newline whitespace"; ( _shpec_failures=0
+    concorde.get_raw <<<' sample '
+    assert equal ' sample ' "$__"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+end
+
 describe concorde.xtrace_begin
   it "turns off trace if __xtrace is not set"; ( _shpec_failures=0
     stub_command set 'echo "$@"'
