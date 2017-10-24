@@ -30,6 +30,30 @@ concorde.get_raw () {
   IFS=$'\n' read -rd '' __ ||:
 }
 
+concorde.grab () {
+  concorde.xtrace_begin
+  [[ $2 == from ]] || { concorde.raise ArgumentError return=0; return ;}
+  $(concorde.array name_ary="$1")
+  $(concorde.hash arg_hsh="$3"  )
+  local IFS=$IFS
+  local name
+  local rc
+  local statement_ary=()
+
+  for name in "${name_ary[@]}"; do
+    concorde.defined arg_hsh[$name] && rc=$? || rc=$?
+    case $rc in
+      0 ) printf -v __ 'declare %s=%q'                              "$name" "${arg_hsh[$name]}"   ;;
+      * ) printf -v __ '! $(concorde.is_local %s) && declare %s=%q' "$name"  "$name" "${arg_hsh[$name]:-}" ;;
+    esac
+    statement_ary+=( "$__" )
+  done
+  statement_ary+=( : )
+  IFS=$'\n'
+  concorde.emit "${statement_ary[*]}"
+  concorde.xtrace_end
+}
+
 concorde.hash () {
   concorde.xtrace_begin
   local name=${1%%=*}

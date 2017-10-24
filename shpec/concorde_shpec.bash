@@ -193,6 +193,50 @@ describe concorde.get_raw
   end
 end
 
+describe concorde.grab
+  it "errors if the second argument isn't 'from'"; ( _shpec_failures=0
+    $(concorde.grab one two)
+    assert equal '(113) (1) (ArgumentError) ()' "($?) ($__errcode) ($__errtype) ($__errmsg)"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "instantiates a key/value pair from a hash literal as a local"; ( _shpec_failures=0
+    $(concorde.grab one from one=1)
+    assert equal 1 "$one"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "instantiates more than one key/value pair"; ( _shpec_failures=0
+    $(concorde.grab 'one two' from 'one=1 two=2')
+    assert equal '(1) (2)' "($one) ($two)"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "grabs if the list contains newlines"; ( _shpec_failures=0
+    $(concorde.grab '
+        one
+        two
+      ' from 'one=1 two=2')
+    assert equal '(1) (2)' "($one) ($two)"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "doesn't set the variable if not in the hash and the variable is set locally"; ( _shpec_failures=0
+    declare sample=example
+    $(concorde.grab sample from '')
+    assert equal example "$sample"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "creates the variable if not in the hash and the variable is not set locally"; ( _shpec_failures=0
+    unset -v sample
+    $(concorde.grab sample from '')
+    concorde.defined sample
+    assert equal 0 $?
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+end
+
 describe concorde.hash
   it "creates an empty hash from an empty literal"; ( _shpec_failures=0
     $(concorde.hash result_hsh='')
