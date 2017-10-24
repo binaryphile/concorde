@@ -15,6 +15,13 @@ concorde.emit () {
   concorde.xtrace_end
 }
 
+concorde.escape_items () {
+  concorde.xtrace_begin
+  printf -v __ '%q ' "$@"
+  __=${__% }
+  concorde.xtrace_end
+}
+
 concorde.get () {
   concorde.xtrace_begin
   local space
