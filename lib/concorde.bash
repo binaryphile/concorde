@@ -30,6 +30,22 @@ concorde.get_raw () {
   IFS=$'\n' read -rd '' __ ||:
 }
 
+concorde.hash () {
+  concorde.xtrace_begin
+  local name=${1%%=*}
+  $(concorde.array value_ary="${1#*=}")
+  local ary=()
+  local item
+
+  (( ! ${#value_ary[@]} )) && { concorde.emit "declare -A $name=()"; return ;}
+  for item in "${value_ary[@]}"; do
+    printf -v __ '[%s]=%q' "${item%%=*}" "${item#*=}"
+    ary+=( "$__" )
+  done
+  concorde.emit "declare -A $name=( ${ary[*]} )"
+  concorde.xtrace_end
+}
+
 concorde.raise () {
   local rc=$?
   concorde.xtrace_begin

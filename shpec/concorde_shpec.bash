@@ -193,6 +193,21 @@ describe concorde.get_raw
   end
 end
 
+describe concorde.hash
+  it "creates an empty hash from an empty literal"; ( _shpec_failures=0
+    $(concorde.hash result_hsh='')
+    declare -p result_hsh >/dev/null
+    assert equal '(0) (0)' "($?) (${#result_hsh[@]})"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "creates a hash from a literal"; ( _shpec_failures=0
+    $(concorde.hash result_hsh='zero="0 1" one="2 3"')
+    assert equal '(0 1) (2 3)' "(${result_hsh[zero]}) (${result_hsh[one]})"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+end
+
 describe concorde.raise
   it "returns"; ( _shpec_failures=0
     samplef () { $(concorde.raise SampleError); echo hello ;}
