@@ -336,6 +336,33 @@ describe concorde.is_local
   end
 end
 
+describe concorde.part
+  it "raises an error is the second argument isn't 'on'"; ( _shpec_failures=0
+    concorde.part one@two @
+    assert equal '(113) (1) (ArgumentError) ()' "($?) ($__errcode) ($__errtype) ($__errmsg)"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "splits a string on a delimiter"; ( _shpec_failures=0
+    concorde.part one@two on @
+    assert equal 'one two' "$__"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "doesn't expand globs"; ( _shpec_failures=0
+    concorde.part '*' on @
+    assert equal '\*' "$__"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "doesn't turn off globbing"; ( _shpec_failures=0
+    concorde.part '*' on @
+    [[ $- != *f* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+end
+
 describe concorde.raise
   it "returns"; ( _shpec_failures=0
     samplef () { $(concorde.raise SampleError); echo hello ;}

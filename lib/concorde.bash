@@ -113,6 +113,23 @@ concorde.is_local () {
   concorde.xtrace_end
 }
 
+concorde.part () {
+  concorde.xtrace_begin
+  [[ $2 == on ]] || $(concorde.raise ArgumentError)
+  local oldIFS=$IFS
+  local IFS=$3
+  local glob
+  local result_ary=()
+
+  [[ $- == *f* ]] && glob=$? || glob=$?
+  set -o noglob
+  result_ary=( $1 )
+  (( glob )) && set +o noglob
+  IFS=$oldIFS
+  concorde.repr_array result_ary
+  concorde.xtrace_end
+}
+
 concorde.raise () {
   local rc=$?
   concorde.xtrace_begin
