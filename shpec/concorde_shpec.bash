@@ -245,6 +245,40 @@ describe concorde.grab
   end
 end
 
+describe concorde.grabkw
+  it "errors if the second argument isn't 'from'"; ( _shpec_failures=0
+    $(concorde.grabkw one two)
+    assert equal '(113) (1) (ArgumentError) ()' "($?) ($__errcode) ($__errtype) ($__errmsg)"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "instantiates a key/value pair from a hash literal as a local"; ( _shpec_failures=0
+    $(concorde.grabkw one from one="0 1")
+    assert equal '0 1' "$one"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "instantiates key/value pairs from a hash literal"; ( _shpec_failures=0
+    set -- one="0 1" two="3 4"
+    $(concorde.grabkw 'one two' from "$@")
+    assert equal '(0 1) (3 4)' "($one) ($two)"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "grabs from a non-argument"; ( _shpec_failures=0
+    set --
+    $(concorde.grabkw one from "$@")
+    assert equal '' "$one"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "grabs from an empty argument"; ( _shpec_failures=0
+    $(concorde.grabkw one from '')
+    assert equal '' "$one"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+end
+
 describe concorde.hash
   it "creates an empty hash from an empty literal"; ( _shpec_failures=0
     $(concorde.hash result_hsh='')

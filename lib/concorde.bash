@@ -61,6 +61,14 @@ concorde.grab () {
   concorde.xtrace_end
 }
 
+concorde.grabkw () {
+  concorde.xtrace_begin
+  [[ $2 == from ]] || { concorde.raise ArgumentError return=0; return ;}
+  { (( $# < 3 )) || [[ -z $3 ]] ;} && __='' || concorde.escape_items "${@:3}"
+  concorde.grab "$1" from "$__"
+  concorde.xtrace_end
+}
+
 concorde.hash () {
   concorde.xtrace_begin
   local name=${1%%=*}
