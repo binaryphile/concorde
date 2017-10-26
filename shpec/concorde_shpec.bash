@@ -396,6 +396,49 @@ describe concorde.raise
   end
 end
 
+describe concorde.repr_array
+  it "errors on an undefined variable"; ( _shpec_failures=0
+    concorde.repr_array sample
+    assert equal '(113) (1) (ArgumentError) ()' "($?) ($__errcode) ($__errtype) ($__errmsg)"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "generates a representation of an empty array"; ( _shpec_failures=0
+    sample_ary=()
+    concorde.repr_array sample_ary
+    eval "declare -a result_ary=( $__ )"
+    assert equal 0 "${#result_ary[@]}"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "generates a representation of an array"; ( _shpec_failures=0
+    sample_ary=( zero one )
+    concorde.repr_array sample_ary
+    eval "declare -a result_ary=( $__ )"
+    printf -v result '(%s) ' "${result_ary[@]}"
+    assert equal '(zero) (one)' "${result% }"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "generates a representation of an array with a space in an item"; ( _shpec_failures=0
+    sample_ary=( "zero one" two )
+    concorde.repr_array sample_ary
+    eval "declare -a result_ary=( $__ )"
+    printf -v result '(%s) ' "${result_ary[@]}"
+    assert equal '(zero one) (two)' "${result% }"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "generates a representation of an array with a newline in an item"; ( _shpec_failures=0
+    sample_ary=( $'zero\none' two )
+    concorde.repr_array sample_ary
+    eval "declare -a result_ary=( $__ )"
+    printf -v result '(%s) ' "${result_ary[@]}"
+    assert equal $'(zero\none) (two)' "${result% }"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+end
+
 describe concorde.repr_hash
   it "errors on an undefined variable"; ( _shpec_failures=0
     concorde.repr_hash sample

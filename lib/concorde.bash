@@ -146,6 +146,24 @@ concorde.raise () {
   concorde.xtrace_end
 }
 
+concorde.repr_array () {
+  concorde.xtrace_begin
+  local __name=$1
+  local __ary=()
+  local __item
+
+  __=$(declare -p "$__name" 2>/dev/null)  || $(concorde.raise ArgumentError)
+  [[ ${__:9:1} == a ]]                    || $(concorde.raise TypeError    )
+  printf -v __ '(( ${#%s[@]} )) && set -- "${%s[@]}" || { __=''; return ;}' "$__name" "$__name"
+  eval "$__"
+  for __item in "$@"; do
+    printf -v __ %q "$__item"
+    __ary+=( "$__" )
+  done
+  __=${__ary[*]}
+  concorde.xtrace_end
+}
+
 concorde.repr_hash () {
   concorde.xtrace_begin
   local __name=$1
