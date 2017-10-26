@@ -5,6 +5,21 @@ set -o nounset
 
 source "$(dirname -- "$(readlink --canonicalize -- "$BASH_SOURCE")")"/../lib/concorde.bash
 
+describe concorde.array
+  it "creates an empty array from an empty literal"; ( _shpec_failures=0
+    $(concorde.array result_ary='')
+    declare -p result_ary >/dev/null
+    assert equal '(0) (0)' "($?) (${#result_ary[@]})"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "creates an array from a literal"; ( _shpec_failures=0
+    $(concorde.array result_ary='"0 1" "2 3"')
+    assert equal '(0 1) (2 3)' "(${result_ary[0]}) (${result_ary[1]})"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+end
+
 describe concorde.defined
   it "is false if the variable is not set"; ( _shpec_failures=0
     sample=''

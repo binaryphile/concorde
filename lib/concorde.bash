@@ -1,3 +1,10 @@
+concorde.array () {
+  concorde.xtrace_begin
+  printf -v __ 'declare %s=( %s )' "${1%%=*}" "${1#*=}"
+  concorde.emit "$__"
+  concorde.xtrace_end
+}
+
 concorde.defined () {
   declare -p "${1%%[*}" >/dev/null 2>&1 && [[ -n ${!1+x} ]]
 }
