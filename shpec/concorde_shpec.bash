@@ -208,6 +208,40 @@ describe concorde.hash
   end
 end
 
+describe concorde.is_local
+  it "is true if there is a local variable"; ( _shpec_failures=0
+    samplef () { local sample=''; $(concorde.is_local sample) ;}
+    samplef
+    assert equal 0 $?
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "is false if there is no variable defined"; ( _shpec_failures=0
+    samplef () { $(concorde.is_local sample) ;}
+    samplef
+    rc=$?
+    [[ -n ${sample+x} ]]
+    assert equal '(1) (1)' "($?) ($rc)"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "is false if there is a variable defined in the global scope"; ( _shpec_failures=0
+    declare -g sample=''
+    samplef () { $(concorde.is_local sample) ;}
+    samplef
+    assert equal 1 $?
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "is false if there is a variable defined in a higher scope"; ( _shpec_failures=0
+    samplef   () { $(concorde.is_local sample)  ;}
+    samplef2  () { local sample=''; samplef     ;}
+    samplef2
+    assert unequal 0 $?
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+end
+
 describe concorde.raise
   it "returns"; ( _shpec_failures=0
     samplef () { $(concorde.raise SampleError); echo hello ;}

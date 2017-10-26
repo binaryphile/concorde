@@ -46,6 +46,27 @@ concorde.hash () {
   concorde.xtrace_end
 }
 
+concorde.is_local () {
+  concorde.xtrace_begin
+  concorde.get <<'  EOS'
+    concorde.defined %s                        && \
+      {
+        (( ! ${#FUNCNAME[@]} ))       || \
+          (
+            declare -g %s=$'sigil\037'
+            [[ $%s != $'sigil\037' ]] && \
+              {
+                unset -v %s
+                ! concorde.defined %s
+              }
+          )
+      }
+  EOS
+  printf -v __ "$__" "$1" "$1" "$1" "$1" "$1"
+  concorde.emit "$__"
+  concorde.xtrace_end
+}
+
 concorde.raise () {
   local rc=$?
   concorde.xtrace_begin
