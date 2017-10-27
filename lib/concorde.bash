@@ -317,17 +317,19 @@ concorde.strict_mode () {
   local option
 
   case $status in
-    on      ) option=-                        ;;
-    off     ) option=+                        ;;
-    *       ) $(concorde.raise ArgumentError) ;;
+    on      ) option=-; callback=concorde.traceback ;;
+    off     ) option=+; callback=-                  ;;
+    *       ) $(concorde.raise ArgumentError)       ;;
   esac
   concorde.get <<'  EOS'
     set %so errexit
     set %so errtrace
     set %so nounset
     set %so pipefail
+
+    trap %s ERR
   EOS
-  printf -v __ "$__" "$option" "$option" "$option" "$option"
+  printf -v __ "$__" "$option" "$option" "$option" "$option" "$callback"
   eval "$__"
   concorde.xtrace_end
 }
@@ -343,6 +345,49 @@ concorde.stuff () {
   done
   concorde.repr_hash __hash
   concorde.xtrace_end
+}
+
+concorde.traceback () {
+  local rc=$?
+  set +o xtrace
+  local errcode
+  local errmsg
+  local errtype
+  local exit
+  local frame
+  local val
+  local xtrace
+
+  exit=1
+  xtrace=0
+  $(concorde.grabkw 'exit xtrace' from "$@")
+  (( xtrace )) && set -o xtrace
+  concorde.strict_mode off
+  case $rc in
+    113 )
+      errtype=$__errtype
+      errmsg=$__errmsg
+      errcode=$__errcode
+      ;;
+    * )
+      errtype=CommandError
+      errmsg='Unspecified Error'
+      errcode=$rc
+      ;;
+  esac
+  case $errmsg in
+    ''  ) printf $'\nTraceback:\n\n'"  $errtype: return code $errcode" >&2          ;;
+    *   ) printf $'\nTraceback:\n\n'"  $errtype: $errmsg (return code $errcode)" >&2;;
+  esac
+  frame=0
+  while val=$(caller "$frame"); do
+    set -- $val
+    (( frame == 0 )) && { printf '  Command: '; sed -n "$1"' s/^[[:space:]]*// p' "$3" ;} >&2
+    (( ${#3} > 80 )) && set -- "$1" "$2" "${3:0:35}"[...]"${3:${#3}-40}"
+    printf "  %s:%s:in '%s'\n" "$3" "$1" "$2" >&2
+    (( frame++ ))
+  done
+  (( exit )) && exit 1
 }
 
 concorde.xtrace_begin () {
