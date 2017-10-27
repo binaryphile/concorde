@@ -506,6 +506,48 @@ describe concorde.repr_hash
   end
 end
 
+describe concorde.ssv
+  it "creates a multidimensional array from a multiline string"; ( _shpec_failures=0
+    $(concorde.ssv result_ary=$'one two\nthree')
+    $(concorde.array result_ary="${result_ary[0]}")
+    printf -v result '(%s) ' "${result_ary[@]}"
+    assert equal '(one) (two)' "${result% }"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "creates a multidimensional array from a string with a quoted item"; ( _shpec_failures=0
+    $(concorde.ssv result_ary=$'"one two"\nthree')
+    $(concorde.array result_ary="${result_ary[0]}")
+    printf -v result '(%s) ' "${result_ary[@]}"
+    assert equal '(one two)' "${result% }"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "creates a multidimensional array from a string with a quoted item with an escaped newline"; ( _shpec_failures=0
+    $(concorde.ssv result_ary="\$'one\ntwo'"$'\nthree')
+    $(concorde.array result_ary="${result_ary[0]}")
+    printf -v result '(%s) ' "${result_ary[@]}"
+    assert equal $'(one\ntwo)' "${result% }"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "creates a multidimensional array from multiple quoted items with a newline in a string"; ( _shpec_failures=0
+    $(concorde.ssv result_ary=$'"one two" "three four"\nfive')
+    $(concorde.array result_ary="${result_ary[0]}")
+    printf -v result '(%s) ' "${result_ary[@]}"
+    assert equal '(one two) (three four)' "${result% }"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "creates an array from the second multiple quoted items in a string"; ( _shpec_failures=0
+    $(concorde.ssv result_ary=$'"one two" "three four"\n"five six" "seven eight"')
+    $(concorde.array result_ary="${result_ary[1]}")
+    printf -v result '(%s) ' "${result_ary[@]}"
+    assert equal '(five six) (seven eight)' "${result% }"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+end
+
 describe concorde.stuff
   it "errors if not given 'into'"; ( _shpec_failures=0
     concorde.stuff sample otni ''

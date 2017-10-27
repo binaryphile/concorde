@@ -201,6 +201,13 @@ concorde.repr_hash () {
   concorde.xtrace_end
 }
 
+concorde.ssv () {
+  concorde.xtrace_begin
+  concorde.part "${1#*=}" on $'\n'
+  concorde.array "${1%%=*}=$__"
+  concorde.xtrace_end
+}
+
 concorde.stuff () {
   concorde.xtrace_begin
   [[ $2 == into ]] || $(concorde.raise ArgumentError)
