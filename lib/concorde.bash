@@ -291,6 +291,18 @@ concorde.repr_hash () {
   concorde.xtrace_end
 }
 
+concorde.sourced () {
+  concorde.xtrace_begin
+  local index
+
+  case ${FUNCNAME[1]} in
+    sourced|'sourced?'  ) index=2;;
+    *                   ) index=1;;
+  esac
+  concorde.xtrace_end
+  [[ ${FUNCNAME[index]} == source   ]]
+}
+
 concorde.ssv () {
   concorde.xtrace_begin
   concorde.part "${1#*=}" on $'\n'

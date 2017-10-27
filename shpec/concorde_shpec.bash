@@ -668,6 +668,22 @@ describe concorde.repr_hash
   end
 end
 
+describe concorde.sourced
+  it "returns true when called from 'source'"; ( _shpec_failures=0
+    source () { concorde.sourced ;}
+    source
+    assert equal 0 $?
+    return "$_shpec_failures" );: $(( _shpec_failures+=$? ))
+  end
+
+  it "returns false when called from anything else"; ( _shpec_failures=0
+    samplef () { concorde.sourced ;}
+    samplef
+    assert unequal 0 $?
+    return "$_shpec_failures" );: $(( _shpec_failures+=$? ))
+  end
+end
+
 describe concorde.ssv
   it "creates a multidimensional array from a multiline string"; ( _shpec_failures=0
     $(concorde.ssv result_ary=$'one two\nthree')
