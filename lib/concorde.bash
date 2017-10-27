@@ -310,6 +310,28 @@ concorde.ssv () {
   concorde.xtrace_end
 }
 
+concorde.strict_mode () {
+  concorde.xtrace_begin
+  local status=$1
+  local callback
+  local option
+
+  case $status in
+    on      ) option=-                        ;;
+    off     ) option=+                        ;;
+    *       ) $(concorde.raise ArgumentError) ;;
+  esac
+  concorde.get <<'  EOS'
+    set %so errexit
+    set %so errtrace
+    set %so nounset
+    set %so pipefail
+  EOS
+  printf -v __ "$__" "$option" "$option" "$option" "$option"
+  eval "$__"
+  concorde.xtrace_end
+}
+
 concorde.stuff () {
   concorde.xtrace_begin
   [[ $2 == into ]] || $(concorde.raise ArgumentError)

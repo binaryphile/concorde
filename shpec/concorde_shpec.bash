@@ -726,6 +726,54 @@ describe concorde.ssv
   end
 end
 
+describe concorde.sourced
+  it "returns true when called from 'source'"; ( _shpec_failures=0
+    source () { concorde.sourced ;}
+    source
+    assert equal 0 $?
+    return "$_shpec_failures" );: $(( _shpec_failures+=$? ))
+  end
+
+  it "returns false when called from anything else"; ( _shpec_failures=0
+    samplef () { concorde.sourced ;}
+    samplef
+    assert unequal 0 $?
+    return "$_shpec_failures" );: $(( _shpec_failures+=$? ))
+  end
+end
+
+describe concorde.strict_mode
+  it "sets errexit"; ( _shpec_failures=0
+    set +o errexit
+    concorde.strict_mode on
+    [[ $- == *e* ]]
+    rc=$?
+    concorde.strict_mode off
+    assert equal 0 "$rc"
+    return "$_shpec_failures" );: $(( _shpec_failures+=$? ))
+  end
+
+  it "sets nounset"; ( _shpec_failures=0
+    set +o nounset
+    concorde.strict_mode on
+    [[ $- == *u* ]]
+    rc=$?
+    concorde.strict_mode off
+    assert equal 0 "$rc"
+    return "$_shpec_failures" );: $(( _shpec_failures+=$? ))
+  end
+
+  it "sets pipefail"; ( _shpec_failures=0
+    set +o pipefail
+    concorde.strict_mode on
+    [[ $(set -o) == *pipefail* ]]
+    rc=$?
+    concorde.strict_mode off
+    assert equal 0 "$rc"
+    return "$_shpec_failures" );: $(( _shpec_failures+=$? ))
+  end
+end
+
 describe concorde.stuff
   it "errors if not given 'into'"; ( _shpec_failures=0
     concorde.stuff sample otni ''
