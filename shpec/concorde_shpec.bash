@@ -20,6 +20,26 @@ describe concorde.array
   end
 end
 
+describe concorde.assign
+  it "errors if the second argument isn't 'to'"; ( _shpec_failures=0
+    $(concorde.assign one two three)
+    assert equal '(113) (1) (ArgumentError) ()' "($?) ($__errcode) ($__errtype) ($__errmsg)"
+    return "$_shpec_failures" );: $(( _shpec_failures+= $? ))
+  end
+
+  it "accepts array literals"; ( _shpec_failures=0
+    $(concorde.assign '1 2' to 'one two')
+    assert equal '(1) (2)' "($one) ($two)"
+    return "$_shpec_failures" );: $(( _shpec_failures+= $? ))
+  end
+
+  it "makes the last named target an array if there are too many values"; ( _shpec_failures=0
+    $(concorde.assign '1 2 3' to 'one two')
+    assert equal '(1) (2 3)' "($one) (${two[*]})"
+    return "$_shpec_failures" );: $(( _shpec_failures+= $? ))
+  end
+end
+
 describe concorde.defined
   it "is false if the variable is not set"; ( _shpec_failures=0
     sample=''

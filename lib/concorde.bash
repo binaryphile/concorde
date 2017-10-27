@@ -5,6 +5,34 @@ concorde.array () {
   concorde.xtrace_end
 }
 
+concorde.assign () {
+  concorde.xtrace_begin
+  [[ $2 == to ]] || { concorde.raise ArgumentError return=0; return ;}
+  $(concorde.array arg_ary="$1")
+  $(concorde.array var_ary="$3")
+  local IFS=$IFS
+  local count
+  local statement_ary=()
+  local var
+
+  set -- "${arg_ary[@]}"
+  count=${#var_ary[@]}
+  (( $# > count )) && : $(( count-- ))
+  for (( i = 0; i < count; i++ )); do
+    printf -v __ 'declare %s=%q' "${var_ary[i]}" "$1"
+    statement_ary+=( "$__" )
+    shift
+  done
+  (( count != ${#var_ary[@]} )) && {
+    concorde.escape_items "$@"
+    printf -v __ 'declare %s=( %s )' "${var_ary[count]}" "$__"
+    statement_ary+=( "$__" )
+  }
+  IFS=$'\n'
+  concorde.emit "${statement_ary[*]}"
+  concorde.xtrace_end
+}
+
 concorde.defined () {
   declare -p "${1%%[*}" >/dev/null 2>&1 && [[ -n ${!1+x} ]]
 }
