@@ -141,6 +141,68 @@ concorde.is_local () {
   concorde.xtrace_end
 }
 
+concorde.parse_options () {
+  concorde.xtrace_begin
+  $(concorde.ssv input_ary="$1"); shift
+  local -A option_hsh=()
+  local -A result_hsh=()
+  local arg_ary=()
+  local input
+  local name
+  local option
+  local statement
+
+  for input in "${input_ary[@]}"; do
+    $(concorde.assign "$input" to 'short long argument help')
+    short=${short#-}
+    long=${long#--}
+    long=${long//-/_}
+    [[ -n $long ]] && name=$long || name=$short
+    concorde.stuff 'argument name help' into ''
+    [[ -n $short  ]] && option_hsh[$short]=$__
+    [[ -n $long   ]] && option_hsh[$long]=$__
+  done
+
+  while (( $# )); do
+    case $1 in
+      --*=*   ) set -- "${1%%=*}" "${1#*=}" "${@:2}";;
+      -[^-]?* )
+        [[ $1 =~ ${1//?/(.)} ]]
+        set -- $(printf -- '-%s ' "${BASH_REMATCH[@]:2}") "${@:2}"
+        ;;
+    esac
+    option=${1#-}
+    option=${option#-}
+    option=${option//-/_}
+    [[ $1 =~ ^-{1,2}[^-] && -n ${option_hsh[$option]:-} ]] && {
+      $(concorde.grab 'argument name' from "${option_hsh[$option]}")
+      case $argument in
+        ''  ) result_hsh["$name"_flag]=1       ;;
+        *   ) result_hsh[$argument]=$2; shift  ;;
+      esac
+      shift
+      continue
+    }
+    case $1 in
+      --  ) shift; arg_ary+=( "$@" ); break                                             ;;
+      -*  ) concorde.raise OptionError "unsupported option '$1'" return=0 rc=1; return  ;;
+      *   ) arg_ary+=( "$@" ); break                                                    ;;
+    esac
+    shift
+  done
+  case ${#arg_ary[@]} in
+    0 ) statement='set --';;
+    * )
+      concorde.escape_items "${arg_ary[@]}"
+      printf -v statement 'set -- %s' "$__"
+      ;;
+  esac
+  concorde.repr_hash result_hsh
+  printf -v statement '%s\n__=%q' "${statement:-}" "$__"
+  concorde.emit "$statement"
+  concorde.xtrace_end
+}
+
 concorde.part () {
   concorde.xtrace_begin
   [[ $2 == on ]] || $(concorde.raise ArgumentError)

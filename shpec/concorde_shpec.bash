@@ -356,6 +356,148 @@ describe concorde.is_local
   end
 end
 
+describe concorde.parse_options
+  it "errors on an undefined option"; ( _shpec_failures=0
+    concorde.get <<'    EOS'
+      -o '' '' 'a flag'
+    EOS
+    $(concorde.parse_options "$__" -a)
+    assert equal "(113) (1) (OptionError) (unsupported option '-a')" "($?) ($__errcode) ($__errtype) ($__errmsg)"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "accepts no options on the command line when options are defined"; ( _shpec_failures=0
+    concorde.get <<'    EOS'
+      -o '' '' 'a flag'
+    EOS
+    $(concorde.parse_options "$__")
+    assert equal '' "$__"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "accepts a short flag option"; ( _shpec_failures=0
+    concorde.get <<'    EOS'
+      -o '' '' 'a flag'
+    EOS
+    $(concorde.parse_options "$__" -o)
+    $(concorde.grab o_flag from "$__")
+    assert equal 1 "$o_flag"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "accepts a long flag option"; ( _shpec_failures=0
+    concorde.get <<'    EOS'
+      '' --option '' 'a flag'
+    EOS
+    $(concorde.parse_options "$__" --option)
+    $(concorde.grab option_flag from "$__" )
+    assert equal 1 "$option_flag"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "accepts a hyphenated long flag option"; ( _shpec_failures=0
+    concorde.get <<'    EOS'
+      '' --hyphen-option '' 'a flag'
+    EOS
+    $(concorde.parse_options "$__" --hyphen-option)
+    $(concorde.grab hyphen_option_flag from "$__" )
+    assert equal 1 "$hyphen_option_flag"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "accepts a short argument option"; ( _shpec_failures=0
+    concorde.get <<'    EOS'
+      -o '' argument 'an argument'
+    EOS
+    $(concorde.parse_options "$__" -o value )
+    $(concorde.grab argument from "$__"     )
+    assert equal value "$argument"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "accepts a long argument option without an equals sign"; ( _shpec_failures=0
+    concorde.get <<'    EOS'
+      '' --option argument 'an argument'
+    EOS
+    $(concorde.parse_options "$__" --option value )
+    $(concorde.grab argument from "$__"           )
+    assert equal value "$argument"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "accepts a long argument option with an equals sign"; ( _shpec_failures=0
+    concorde.get <<'    EOS'
+      '' --option argument 'an argument'
+    EOS
+    $(concorde.parse_options "$__" --option=value )
+    $(concorde.grab argument from "$__"           )
+    assert equal value "$argument"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "accepts multiple short options in one"; ( _shpec_failures=0
+    concorde.get <<'    EOS'
+      -o '' '' 'a flag'
+      -p '' '' 'a flag'
+    EOS
+    $(concorde.parse_options "$__" -op            )
+    $(concorde.grab 'o_flag p_flag' from "$__")
+    assert equal '(1) (1)' "($o_flag) ($p_flag)"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "accepts multiple short options with the last an argument"; ( _shpec_failures=0
+    concorde.get <<'    EOS'
+      -o '' '' 'a flag'
+      -p '' argument 'an argument'
+    EOS
+    $(concorde.parse_options "$__" -op value    )
+    $(concorde.grab 'o_flag argument' from "$__")
+    assert equal '1 value' "$o_flag $argument"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "accepts a combination of option types"; ( _shpec_failures=0
+    concorde.get <<'    EOS'
+      ''  --option1 ''        'flag 1'
+      -o  ''        ''        'flag 2'
+      ''  --option3 argument3 'argument 3'
+      -p  ''        argument4 'argument 4'
+      -q  --option5 ''        'flag 5'
+      -r  --option6 argument6 'argument 6'
+    EOS
+    $(concorde.parse_options "$__" --option1 -o --option3=value3 -p value4 --option5 -r value6)
+    $(concorde.grab '
+        option1_flag
+        o_flag
+        argument3
+        argument4
+        option5_flag
+        argument6
+      ' from "$__" )
+    assert equal '(1) (1) (value3) (value4) (1) (value6)' "($option1_flag) ($o_flag) ($argument3) ($argument4) ($option5_flag) ($argument6)"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "outputs arguments"; ( _shpec_failures=0
+    concorde.get <<'    EOS'
+      -o  '' '' 'a flag'
+    EOS
+    $(concorde.parse_options "$__" -o arg1 arg2 )
+    assert equal '(arg1) (arg2)' "($1) ($2)"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "doesn't output arguments if none are provided"; ( _shpec_failures=0
+    concorde.get <<'    EOS'
+      -o  '' '' 'a flag'
+    EOS
+    $(concorde.parse_options "$__" -o)
+    assert equal 0 $#
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+end
+
 describe concorde.part
   it "raises an error is the second argument isn't 'on'"; ( _shpec_failures=0
     concorde.part one@two @
