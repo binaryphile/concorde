@@ -260,6 +260,14 @@ describe concorde.hash
   end
 end
 
+describe concorde.hashkw
+  it "creates a hash from multiple keyword arguments"; ( _shpec_failures=0
+    $(concorde.hashkw result_hsh=zero="0 1" one="2 3")
+    assert equal '(0 1) (2 3)' "(${result_hsh[zero]}) (${result_hsh[one]})"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+end
+
 describe concorde.is_local
   it "is true if there is a local variable"; ( _shpec_failures=0
     samplef () { local sample=''; $(concorde.is_local sample) ;}

@@ -77,6 +77,13 @@ concorde.hash () {
   concorde.xtrace_end
 }
 
+concorde.hashkw () {
+  concorde.xtrace_begin
+  concorde.escape_items "$@"
+  concorde.hash "$__"
+  concorde.xtrace_end
+}
+
 concorde.is_local () {
   concorde.xtrace_begin
   concorde.get <<'  EOS'
