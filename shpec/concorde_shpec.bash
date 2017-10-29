@@ -130,6 +130,83 @@ describe concorde.defined
   end
 end
 
+describe concorde.die
+  it "exits without an error message"; ( _shpec_failures=0
+    result=$(concorde.die 2>&1)
+    assert equal '' "$result"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "exits with a default error code of the last command"; ( _shpec_failures=0
+    false
+    (concorde.die)
+    result=$?
+    (concorde.die)
+    assert equal '1 0' "$result $?"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "exits with an error message"; ( _shpec_failures=0
+    result=$(concorde.die aaaaagh 2>&1)
+    assert equal aaaaagh "$result"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "exits with an error code"; ( _shpec_failures=0
+    (concorde.die rc=2)
+    assert equal 2 $?
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "reports an exception"; ( _shpec_failures=0
+    result=$($(concorde.raise SampleError return=0 rc=1); concorde.die 2>&1)
+    assert equal 'SampleError: return code 1' "$result"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "reports an exception with message"; ( _shpec_failures=0
+    result=$($(concorde.raise SampleError "a sample error" return=0 rc=1); concorde.die 2>&1 >/dev/null)
+    assert equal 'SampleError: a sample error (return code 1)' "$result"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "reports an exception and a die message"; ( _shpec_failures=0
+    result=$($(concorde.raise SampleError return=0 rc=1); concorde.die "another message" 2>&1 >/dev/null)
+    assert equal "another message" "$result"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "reports an exception with message and a die message"; ( _shpec_failures=0
+    result=$($(concorde.raise SampleError "a sample error" return=0 rc=1); concorde.die "another message" 2>&1 >/dev/null)
+    assert equal "another message" "$result"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "reports a non-error"; ( _shpec_failures=0
+    result=$($(concorde.raise Sample return=0); concorde.die 2>/dev/null)
+    assert equal 'Sample: return code 0' "$result"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "reports a non-error with message"; ( _shpec_failures=0
+    result=$($(concorde.raise Sample "a sample error" return=0); concorde.die 2>/dev/null)
+    assert equal 'Sample: a sample error (return code 0)' "$result"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "reports a die message when specified over an error"; ( _shpec_failures=0
+    result=$($(concorde.raise SampleError return=0); concorde.die "another message" 2>/dev/null)
+    assert equal "another message" "$result"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "reports a die message when specified over a non-error"; ( _shpec_failures=0
+    result=$($(concorde.raise SampleError "a sample error" return=0); concorde.die "another message" 2>/dev/null)
+    assert equal "another message" "$result"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+end
+
 describe concorde.emit
   it "echos hello"; ( _shpec_failures=0
     assert equal hello "$( $(concorde.emit 'echo hello') )"

@@ -37,6 +37,38 @@ concorde.defined () {
   declare -p "${1%%[*}" >/dev/null 2>&1 && [[ -n ${!1+x} ]]
 }
 
+concorde.die () {
+  local rc=$?
+  concorde.xtrace_begin
+  local errmsg
+  local msg=''
+
+  [[ -n ${1:-} && $1 != rc=* ]] && { msg=$1; shift ;}
+  $(concorde.grabkw rc from "$@")
+  (( rc == 113 )) && {
+    case $msg in
+      '' )
+        case $__errmsg in
+          '' ) errmsg="$__errtype: return code $__errcode"             ;;
+          *  ) errmsg="$__errtype: $__errmsg (return code $__errcode)" ;;
+        esac
+        ;;
+      * ) errmsg=$msg;;
+    esac
+    case $__errcode in
+      0 ) printf '%s\n' "$errmsg"     ;;
+      * ) printf '%s\n' "$errmsg" >&2 ;;
+    esac
+    exit "$rc"
+  }
+  [[ -z $msg ]] && exit "$rc"
+  case $rc in
+    0 ) printf '%s\n' "$msg"    ;;
+    * ) printf '%s\n' "$msg" >&2;;
+  esac
+  exit "$rc"
+}
+
 concorde.emit () {
   concorde.xtrace_begin
   printf 'eval eval %q' "$1"
