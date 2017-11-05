@@ -894,6 +894,17 @@ describe parse_options
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
+  it "works with an expanded argument"; ( _shpec_failures=0
+    get <<'    EOS'
+      -o '' '' 'a flag'
+      -p '' '' 'a flag'
+    EOS
+    $(parse_options "$__" -op)
+    $(grab 'o_flag p_flag' from __)
+    assert equal '1 1' "$o_flag $p_flag"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
   it "accepts multiple short options with the last an argument"; ( _shpec_failures=0
     get <<'    EOS'
       -o '' '' 'a flag'
@@ -1027,6 +1038,61 @@ describe repr
     done
     assert equal $'(4) (2\n3)' "${result_ary[*]}"
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+end
+
+describe require
+  it "sources a file with no extension from the path"; ( _shpec_failures=0
+    dir=$(mktemp -qd)
+    [[ -d $dir ]] || return
+    PATH+=:"$dir"
+    echo sample=1 >"$dir"/sample
+    $(require sample)
+    assert equal 1 "$sample"
+    rm -rf -- "$dir"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "sources a file with a .sh extension from the path"; ( _shpec_failures=0
+    dir=$(mktemp -qd)
+    [[ -d $dir ]] || return
+    PATH+=:"$dir"
+    echo sample=1 >"$dir"/sample.sh
+    $(require sample)
+    assert equal 1 "$sample"
+    rm -rf -- "$dir"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "sources a file with a .bash extension from the path"; ( _shpec_failures=0
+    dir=$(mktemp -qd)
+    [[ -d $dir ]] || return
+    PATH+=:"$dir"
+    echo sample=1 >"$dir"/sample.bash
+    $(require sample)
+    assert equal 1 "$sample"
+    rm -rf -- "$dir"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "sources a file from an absolute path"; ( _shpec_failures=0
+    dir=$(mktemp -qd)
+    [[ -d $dir ]] || return
+    echo sample=1 >"$dir"/sample.bash
+    $(require "$dir"/sample)
+    assert equal 1 "$sample"
+    rm -rf -- "$dir"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "passes arguments to the file"; ( _shpec_failures=0
+    dir=$(mktemp -qd)
+    [[ -d $dir ]] || return
+    echo 'echo "$*"' >"$dir"/sample.bash
+    result=$( $(require "$dir"/sample hello there) )
+    assert equal "hello there" "$result"
+    rm -rf -- "$dir"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
   end
 end
 

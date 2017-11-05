@@ -266,7 +266,7 @@ member_of () {
 }
 
 parse_options () {
-  $(local_nry input_ary=$1); shift
+  $(local_nry input_ary="$1"); shift
   local -A option_hsh=()
   local -A result_hsh=()
   local arg_ary=()
@@ -367,7 +367,9 @@ repr () {
 
 require () {
   local spec=$1; shift
-  $(grab reload from "$@")
+  local __reload
+  [[ ${@:$#} == reload=1 ]] && { __reload=1; set -- "${@:0:$#}" ;}
+  local oldIFS=$IFS
   local IFS=$IFS
   local extension
   local extension_ary=()
@@ -375,8 +377,6 @@ require () {
   local file
   local path
 
-  __reload=$reload
-  unset -v reload
   extension_ary=(
     .bash
     .sh
@@ -395,6 +395,7 @@ require () {
       [[ -e $item/$spec$extension ]] && break 2
     done
   done
+  IFS=$oldIFS
   file=$item/$spec$extension
   [[ -e $file ]] || return
   (( $# )) && emit "source $file $*" || emit "source $file"
