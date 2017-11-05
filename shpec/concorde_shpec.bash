@@ -745,6 +745,42 @@ describe concorde.repr_hash
   end
 end
 
+describe concorde.source_relative
+  it "sources a file from a relative path"; ( _shpec_failures=0
+    dir=$(mktemp -qd) || return
+    oldIFS=$IFS
+    path=$(readlink -f -- "${BASH_SOURCE%/*}")
+    IFS=/
+    path_ary=( ${path#/} )
+    IFS=$oldIFS
+    result=''
+    for (( i = 0; i < ${#path_ary[@]}; i++ )); do result+=../; done
+    result=${result%/}
+    echo sample=1 >"$dir"/sample.bash
+    $(concorde.source_relative "$result$dir"/sample.bash)
+    assert equal 1 "$sample"
+    rm -rf -- "$dir"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "raises an error if it can't find the file"; ( _shpec_failures=0
+    dir=$(mktemp -qd) || return
+    oldIFS=$IFS
+    path=$(readlink -f -- "${BASH_SOURCE%/*}")
+    IFS=/
+    path_ary=( ${path#/} )
+    IFS=$oldIFS
+    result=''
+    for (( i = 0; i < ${#path_ary[@]}; i++ )); do result+=../; done
+    result=${result%/}
+    echo sample=1 >"$dir"/sample.bash
+    $(concorde.source_relative "$result$dir"/sample)
+    assert equal '(113) (1) (FileNotFoundError) ()' "($?) ($__errcode) ($__errtype) ($__errmsg)"
+    rm -rf -- "$dir"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+end
+
 describe concorde.sourced
   it "returns true when called from 'source'"; ( _shpec_failures=0
     source () { concorde.sourced ;}
@@ -800,22 +836,6 @@ describe concorde.ssv
     printf -v result '(%s) ' "${result_ary[@]}"
     assert equal '(five six) (seven eight)' "${result% }"
     return "$_shpec_failures" );: $(( _shpec_failures += $? ))
-  end
-end
-
-describe concorde.sourced
-  it "returns true when called from 'source'"; ( _shpec_failures=0
-    source () { concorde.sourced ;}
-    source
-    assert equal 0 $?
-    return "$_shpec_failures" );: $(( _shpec_failures+=$? ))
-  end
-
-  it "returns false when called from anything else"; ( _shpec_failures=0
-    samplef () { concorde.sourced ;}
-    samplef
-    assert unequal 0 $?
-    return "$_shpec_failures" );: $(( _shpec_failures+=$? ))
   end
 end
 

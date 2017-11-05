@@ -323,6 +323,26 @@ concorde.repr_hash () {
   concorde.xtrace_end
 }
 
+concorde.source_relative () {
+  concorde.xtrace_begin
+  local module_name=$1
+  local file
+  local index
+  local path
+  local readlink
+
+  [[ $module_name == /*  ]] && { concorde.raise ArgumentError return=0; return ;}
+  [[ $module_name != */* ]] && { concorde.raise ArgumentError return=0; return ;}
+  type greadlink >/dev/null 2>&1 && readlink='greadlink -f --' || readlink='readlink -f --'
+  for (( index = 1; index < ${#FUNCNAME}; index++ )); do
+    [[ ${FUNCNAME[index]} != *"${FUNCNAME##*.}" ]] && break
+  done
+  file=$(dirname -- "$($readlink "${BASH_SOURCE[index]}")")/$module_name
+  [[ -e $file ]] || { concorde.raise FileNotFoundError return=0; return ;}
+  concorde.emit "source '$file'"
+  concorde.xtrace_end
+}
+
 concorde.sourced () {
   concorde.xtrace_begin
   local index
