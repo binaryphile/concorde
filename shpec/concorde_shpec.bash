@@ -1041,6 +1041,61 @@ describe repr
   end
 end
 
+describe require
+  it "sources a file with no extension from the path"; ( _shpec_failures=0
+    dir=$(mktemp -qd)
+    [[ -d $dir ]] || return
+    PATH+=:"$dir"
+    echo sample=1 >"$dir"/sample
+    $(require sample)
+    assert equal 1 "$sample"
+    rm -rf -- "$dir"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "sources a file with a .sh extension from the path"; ( _shpec_failures=0
+    dir=$(mktemp -qd)
+    [[ -d $dir ]] || return
+    PATH+=:"$dir"
+    echo sample=1 >"$dir"/sample.sh
+    $(require sample)
+    assert equal 1 "$sample"
+    rm -rf -- "$dir"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "sources a file with a .bash extension from the path"; ( _shpec_failures=0
+    dir=$(mktemp -qd)
+    [[ -d $dir ]] || return
+    PATH+=:"$dir"
+    echo sample=1 >"$dir"/sample.bash
+    $(require sample)
+    assert equal 1 "$sample"
+    rm -rf -- "$dir"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "sources a file from an absolute path"; ( _shpec_failures=0
+    dir=$(mktemp -qd)
+    [[ -d $dir ]] || return
+    echo sample=1 >"$dir"/sample.bash
+    $(require "$dir"/sample)
+    assert equal 1 "$sample"
+    rm -rf -- "$dir"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "passes arguments to the file"; ( _shpec_failures=0
+    dir=$(mktemp -qd)
+    [[ -d $dir ]] || return
+    echo 'echo "$*"' >"$dir"/sample.bash
+    result=$( $(require "$dir"/sample hello there) )
+    assert equal "hello there" "$result"
+    rm -rf -- "$dir"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+end
+
 describe stuff
   it "inserts a local variable as a key into an empty hash literal"; ( _shpec_failures=0
     sample=one
