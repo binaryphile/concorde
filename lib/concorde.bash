@@ -266,7 +266,7 @@ member_of () {
 }
 
 parse_options () {
-  $(local_nry input_ary=$1); shift
+  $(local_nry input_ary="$1"); shift
   local -A option_hsh=()
   local -A result_hsh=()
   local arg_ary=()

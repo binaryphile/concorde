@@ -894,6 +894,17 @@ describe parse_options
     return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
   end
 
+  it "works with an expanded argument"; ( _shpec_failures=0
+    get <<'    EOS'
+      -o '' '' 'a flag'
+      -p '' '' 'a flag'
+    EOS
+    $(parse_options "$__" -op)
+    $(grab 'o_flag p_flag' from __)
+    assert equal '1 1' "$o_flag $p_flag"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
   it "accepts multiple short options with the last an argument"; ( _shpec_failures=0
     get <<'    EOS'
       -o '' '' 'a flag'
