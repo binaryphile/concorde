@@ -3,3 +3,7 @@ concorde.xtrace_begin () {
   [[ $- != *x* ]] && __xtrace_set=$? || __xtrace_set=$?
   set +o xtrace
 }
+
+concorde.xtrace_end () {
+  (( ${__xtrace_set:-} )) && set -o xtrace;:
+}
