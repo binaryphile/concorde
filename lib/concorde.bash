@@ -597,3 +597,44 @@ concorde.xtrace_begin () {
 concorde.xtrace_end () {
   (( ${__xtrace_set:-} )) && set -o xtrace;:
 }
+
+concorde.get <<'EOS'
+  array=concorde.array
+  arraynl=concorde.arraynl
+  assign=concorde.assign
+  bring=concorde.bring
+  constant=concorde.constant
+  die=concorde.die
+  get=concorde.get
+  grab=concorde.grab
+  grabkw=concorde.grabkw
+  hash=concorde.hash
+  hashkw=concorde.hashkw
+  import=concorde.import
+  module=concorde.module
+  parse_options=concorde.parse_options
+  raise=concorde.raise
+  repr=concorde.repr
+  source_relative=concorde.source_relative
+  sourced=concorde.sourced
+  strict_mode=concorde.strict_mode
+  stuff=concorde.stuff
+EOS
+concorde.constant imports="${__//$'\n'/ }"
+__=__${__id_hsh[$BASH_SOURCE]}[imports]
+case $1 in
+  imports=  );;
+  imports=* )
+    set -- "${1//$'\n'/ }" "${@:2}"
+    for __ in ${!__}; do
+      [[ " ${1#imports=} " == *" ${__%%=*} "* ]] && eval "${__%%=*} () { ${__#*=} \"\$@\" ;}"
+    done
+    ;;
+  * )
+    for __ in ${!__}; do
+      eval "${__%%=*} () { ${__#*=} \"\$@\" ;}"
+    done
+    ;;
+esac
+
+$(concorde.module concorde)

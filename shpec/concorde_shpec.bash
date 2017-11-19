@@ -93,6 +93,14 @@ describe concorde.constant
   end
 end
 
+describe concorde
+  it "is a module"; ( _shpec_failures=0
+    [[ -n ${__module_hsh[concorde]} ]]
+    assert equal 0 $?
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+end
+
 describe concorde.defined
   it "is false if the variable is not set"; ( _shpec_failures=0
     sample=''
