@@ -40,6 +40,59 @@ describe concorde.assign
   end
 end
 
+describe concorde.bring
+  it "errors if there are just two arguments"; ( _shpec_failures=0
+    $(concorde.bring one two)
+    assert equal '(113) (1) (ArgumentError) ()' "($?) ($__errcode) ($__errtype) ($__errmsg)"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "errors if the second argument is given and isn't 'from'"; ( _shpec_failures=0
+    $(concorde.bring one two three)
+    assert equal '(113) (1) (ArgumentError) ()' "($?) ($__errcode) ($__errtype) ($__errmsg)"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "instantiates key/value pairs as locals from the default module"; ( _shpec_failures=0
+    concorde.constant one=1 two=2
+    $(concorde.bring 'one two')
+    assert equal '(1) (2)' "($one) ($two)"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "instantiates key/value pairs as locals from a named module"; ( _shpec_failures=0
+    $(concorde.module sample)
+    concorde.constant one=1 two=2
+    $(concorde.bring 'one two' from sample)
+    assert equal '(1) (2)' "($one) ($two)"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+
+  it "grabs from a moduled hash representation"; ( _shpec_failures=0
+    $(concorde.module samplef)
+    concorde.constant sampleh='one=1 two=2'
+    $(concorde.bring 'one two' from samplef.sampleh)
+    assert equal '(1) (2)' "($one) ($two)"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+end
+
+describe concorde.constant
+  it "creates a moduled entry"; ( _shpec_failures=0
+    concorde.constant sample='one two'
+    __=${__id_hsh[$BASH_SOURCE]}
+    assert equal 'one two' "$(eval "echo \"\${__$__[sample]}\"")"
+    return "$_shpec_failures" );: $(( _shpec_failures+= $? ))
+  end
+
+  it "creates multiple entries"; ( _shpec_failures=0
+    concorde.constant sample1='one two' sample2='three four'
+    __=${__id_hsh[$BASH_SOURCE]}
+    assert equal '(one two) (three four)' "$(eval "echo \"(\${__$__[sample1]}) (\${__$__[sample2]})\"")"
+    return "$_shpec_failures" );: $(( _shpec_failures+= $? ))
+  end
+end
+
 describe concorde.defined
   it "is false if the variable is not set"; ( _shpec_failures=0
     sample=''
@@ -372,6 +425,44 @@ describe concorde.grabkw
   it "grabs from an empty argument"; ( _shpec_failures=0
     $(concorde.grabkw one from '')
     assert equal '' "$one"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+end
+
+describe concorde.grabns
+  it "errors if the second argument isn't 'from'"; ( _shpec_failures=0
+    $(concorde.grabns one two)
+    assert equal '(113) (1) (ArgumentError) ()' "($?) ($__errcode) ($__errtype) ($__errmsg)"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "instantiates a key/value pair from a hash literal in the local module"; ( _shpec_failures=0
+    concorde.constant sample='zero="0 1" one="2 3"'
+    $(concorde.grabns one from sample)
+    assert equal '2 3' "$one"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "instantiates multiple key/value pairs from the local module"; ( _shpec_failures=0
+    concorde.constant sample='zero="0 1" one="2 3"'
+    $(concorde.grabns 'zero one' from sample)
+    assert equal '(0 1) (2 3)' "($zero) ($one)"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "instantiates a key/value pair from a module module"; ( _shpec_failures=0
+    $(concorde.module samplef)
+    concorde.constant samplec='zero="0 1" one="2 3"'
+    $(concorde.grabns one from samplef.samplec)
+    assert equal '2 3' "$one"
+    return "$_shpec_failures" );: $(( _shpec_failures += $? ))
+  end
+
+  it "instantiates multiple key/value pairs from a module module"; ( _shpec_failures=0
+    $(concorde.module samplef)
+    concorde.constant samplec='zero="0 1" one="2 3"'
+    $(concorde.grabns 'zero one' from samplef.samplec)
+    assert equal '(0 1) (2 3)' "($zero) ($one)"
     return "$_shpec_failures" );: $(( _shpec_failures += $? ))
   end
 end

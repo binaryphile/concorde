@@ -39,6 +39,69 @@ concorde.assign () {
   concorde.xtrace_end
 }
 
+concorde.bring () {
+  concorde.xtrace_begin
+  [[ ${3:-} == *.* ]] && { concorde.grabns "$@"; return ;}
+  $(concorde.array name_ary="$1")
+  local module
+  local IFS=$IFS
+  local index
+  local name
+  local ref
+  local statement_ary=()
+
+  case $# in
+    1 )
+      for (( index = 1; index < ${#FUNCNAME}; index++ )); do
+        [[ ${FUNCNAME[index]} != *"${FUNCNAME##*.}" ]] && break
+      done
+      __=${__id_hsh[${BASH_SOURCE[index]}]}
+      module=__$__
+      ;;
+    3 )
+      [[ ${2:-} == from ]] || { concorde.raise ArgumentError return=0; return ;}
+      module=${__module_hsh[$3]}
+      ;;
+    * )
+      concorde.raise ArgumentError return=0 rc=1
+      return
+      ;;
+  esac
+  for name in "${name_ary[@]}"; do
+    ref=$module[$name]
+    printf -v __ 'declare %s=%q' "$name" "${!ref}"
+    statement_ary+=( "$__" )
+  done
+  IFS=$'\n'
+  concorde.emit "${statement_ary[*]}"
+  concorde.xtrace_end
+}
+
+concorde.constant () {
+  concorde.xtrace_begin
+  $(concorde.hashkw arg_hsh="$@")
+  local bash_source
+  local index
+  local name
+  local value
+
+  [[ ${FUNCNAME[1]} == constant ]] && index=2 || index=1
+  bash_source=${BASH_SOURCE[index]}
+  case ${__id_hsh[$bash_source]:-} in
+    '' )
+      __=$__next_id
+      __id_hsh[$bash_source]=$__
+      (( __next_id++ )) ||:
+      ;;
+    * ) __=${__id_hsh[$bash_source]};;
+  esac
+  eval "declare -Ag __$__"
+  for name in "${!arg_hsh[@]}"; do
+    printf -v "__$__[$name]" %s "${arg_hsh[$name]}"
+  done
+  concorde.xtrace_end
+}
+
 concorde.defined () {
   declare -p "${1%%[*}" >/dev/null 2>&1 && [[ -n ${!1+x} ]]
 }
@@ -132,6 +195,44 @@ concorde.grabkw () {
   [[ $2 == from ]] || { concorde.raise ArgumentError return=0; return ;}
   { (( $# < 3 )) || [[ -z $3 ]] ;} && __='' || concorde.escape_items "${@:3}"
   concorde.grab "$1" from "$__"
+  concorde.xtrace_end
+}
+
+concorde.grabns () {
+  concorde.xtrace_begin
+  [[ $2 == from ]] || { concorde.raise ArgumentError return=0; return ;}
+  local __name=${3#*.}
+  local __ref
+
+  case $3 in
+    *.* ) $(concorde.bring "$__name" from "${3%.*}");;
+    *   )
+      __=${__id_hsh[${BASH_SOURCE[1]}]}
+      __ref=__$__[$__name]
+      eval "local $__name"
+      printf -v "$__name" %s "${!__ref}"
+      ;;
+  esac
+  concorde.grab "$1" from "${!__name}"
+  concorde.xtrace_end
+}
+
+concorde.grabns () {
+  concorde.xtrace_begin
+  [[ $2 == from ]] || { concorde.raise ArgumentError return=0; return ;}
+  local __name=${3#*.}
+  local __ref
+
+  case $3 in
+    *.* ) $(concorde.bring "$__name" from "${3%.*}");;
+    *   )
+      __=${__id_hsh[${BASH_SOURCE[1]}]}
+      __ref=__$__[$__name]
+      eval "local $__name"
+      printf -v "$__name" %s "${!__ref}"
+      ;;
+  esac
+  concorde.grab "$1" from "${!__name}"
   concorde.xtrace_end
 }
 
