@@ -1,3 +1,35 @@
+concorde.die () {
+  local rc=$?
+  concorde.xtrace_begin
+  local errmsg
+  local msg=''
+
+  [[ -n ${1:-} && $1 != rc=* ]] && { msg=$1; shift ;}
+  [[ ${1:-} == rc=* ]] && rc=${1#rc=}
+  (( rc == 113 )) && {
+    case $msg in
+      '' )
+        case $__errmsg in
+          '' ) errmsg="$__errtype: return code $__errcode"             ;;
+          *  ) errmsg="$__errtype: $__errmsg (return code $__errcode)" ;;
+        esac
+        ;;
+      * ) errmsg=$msg;;
+    esac
+    case $__errcode in
+      0 ) printf '%s\n' "$errmsg"     ;;
+      * ) printf '%s\n' "$errmsg" >&2 ;;
+    esac
+    exit "$rc"
+  }
+  [[ -z $msg ]] && exit "$rc"
+  case $rc in
+    0 ) printf '%s\n' "$msg"    ;;
+    * ) printf '%s\n' "$msg" >&2;;
+  esac
+  exit "$rc"
+}
+
 concorde.emit () {
   printf 'eval eval %q' "$1"
 }
