@@ -229,6 +229,71 @@ describe sourced
   end
 end
 
+describe concorde.traceback
+  it "turns off tracing"; ( _shpec_failures=0
+    # stub_command strict_mode
+
+    set -o xtrace
+    concorde.traceback exit=0 2>/dev/null
+    [[ $- != *x* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); (( _shpec_failures+=$? ))
+  end
+
+  it "prints the source line which errored"; ( _shpec_failures=0
+    # stub_command strict_mode
+
+    result=$(concorde.traceback 2>&1)
+    [[ $result == *'result=$(concorde.traceback 2>&1)'* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); (( _shpec_failures+=$? ))
+  end
+
+  # it "turns off strict mode"; ( _shpec_failures=0
+  #   stub_command strict_mode '$_echo "$@"'
+  #
+  #   assert equal off "$(concorde.traceback 2>/dev/null)"
+  #   return "$_shpec_failures" ); (( _shpec_failures+=$? ))
+  # end
+
+  it "prints a stack trace on stderr"; ( _shpec_failures=0
+    # stub_command strict_mode
+
+    [[ $(trap concorde.traceback ERR; { false ;} 2>&1) == *"concorde_shpec.bash:804: in 'source'"* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); (( _shpec_failures+=$? ))
+  end
+
+  it "prints an unspecified error if reporting a normal error"; ( _shpec_failures=0
+    # stub_command strict_mode
+
+    result=$(concorde.traceback 2>&1)
+    [[ $result == *'StandardError: Unspecified Error (return code 0)'* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); (( _shpec_failures+=$? ))
+  end
+
+  it "prints the type and result of an error if it was raised"; ( _shpec_failures=0
+    # stub_command strict_mode
+
+    $(raise SampleError return=0 rc=3)
+    result=$(concorde.traceback 2>&1)
+    [[ $result == *'SampleError: return code 3'* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); (( _shpec_failures+=$? ))
+  end
+
+  it "prints the message of an error if it was raised"; ( _shpec_failures=0
+    # stub_command strict_mode
+
+    $(raise SampleError "a sample error" return=0 rc=3)
+    result=$(concorde.traceback 2>&1)
+    [[ $result == *'SampleError: a sample error (return code 3)'* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); (( _shpec_failures+=$? ))
+  end
+end
+
 describe try
   it "runs a command"; ( _shpec_failures=0
     result=$(try $_echo sample)

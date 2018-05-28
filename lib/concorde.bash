@@ -88,6 +88,54 @@ sourced () {
   [[ ${FUNCNAME[1]} == source ]]
 }
 
+concorde.traceback () {
+  local rc=$?
+  set +o xtrace
+  local errcode
+  local errmsg
+  local errtype
+  local exit_flag
+  local frame
+  local val
+  local xtrace_flag=0
+
+  exit_flag=1
+  while (( $# )); do
+    case $1 in
+      exit=*    ) exit_flag=${1#exit=}    ;;
+      xtrace=*  ) xtrace_flag=${1#xtrace=};;
+    esac
+    shift
+  done
+  (( xtrace_flag )) && set -o xtrace
+  # strict_mode off
+  case $rc in
+    113 )
+      errtype=$__errtype
+      errmsg=$__errmsg
+      errcode=$__errcode
+      ;;
+    * )
+      errtype=StandardError
+      errmsg='Unspecified Error'
+      errcode=$rc
+      ;;
+  esac
+  case $errmsg in
+    ''  ) printf $'\nTraceback:\n\n'"  $errtype: return code $errcode" >&2          ;;
+    *   ) printf $'\nTraceback:\n\n'"  $errtype: $errmsg (return code $errcode)" >&2;;
+  esac
+  frame=0
+  while val=$(caller "$frame"); do
+    set -- $val
+    (( frame == 0 )) && { printf '  Command: '; sed -n "$1"' s/^[[:space:]]*// p' "$3" ;} >&2
+    (( ${#3} > 80 )) && set -- "$1" "$2" "${3:0:35}"[...]"${3:${#3}-40}"
+    printf "  %s:%s:in '%s'\n" "$3" "$1" "$2" >&2
+    (( frame++ ))
+  done
+  (( exit_flag )) && exit 1
+}
+
 try () {
   __code=0
   "$@"
