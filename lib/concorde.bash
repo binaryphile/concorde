@@ -84,6 +84,10 @@ raise () {
   concorde.xtrace_end
 }
 
+sourced () {
+  [[ ${FUNCNAME[1]} == source ]]
+}
+
 try () {
   __code=0
   "$@"
