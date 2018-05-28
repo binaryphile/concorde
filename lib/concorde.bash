@@ -86,6 +86,54 @@ concorde.sourced () {
   [[ ${FUNCNAME[index]} == source   ]]
 }
 
+concorde.traceback () {
+  local rc=$?
+  set +o xtrace
+  local errcode
+  local errmsg
+  local errtype
+  local exit
+  local frame
+  local val
+  local xtrace=0
+
+  exit=1
+  while (( $# )); do
+    case $1 in
+      exit=*    ) exit=${1#exit=}     ;;
+      xtrace=*  ) xtrace=${1#xtrace=} ;;
+    esac
+    shift
+  done
+  (( xtrace )) && set -o xtrace
+  # concorde.strict_mode off
+  case $rc in
+    113 )
+      errtype=$__errtype
+      errmsg=$__errmsg
+      errcode=$__errcode
+      ;;
+    * )
+      errtype=CommandError
+      errmsg='Unspecified Error'
+      errcode=$rc
+      ;;
+  esac
+  case $errmsg in
+    ''  ) printf $'\nTraceback:\n\n'"  $errtype: return code $errcode" >&2          ;;
+    *   ) printf $'\nTraceback:\n\n'"  $errtype: $errmsg (return code $errcode)" >&2;;
+  esac
+  frame=0
+  while val=$(caller "$frame"); do
+    set -- $val
+    (( frame == 0 )) && { printf '  Command: '; sed -n "$1"' s/^[[:space:]]*// p' "$3" ;} >&2
+    (( ${#3} > 80 )) && set -- "$1" "$2" "${3:0:35}"[...]"${3:${#3}-40}"
+    printf "  %s:%s:in '%s'\n" "$3" "$1" "$2" >&2
+    (( frame++ ))
+  done
+  (( exit )) && exit 1
+}
+
 concorde.xtrace_begin () {
   (( ${__xtrace:-} )) && return;:
   [[ $- != *x* ]] && __xtrace_set=$? || __xtrace_set=$?

@@ -194,6 +194,71 @@ describe concorde.sourced
   end
 end
 
+describe concorde.traceback
+  it "turns off tracing"; ( _shpec_failures=0
+    stub_command concorde.strict_mode
+
+    set -o xtrace
+    concorde.traceback exit=0 2>/dev/null
+    [[ $- != *x* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); (( _shpec_failures+=$? ))
+  end
+
+  it "prints the source line which errored"; ( _shpec_failures=0
+    stub_command concorde.strict_mode
+
+    result=$(concorde.traceback 2>&1)
+    [[ $result == *'result=$(concorde.traceback 2>&1)'* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); (( _shpec_failures+=$? ))
+  end
+
+  # it "turns off strict mode"; ( _shpec_failures=0
+  #   stub_command concorde.strict_mode 'echo "$@"'
+  #
+  #   assert equal off "$(concorde.traceback 2>/dev/null)"
+  #   return "$_shpec_failures" ); (( _shpec_failures+=$? ))
+  # end
+
+  it "prints a stack trace on stderr"; ( _shpec_failures=0
+    stub_command concorde.strict_mode
+
+    [[ $(trap concorde.traceback ERR; { false ;} 2>&1) == *"concorde_shpec.bash:804: in 'source'"* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); (( _shpec_failures+=$? ))
+  end
+
+  it "prints an unspecified error if reporting a normal error"; ( _shpec_failures=0
+    stub_command concorde.strict_mode
+
+    result=$(concorde.traceback 2>&1)
+    [[ $result == *'CommandError: Unspecified Error (return code 0)'* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); (( _shpec_failures+=$? ))
+  end
+
+  it "prints the type and result of an error if it was raised"; ( _shpec_failures=0
+    stub_command concorde.strict_mode
+
+    $(concorde.raise SampleError return=0 rc=3)
+    result=$(concorde.traceback 2>&1)
+    [[ $result == *'SampleError: return code 3'* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); (( _shpec_failures+=$? ))
+  end
+
+  it "prints the message of an error if it was raised"; ( _shpec_failures=0
+    stub_command concorde.strict_mode
+
+    $(concorde.raise SampleError "a sample error" return=0 rc=3)
+    result=$(concorde.traceback 2>&1)
+    [[ $result == *'SampleError: a sample error (return code 3)'* ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); (( _shpec_failures+=$? ))
+  end
+end
+
 describe concorde.xtrace_begin
   it "turns off trace if __xtrace is not set"; ( _shpec_failures=0
     stub_command set 'echo "$@"'
