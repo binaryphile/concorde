@@ -5,6 +5,14 @@ mkdir --parents -- "$TMPDIR"
 
 source "$(dirname -- "$(readlink --canonicalize -- "$BASH_SOURCE")")"/../lib/concorde.bash
 
+describe concorde
+  it "is a module"; ( _shpec_failures=0
+    [[ -n ${__module_hsh[concorde]} ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+end
+
 describe concorde.die
   it "exits without an error message"; ( _shpec_failures=0
     result=$(concorde.die 2>&1)
