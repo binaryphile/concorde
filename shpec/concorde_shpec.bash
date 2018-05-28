@@ -110,6 +110,55 @@ describe concorde.emit
   end
 end
 
+describe concorde.module
+  it "creates a module as a global"; ( _shpec_failures=0
+    $(concorde.module sample)
+    __=${__id_hsh[$BASH_SOURCE]}
+    result=$(declare -p __$__ 2>/dev/null)
+    assert equal '0 A' "$? ${result:9:1}"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "creates a root entry for the module"; ( _shpec_failures=0
+    $(concorde.module sample)
+    __=${__id_hsh[$BASH_SOURCE]}
+    eval "[[ -d \${__$__[root]} ]]"
+    assert equal 0 $?
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "creates a module entry"; ( _shpec_failures=0
+    $(concorde.module sample)
+    __=${__id_hsh[$BASH_SOURCE]}
+    assert equal __"$__" "${__module_hsh[sample]}"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "modifies the depth of the root path based on an argument"; ( _shpec_failures=0
+    $(concorde.module sample depth=2)
+    __=${__id_hsh[$BASH_SOURCE]}
+    var=__$__[root]
+    [[ $(readlink -f -- "$(dirname "$BASH_SOURCE")"/../..) == ${!var} ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "doesn't reload"; ( _shpec_failures=0
+    $(concorde.module sample)
+    result=$($(concorde.module sample); echo hello)
+    assert equal '(0) ()' "($?) ($result)"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "reloads if the last argument is reload=1"; ( _shpec_failures=0
+    set -- one two reload=1
+    $(concorde.module sample)
+    result=$($(concorde.module sample); echo hello)
+    assert equal hello "$result"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+end
+
 describe concorde.raise
   it "returns"; ( _shpec_failures=0
     samplef () { $(concorde.raise SampleError); $_echo hello ;}

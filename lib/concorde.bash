@@ -1,3 +1,9 @@
+declare -Ag __module_hsh
+[[ -n ${__module_hsh[concorde]:-} ]] && return
+
+declare -Ag __id_hsh
+[[ -z ${__next_id:-} ]] && __next_id=0
+
 concorde.die () {
   local rc=$?
   concorde.xtrace_begin
@@ -32,6 +38,50 @@ concorde.die () {
 
 concorde.emit () {
   printf 'eval eval %q' "$1"
+}
+
+concorde.module () {
+  concorde.xtrace_begin
+  local name=$1; shift
+  local depth
+  local bash_source
+  local i
+  local index
+  local path=''
+  local statement
+
+  depth=1
+  while (( $# )); do
+    case $1 in
+      depth=* ) depth=${1#depth=};;
+    esac
+    shift
+  done
+  statement='
+    { declare -p __module_hsh &>/dev/null && [[ -n ${__module_hsh[%s]:-} && ${@:$#} != reload=1 ]] ;} && return
+    declare -Ag __%s
+    __%s[root]=$(
+      type greadlink &>/dev/null && readlink='\''greadlink -f --'\'' || readlink='\''readlink -f --'\''
+      $readlink "$(dirname -- "$($readlink "$BASH_SOURCE")")"%s
+    )
+    __module_hsh[%s]=__%s
+    __id_hsh[%s]=%s
+    __next_id=%s
+  '
+  for (( i = 0; i < depth; i++ )); do path+=/..; done
+  [[ ${FUNCNAME[1]} == module ]] && index=2 || index=1
+  bash_source=${BASH_SOURCE[index]}
+  case ${__id_hsh[$bash_source]:-} in
+    '' )
+      __=$__next_id
+      __id_hsh[$bash_source]=$__
+      (( __next_id++ ))
+      ;;
+    * ) __=${__id_hsh[$bash_source]};;
+  esac
+  printf -v statement "$statement" "$name" "$__" "$__" "$path" "$name" "$__" "$bash_source" "$__" "$__next_id"
+  concorde.emit "$statement"
+  concorde.xtrace_end
 }
 
 concorde.raise () {
@@ -167,3 +217,5 @@ concorde.xtrace_begin () {
 concorde.xtrace_end () {
   (( ${__xtrace_set:-} )) && set -o xtrace;:
 }
+
+$(concorde.module concorde)
