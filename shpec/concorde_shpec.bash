@@ -8,6 +8,14 @@ $_mkdir "$TMPDIR"
 
 source "$(dirname -- "$(readlink --canonicalize -- "$BASH_SOURCE")")"/../lib/concorde.bash
 
+describe concorde
+  it "is a module"; ( _shpec_failures=0
+    [[ -v __hmodules[concorde] ]]
+    assert equal 0 $?
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+end
+
 describe die
   it "exits without an error message"; ( _shpec_failures=0
     result=$(die 2>&1)

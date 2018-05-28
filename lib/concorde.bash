@@ -1,3 +1,6 @@
+declare -Ag __hmodules
+[[ -v __hmodules[concorde] ]] && return
+
 __code=113
 
 die () {
@@ -47,8 +50,8 @@ except () {
 module () {
   concorde.xtrace_begin
   __="
-    { [[ -v __module_hsh[$1] && \${2:-} != reload=1 ]] ;} && return
-    __module_hsh[$1]=
+    { [[ -v __hmodules[$1] && \${2:-} != reload=1 ]] ;} && return
+    __hmodules[$1]=
   "
   concorde.emit "$__"
   concorde.xtrace_end
@@ -184,3 +187,5 @@ concorde.xtrace_begin () {
 concorde.xtrace_end () {
   (( ${__xtrace_set:-} )) && set -o xtrace;:
 }
+
+$(module concorde)
