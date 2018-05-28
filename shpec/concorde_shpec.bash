@@ -143,6 +143,23 @@ describe except
   end
 end
 
+describe module
+  it "doesn't reload"; ( _shpec_failures=0
+    $(module sample)
+    result=$($(module sample); $_echo hello)
+    assert equal '(0) ()' "($?) ($result)"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "reloads if the second argument is reload=1"; ( _shpec_failures=0
+    set -- one reload=1
+    $(module sample)
+    result=$($(module sample); $_echo hello)
+    assert equal hello "$result"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+end
+
 describe raise
   it "returns"; ( _shpec_failures=0
     samplef () { $(raise SampleError); $_echo hello ;}

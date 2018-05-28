@@ -44,6 +44,16 @@ except () {
   __errmsg=''
 }
 
+module () {
+  concorde.xtrace_begin
+  __="
+    { [[ -v __module_hsh[$1] && \${2:-} != reload=1 ]] ;} && return
+    __module_hsh[$1]=
+  "
+  concorde.emit "$__"
+  concorde.xtrace_end
+}
+
 raise () {
   local rc=$?
   concorde.xtrace_begin
