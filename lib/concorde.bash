@@ -74,6 +74,18 @@ concorde.raise () {
   concorde.xtrace_end
 }
 
+concorde.sourced () {
+  concorde.xtrace_begin
+  local index
+
+  case ${FUNCNAME[1]} in
+    sourced|'sourced?'  ) index=2;;
+    *                   ) index=1;;
+  esac
+  concorde.xtrace_end
+  [[ ${FUNCNAME[index]} == source   ]]
+}
+
 concorde.xtrace_begin () {
   (( ${__xtrace:-} )) && return;:
   [[ $- != *x* ]] && __xtrace_set=$? || __xtrace_set=$?

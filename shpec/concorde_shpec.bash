@@ -178,6 +178,22 @@ describe concorde.raise
   end
 end
 
+describe concorde.sourced
+  it "returns true when called from 'source'"; ( _shpec_failures=0
+    source () { concorde.sourced ;}
+    source
+    assert equal 0 $?
+    return "$_shpec_failures" ); (( _shpec_failures+=$? ))
+  end
+
+  it "returns false when called from anything else"; ( _shpec_failures=0
+    samplef () { concorde.sourced ;}
+    samplef
+    assert unequal 0 $?
+    return "$_shpec_failures" ); (( _shpec_failures+=$? ))
+  end
+end
+
 describe concorde.xtrace_begin
   it "turns off trace if __xtrace is not set"; ( _shpec_failures=0
     stub_command set 'echo "$@"'
