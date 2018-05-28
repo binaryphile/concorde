@@ -194,6 +194,48 @@ describe concorde.sourced
   end
 end
 
+describe concorde.strict_mode
+  it "sets errexit"; ( _shpec_failures=0
+    set +o errexit
+    concorde.strict_mode on
+    [[ $- == *e* ]]
+    rc=$?
+    concorde.strict_mode off
+    assert equal 0 "$rc"
+    return "$_shpec_failures" ); (( _shpec_failures+=$? ))
+  end
+
+  it "sets nounset"; ( _shpec_failures=0
+    set +o nounset
+    concorde.strict_mode on
+    [[ $- == *u* ]]
+    rc=$?
+    concorde.strict_mode off
+    assert equal 0 "$rc"
+    return "$_shpec_failures" ); (( _shpec_failures+=$? ))
+  end
+
+  it "sets pipefail"; ( _shpec_failures=0
+    set +o pipefail
+    concorde.strict_mode on
+    [[ $(set -o) == *pipefail* ]]
+    rc=$?
+    concorde.strict_mode off
+    assert equal 0 "$rc"
+    return "$_shpec_failures" ); (( _shpec_failures+=$? ))
+  end
+
+  it "sets a callback for the ERR trap"; ( _shpec_failures=0
+    trap - ERR
+    concorde.strict_mode on
+    [[ $(trap) == *ERR* ]]
+    rc=$?
+    concorde.strict_mode off
+    assert equal 0 "$rc"
+    return "$_shpec_failures" ); (( _shpec_failures+=$? ))
+  end
+end
+
 describe concorde.traceback
   it "turns off tracing"; ( _shpec_failures=0
     stub_command concorde.strict_mode
@@ -214,12 +256,12 @@ describe concorde.traceback
     return "$_shpec_failures" ); (( _shpec_failures+=$? ))
   end
 
-  # it "turns off strict mode"; ( _shpec_failures=0
-  #   stub_command concorde.strict_mode 'echo "$@"'
-  #
-  #   assert equal off "$(concorde.traceback 2>/dev/null)"
-  #   return "$_shpec_failures" ); (( _shpec_failures+=$? ))
-  # end
+  it "turns off strict mode"; ( _shpec_failures=0
+    stub_command concorde.strict_mode 'echo "$@"'
+
+    assert equal off "$(concorde.traceback 2>/dev/null)"
+    return "$_shpec_failures" ); (( _shpec_failures+=$? ))
+  end
 
   it "prints a stack trace on stderr"; ( _shpec_failures=0
     stub_command concorde.strict_mode
