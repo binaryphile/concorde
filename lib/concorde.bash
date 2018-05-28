@@ -88,6 +88,30 @@ sourced () {
   [[ ${FUNCNAME[1]} == source ]]
 }
 
+strict_mode () {
+  concorde.xtrace_begin
+  local status=$1
+  local callback
+  local option
+
+  case $status in
+    on      ) option=-; callback=concorde.traceback ;;
+    off     ) option=+; callback=-                  ;;
+    *       ) $(concorde.raise ArgumentError)       ;;
+  esac
+  __='
+    set %so errexit
+    set %so errtrace
+    set %so nounset
+    set %so pipefail
+
+    trap %s ERR
+  '
+  printf -v __ "$__" "$option" "$option" "$option" "$option" "$callback"
+  eval "$__"
+  concorde.xtrace_end
+}
+
 concorde.traceback () {
   local rc=$?
   set +o xtrace
@@ -108,7 +132,7 @@ concorde.traceback () {
     shift
   done
   (( xtrace_flag )) && set -o xtrace
-  # strict_mode off
+  strict_mode off
   case $rc in
     113 )
       errtype=$__errtype
