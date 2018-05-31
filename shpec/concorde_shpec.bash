@@ -93,6 +93,13 @@ describe die
   end
 end
 
+describe __dir
+  it "is set to the caller's directory"; ( _shpec_failures=0
+    assert equal "$(dirname -- "$(readlink --canonicalize -- "$BASH_SOURCE")")" "$__dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+end
+
 describe concorde.emit
   it "echos hello"; ( _shpec_failures=0
     assert equal hello "$( $(concorde.emit '$_echo hello') )"

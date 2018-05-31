@@ -2,6 +2,8 @@ declare -Ag __hmodules
 [[ -v __hmodules[concorde] ]] && return
 
 __code=113
+__dir=$(dirname -- "$(readlink --canonicalize -- "${BASH_SOURCE[1]}")")
+readonly __dir
 
 die () {
   local rc=$?
