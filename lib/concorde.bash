@@ -4,6 +4,9 @@ declare -Ag __module_hsh
 declare -Ag __id_hsh
 [[ -z ${__next_id:-} ]] && __next_id=0
 
+__dir=$(dirname -- "$(readlink --canonicalize -- "${BASH_SOURCE[1]}")")
+readonly __dir
+
 concorde.die () {
   local rc=$?
   concorde.xtrace_begin
