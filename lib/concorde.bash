@@ -43,6 +43,94 @@ concorde.emit () {
   printf 'eval eval %q' "$1"
 }
 
+import () {
+  local module=$1; shift
+  local IFS=$IFS
+  local PATH=$PATH:.
+  local as=''
+  local component
+  local component_ary=()
+  local filename
+  local function_expr
+  local length
+  local oldIFS
+  local path
+  local path_ary=()
+  local reference
+  local statement_ary=()
+  local variable_expr
+
+  while (( $# )); do
+    case $1 in
+      as=* )
+        as=${1#as=}
+        read -r function_expr <<EOS
+          s/\(^\|[^[:alnum:]._]\)${module//./\\.}\(\.[[:alnum:]._]\+\)/\1$as\2/g
+EOS
+        read -r variable_expr <<EOS
+          s/\(^\|[^[:alnum:]_]\)_${module//./_}\(\_[[:alnum:]_]\+=\)/\1_$as\2/g
+EOS
+        read -r reference_expr <<EOS
+          s/\(^\|[^[:alnum:]_]\)\$_${module//./_}\(\_[[:alnum:]_]\+\)/\1\$_$as\2/g
+EOS
+        read -r brace_expr <<EOS
+          s/\(^\|[^[:alnum:]_]\)\${_${module//./_}\(\_[[:alnum:]_]\+\)}/\1\${_$as\2}/g
+EOS
+        ;;
+    esac
+    shift
+  done
+  oldIFS=$IFS
+  IFS=:
+  path_ary=( $PATH )
+  IFS=.
+  component_ary=( $module )
+  length=${#component_ary[@]}
+  IFS=/
+  for path in "${path_ary[@]}"; do
+    for (( i = 1; i < length; i++ )); do
+      filename="$path/${component_ary[*]:0:i}"/__init.bash
+      [[ -e $filename ]] && {
+        case $as in
+          ''  ) statement_ary+=( "source '$filename'" );;
+          *   ) statement_ary+=( "source <(sed -e '$function_expr' -e '$variable_expr' -e '$reference_expr' -e '$brace_expr' '$filename')" );;
+        esac
+        continue
+      }
+      (( i == 1 )) && continue 2
+      concorde.raise ImportError return=0
+      return
+    done
+    path="$path/${component_ary[*]}"
+    filename="$path".bash
+    [[ -e $filename ]] && {
+        case $as in
+          ''  ) statement_ary+=( "source '$filename'" );;
+          *   ) statement_ary+=( "source <(sed -e '$function_expr' -e '$variable_expr' -e '$reference_expr' -e '$brace_expr' '$filename')" );;
+        esac
+      break
+    }
+    filename="$path"/__init.bash
+    [[ -e $filename ]] && {
+        case $as in
+          ''  ) statement_ary+=( "source '$filename'" );;
+          *   ) statement_ary+=( "source <(sed -e '$function_expr' -e '$variable_expr' -e '$reference_expr' -e '$brace_expr' '$filename')" );;
+        esac
+      break
+    }
+    (( i == 1 )) || {
+      concorde.raise ImportError return=0
+      return
+    }
+  done
+  (( ${#statement_ary[@]} == length )) || {
+    concorde.raise ImportError return=0
+    return
+  }
+  IFS=$'\n'
+  concorde.emit "${statement_ary[*]}"
+}
+
 concorde.locate_module () {
   local module=$1; shift
   local oldIFS=$IFS
