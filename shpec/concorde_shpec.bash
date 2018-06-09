@@ -1,5 +1,8 @@
 _echo='printf %s\n'
 _mkdir='mkdir --parents --'
+_mktempd='mktemp --directory --quiet'
+_rmtree='rm --recursive --force --'
+_touch='touch --'
 
 export TMPDIR=${TMPDIR:-$HOME/tmp}
 $_mkdir "$TMPDIR"
@@ -154,6 +157,33 @@ describe except
     __code=0
     except
     assert equal 113 "$__code"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+end
+
+describe concorde.locate_module
+  it "finds a module in the path"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_touch "$dir"/sample.bash
+    oldPATH=$PATH
+    PATH=$dir
+    concorde.locate_module sample
+    eval "result_ary=( $__ )"
+    PATH=$oldPATH
+    assert equal "$dir/sample.bash" "${result_ary[*]}"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "raises an error if it can't find a module"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    oldPATH=$PATH
+    PATH=$dir
+    concorde.locate_module sample
+    rc=$?
+    PATH=$oldPATH
+    assert equal '(113) (1) (ImportError) ()' "($rc) ($__errcode) ($__errtype) ($__errmsg)"
+    $_rmtree "$dir"
     return "$_shpec_failures" ); (( _shpec_failures += $? ))
   end
 end

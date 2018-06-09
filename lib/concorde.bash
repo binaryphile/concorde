@@ -49,6 +49,59 @@ except () {
   __errmsg=''
 }
 
+concorde.locate_module () {
+  local module=$1; shift
+  local oldIFS=$IFS
+  local IFS
+  local PATH=$PATH:.
+  local filename
+  local filename_ary=()
+  local length
+  local package_ary=()
+  local path
+  local path_ary=()
+
+  IFS=:
+  path_ary=( $PATH )
+  IFS=.
+  package_ary=( $module )
+  length=${#package_ary[@]}
+  IFS=/
+  for path in "${path_ary[@]}"; do
+    for (( i = 1; i < length; i++ )); do
+      filename="$path/${package_ary[*]:0:i}"/__init.bash
+      [[ -e $filename ]] && {
+        filename_ary+=( "$filename" )
+        continue
+      }
+      (( i == 1 )) && continue 2
+      IFS=$oldIFS
+      $(raise ImportError rc=1)
+    done
+    path="$path/${package_ary[*]}"
+    filename="$path".bash
+    [[ -e $filename ]] && {
+      filename_ary+=( "$filename" )
+      break
+    }
+    filename="$path"/__init.bash
+    [[ -e $filename ]] && {
+      filename_ary+=( "$filename" )
+      break
+    }
+    (( i == 1 )) || {
+      IFS=$oldIFS
+      $(raise ImportError rc=1)
+    }
+  done
+  (( ${#filename_ary[@]} == length )) || {
+    IFS=$oldIFS
+    $(raise ImportError rc=1)
+  }
+  printf -v __ '%q ' "${filename_ary[@]}"
+  __=${__% }
+}
+
 module () {
   concorde.xtrace_begin
   __="
