@@ -161,6 +161,393 @@ describe except
   end
 end
 
+describe import
+  it "imports a module"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    echo sample=1 >"$dir"/sample.bash
+    $(PATH=$dir; import sample)
+    assert equal 1 "$sample"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "imports a module from the second element in the path"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    echo sample=1 >"$dir"/sample.bash
+    $(PATH=.:$dir; import sample)
+    assert equal 1 "$sample"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "raises an error if it can't find the module"; ( _shpec_failures=0
+    $(PATH=.; import sample)
+    assert equal '(113) (1) (ImportError) ()' "($?) ($__errcode) ($__errtype) ($__errmsg)"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "raises an error if it can't find the module in a multi-element path"; ( _shpec_failures=0
+    $(PATH=.:.; import sample)
+    assert equal '(113) (1) (ImportError) ()' "($?) ($__errcode) ($__errtype) ($__errmsg)"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "imports a package"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_mkdir "$dir"/sample
+    $_echo sample=1 >"$dir"/sample/__init.bash
+    $(PATH=$dir; import sample)
+    assert equal 1 "$sample"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "imports a package from the second element in the path"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_mkdir "$dir"/sample
+    $_echo sample=1 >"$dir"/sample/__init.bash
+    $(PATH=.:$dir; import sample)
+    assert equal 1 "$sample"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "imports a submodule"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_mkdir "$dir"/sample
+    $_touch "$dir"/sample/__init.bash
+    $_echo sample=1 >"$dir"/sample/example.bash
+    $(PATH=$dir; import sample.example)
+    assert equal 1 "$sample"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "imports the parent of a submodule"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_mkdir "$dir"/sample
+    $_echo sample=1 >"$dir"/sample/__init.bash
+    $_touch "$dir"/sample/example.bash
+    $(PATH=$dir; import sample.example)
+    assert equal 1 "$sample"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "imports the submodule after the parent"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_mkdir "$dir"/sample
+    $_echo sample=1 >"$dir"/sample/__init.bash
+    $_echo sample=2 >"$dir"/sample/example.bash
+    $(PATH=$dir; import sample.example)
+    assert equal 2 "$sample"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "raises an error if it can't find the submodule in a valid package"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_mkdir "$dir"/sample
+    $_touch "$dir"/sample/__init.bash
+    $(PATH=$dir; import sample.example)
+    assert equal '(113) (1) (ImportError) ()' "($?) ($__errcode) ($__errtype) ($__errmsg)"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "imports a subpackage"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_mkdir "$dir"/sample/example
+    $_touch "$dir"/sample/__init.bash
+    $_echo sample=1 >"$dir"/sample/example/__init.bash
+    $(PATH=$dir; import sample.example)
+    assert equal 1 "$sample"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "imports the parent of a subpackage"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_mkdir "$dir"/sample/example
+    $_echo sample=1 >"$dir"/sample/__init.bash
+    $_touch "$dir"/sample/example/__init.bash
+    $(PATH=$dir; import sample.example)
+    assert equal 1 "$sample"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "imports the subpackage after the parent"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_mkdir "$dir"/sample/example
+    $_echo sample=1 >"$dir"/sample/__init.bash
+    $_echo sample=2 >"$dir"/sample/example/__init.bash
+    $(PATH=$dir; import sample.example)
+    assert equal 2 "$sample"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "raises an error if it can't find the subpackage in a valid package"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_mkdir "$dir"/sample/example
+    $_touch "$dir"/sample/__init.bash
+    $(PATH=$dir; import sample.example)
+    assert equal '(113) (1) (ImportError) ()' "($?) ($__errcode) ($__errtype) ($__errmsg)"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "renames a module's functions with an as= argument"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_echo 'sample.sample () { :;}' >"$dir"/sample.bash
+    $(PATH=$dir; import sample as=s)
+    assert equal function "$(type -t s.sample)"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "renames a module's functions with a leading space with an as= argument"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_echo ' sample.sample () { :;}' >"$dir"/sample.bash
+    $(PATH=$dir; import sample as=s)
+    assert equal function "$(type -t s.sample)"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "renames a module's functions with text and a leading space with an as= argument"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_echo ':; sample.sample () { :;}' >"$dir"/sample.bash
+    $(PATH=$dir; import sample as=s)
+    assert equal function "$(type -t s.sample)"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "renames a module's function calls with an as= argument"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_echo $'sample.sample () { echo sample ;}\nsample.sample' >"$dir"/sample.bash
+    result=$($(PATH=$dir; import sample as=s))
+    assert equal sample "$result"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "renames multiple times in a single line with an as= argument"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_echo 'sample.sample () { echo sample ;}; sample.sample' >"$dir"/sample.bash
+    result=$($(PATH=$dir; import sample as=s))
+    assert equal sample "$result"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "renames a module's functions with an as= argument with abutted parentheses"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_echo 'sample.sample() { :;}' >"$dir"/sample.bash
+    $(PATH=$dir; import sample as=s)
+    assert equal function "$(type -t s.sample)"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "doesn't rename a module's function with an underscore"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_echo 'sample_sample () { :;}' >"$dir"/sample.bash
+    $(PATH=$dir; import sample as=s)
+    assert equal function "$(type -t sample_sample)"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "doesn't rename a module's function with a character prefix"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_echo 'asample.sample () { :;}' >"$dir"/sample.bash
+    $(PATH=$dir; import sample as=s)
+    assert equal function "$(type -t asample.sample)"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "doesn't rename a module's function with an underscore prefix"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_echo '_sample.sample () { :;}' >"$dir"/sample.bash
+    $(PATH=$dir; import sample as=s)
+    assert equal function "$(type -t _sample.sample)"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "doesn't rename a module's function with a dot prefix"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_echo '.sample.sample () { :;}' >"$dir"/sample.bash
+    $(PATH=$dir; import sample as=s)
+    assert equal function "$(type -t .sample.sample)"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "renames a package's functions with an as= argument"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_mkdir "$dir"/sample
+    $_echo 'sample.sample () { :;}' >"$dir"/sample/__init.bash
+    $(PATH=$dir; import sample as=s)
+    assert equal function "$(type -t s.sample)"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "renames a submodule's functions with an as= argument"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_mkdir "$dir"/sample
+    $_touch "$dir"/sample/__init.bash
+    $_echo 'sample.example.sample () { :;}' >"$dir"/sample/example.bash
+    $(PATH=$dir; import sample.example as=s)
+    assert equal function "$(type -t s.sample)"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "renames a subpackage's functions with an as= argument"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_mkdir "$dir"/sample/example
+    $_touch "$dir"/sample/__init.bash
+    $_echo 'sample.example.sample () { :;}' >"$dir"/sample/example/__init.bash
+    $(PATH=$dir; import sample.example as=s)
+    assert equal function "$(type -t s.sample)"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "renames a module's global assignments with an as= argument"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_echo '_sample_sample=sample' >"$dir"/sample.bash
+    $(PATH=$dir; import sample as=s)
+    assert equal sample "$_s_sample"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "doesn't rename a module's globals without an assignment"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_echo 'echo _sample_sample' >"$dir"/sample.bash
+    result=$($(PATH=$dir; import sample as=s))
+    assert equal _sample_sample "$result"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "doesn't rename a module's globals that are prefixed"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_echo '_other_sample_sample=sample' >"$dir"/sample.bash
+    $(PATH=$dir; import sample as=s)
+    assert equal sample "$_other_sample_sample"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "renames a package's globals with an as= argument"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_mkdir "$dir"/sample
+    $_echo '_sample_sample=sample' >"$dir"/sample/__init.bash
+    $(PATH=$dir; import sample as=s)
+    assert equal sample "$_s_sample"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "renames a submodule's globals with an as= argument"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_mkdir "$dir"/sample
+    $_touch "$dir"/sample/__init.bash
+    $_echo '_sample_example_sample=sample' >"$dir"/sample/example.bash
+    $(PATH=$dir; import sample.example as=s)
+    assert equal sample "$_s_sample"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "renames a subpackage's globals with an as= argument"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_mkdir "$dir"/sample/example
+    $_touch "$dir"/sample/__init.bash
+    $_echo '_sample_example_sample=sample' >"$dir"/sample/example/__init.bash
+    $(PATH=$dir; import sample.example as=s)
+    assert equal sample "$_s_sample"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "renames a module's global references with an as= argument"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_echo $'_sample_sample=sample\nexample=$_sample_sample' >"$dir"/sample.bash
+    $(PATH=$dir; import sample as=s)
+    assert equal sample "$example"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "renames a module's braced global references with an as= argument"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_echo $'_sample_sample=sample\nexample=${_sample_sample}' >"$dir"/sample.bash
+    $(PATH=$dir; import sample as=s)
+    assert equal sample "$example"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "doesn't rename a module's global references without a dollar sign"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_echo 'echo _sample_sample' >"$dir"/sample.bash
+    result=$($(PATH=$dir; import sample as=s))
+    assert equal _sample_sample "$result"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "doesn't rename a module's globals that are postfixed"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_echo $'_sample_sample=sample\nexample=$_sample_sample_one' >"$dir"/sample.bash
+    $(PATH=$dir; import sample as=s)
+    assert equal '' "$example"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "renames a package's global references with an as= argument"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_mkdir "$dir"/sample
+    $_echo $'_sample_sample=sample\nexample=$_sample_sample' >"$dir"/sample/__init.bash
+    $(PATH=$dir; import sample as=s)
+    assert equal sample "$example"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "renames a submodule's global references with an as= argument"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_mkdir "$dir"/sample
+    $_touch "$dir"/sample/__init.bash
+    $_echo $'_sample_example_sample=sample\nexample=$_sample_example_sample' >"$dir"/sample/example.bash
+    $(PATH=$dir; import sample.example as=s)
+    assert equal sample "$example"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "renames a subpackage's global references with an as= argument"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_mkdir "$dir"/sample/example
+    $_touch "$dir"/sample/__init.bash
+    $_echo $'_sample_example_sample=sample\nexample=$_sample_example_sample' >"$dir"/sample/example/__init.bash
+    $(PATH=$dir; import sample.example as=s)
+    assert equal sample "$example"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+end
+
 describe concorde.locate_module
   it "finds a module in the path"; ( _shpec_failures=0
     dir=$($_mktempd) || return
