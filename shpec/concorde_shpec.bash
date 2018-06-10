@@ -36,6 +36,36 @@ describe concorde.emit
   end
 end
 
+describe except
+  it "doesn't run the command if there's no exception"; ( _shpec_failures=0
+    __errtype=
+    result=$(except $_echo sample)
+    assert equal '' "$result"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "runs the command if there is an exception"; ( _shpec_failures=0
+    __errtype=StandardError
+    result=$(except $_echo sample)
+    assert equal sample "$result"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "resets the exception"; ( _shpec_failures=0
+    __errtype=StandardError
+    except
+    assert equal '' "$__errtype"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "resets the raise return code"; ( _shpec_failures=0
+    __code=0
+    except
+    assert equal 113 "$__code"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+end
+
 describe raise
   it "returns"; ( _shpec_failures=0
     samplef () { $(raise SampleError); $_echo hello ;}

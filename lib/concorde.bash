@@ -4,6 +4,14 @@ concorde.emit () {
   printf 'eval eval %q' "$1"
 }
 
+except () {
+  [[ -n $__errtype ]] && "$@"
+  __code=113
+  __errtype=''
+  __errcode=''
+  __errmsg=''
+}
+
 raise () {
   local rc=$?
   concorde.xtrace_begin
