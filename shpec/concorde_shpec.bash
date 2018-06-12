@@ -106,6 +106,21 @@ describe raise
   end
 end
 
+describe try
+  it "runs a command"; ( _shpec_failures=0
+    result=$(try $_echo sample)
+    assert equal sample "$result"
+    return "$_shpec_failures" ); (( _shpec_failures+=$? ))
+  end
+
+  it "makes raise return true"; ( _shpec_failures=0
+    samplef () { $(raise SampleError rc=1) ;}
+    try samplef
+    assert equal '(0) (1) (SampleError) ()' "($?) ($__errcode) ($__errtype) ($__errmsg)"
+    return "$_shpec_failures" ); (( _shpec_failures+=$? ))
+  end
+end
+
 describe concorde.xtrace_begin
   it "turns off trace if __xtrace is not set"; ( _shpec_failures=0
     stub_command set '$_echo "$*"'
