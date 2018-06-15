@@ -49,6 +49,39 @@ except () {
   __errmsg=''
 }
 
+from () {
+  local module=$1; shift
+  local IFS=$IFS
+  local arg
+  local emit_flag
+  local func
+  local lvars=''
+  local statements=()
+  local var
+
+  emit_flag=1
+  while [[ ${@: -1} == *=* ]]; do
+    arg=${@: -1}
+    set -- "${@:1:$#-1}"
+    case $arg in
+      emit=* ) emit_flag=${arg#emit=} ;;
+      vars=* ) lvars=${arg#vars=}     ;;
+    esac
+  done
+  statements+=( "$(import "$module")" )
+  for func in "$@"; do
+    statements+=( "eval \"\$(type "$module.$func" | sed -e 1d -e 's/^$module\.// 1')\"" )
+  done
+  for var in $lvars; do
+    statements+=( "$var=\$_${module//./_}$var" )
+  done
+  IFS=$'\n'
+  case $emit_flag in
+    0 ) __="${statements[*]}"           ;;
+    * ) concorde.emit "${statements[*]}";;
+  esac
+}
+
 import () {
   local module=$1; shift
   local IFS=$IFS

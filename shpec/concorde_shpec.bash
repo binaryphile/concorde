@@ -161,6 +161,99 @@ describe except
   end
 end
 
+describe from
+  it "imports a global variable from a module"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    echo _sample_sample=1 >"$dir"/sample.bash
+    $(PATH=$dir; from sample vars=_sample)
+    assert equal 1 "$_sample"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "imports global variables from a module"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    echo $'_sample_sample=1\n_sample_example=1' >"$dir"/sample.bash
+    $(PATH=$dir; from sample vars='_sample _example')
+    assert equal '(1) (1)' "($_sample) ($_example)"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "imports a function from a module"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    echo 'sample.samplef () { echo sample ;}' >"$dir"/sample.bash
+    $(PATH=$dir; from sample samplef)
+    result=$(samplef)
+    assert equal sample "$result"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "imports functions from a module"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    echo $'sample.samplef () { echo sample ;}\nsample.examplef () { echo example ;}' >"$dir"/sample.bash
+    $(PATH=$dir; from sample samplef examplef)
+    result=$(samplef; examplef)
+    assert equal $'sample\nexample' "$result"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "imports a function and a variable from a module"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    echo $'_sample_sample=1\nsample.samplef () { echo sample ;}' >"$dir"/sample.bash
+    $(PATH=$dir; from sample samplef vars=_sample)
+    result=$(echo "$_sample"; samplef)
+    assert equal $'1\nsample' "$result"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "imports a global variable from a package"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_mkdir "$dir"/sample
+    echo _sample_sample=1 >"$dir"/sample/__init.bash
+    $(PATH=$dir; from sample vars=_sample)
+    assert equal 1 "$_sample"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "imports a function from a package"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_mkdir "$dir"/sample
+    echo 'sample.samplef () { echo sample ;}' >"$dir"/sample/__init.bash
+    $(PATH=$dir; from sample samplef)
+    result=$(samplef)
+    assert equal sample "$result"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "imports a global variable from a submodule"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_mkdir "$dir"/sample
+    $_touch "$dir"/sample/__init.bash
+    $_echo _sample_example_sample=1 >"$dir"/sample/example.bash
+    $(PATH=$dir; from sample.example vars=_sample)
+    assert equal 1 "$_sample"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+
+  it "outputs statements when given emit=0"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    echo $'_sample_sample=1\nsample.samplef () { echo sample ;}' >"$dir"/sample.bash
+    PATH=$dir from sample samplef vars=_sample emit=0
+    eval "$__"
+    result=$(echo "$_sample"; samplef)
+    assert equal $'1\nsample' "$result"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+end
+
 describe import
   it "imports a module"; ( _shpec_failures=0
     dir=$($_mktempd) || return
