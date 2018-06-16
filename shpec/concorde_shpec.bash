@@ -254,6 +254,22 @@ describe from
   end
 end
 
+describe from_each
+  it "imports from multiple packages"; ( _shpec_failures=0
+    dir=$($_mktempd) || return
+    $_mkdir "$dir"/sample
+    $_echo 'sample.samplef          () { echo sample  ;}' >"$dir"/sample/__init.bash
+    $_echo 'sample.example.examplef () { echo example ;}' >"$dir"/sample/example.bash
+    $(PATH=$dir; from_each <<<'
+      sample samplef
+      sample.example examplef
+    ')
+    assert equal '(sample) (example)' "($(samplef)) ($(examplef))"
+    $_rmtree "$dir"
+    return "$_shpec_failures" ); (( _shpec_failures += $? ))
+  end
+end
+
 describe import
   it "imports a module"; ( _shpec_failures=0
     dir=$($_mktempd) || return

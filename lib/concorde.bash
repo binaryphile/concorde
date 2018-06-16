@@ -82,6 +82,18 @@ from () {
   esac
 }
 
+from_each () {
+  local line
+  local nlstatements=''
+
+  while read -r line; do
+    [[ -z $line ]] && continue
+    from $line emit=0
+    nlstatements+=$__$'\n'
+  done
+  concorde.emit "$nlstatements"
+}
+
 import () {
   local module=$1; shift
   local IFS=$IFS
