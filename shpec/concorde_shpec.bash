@@ -860,7 +860,8 @@ describe concorde.traceback
   it "prints a stack trace on stderr"; ( _shpec_failures=0
     stub_command strict_mode
 
-    [[ $(trap concorde.traceback ERR; { false ;} 2>&1) == *"concorde_shpec.bash:804: in 'source'"* ]]
+    result=$(trap concorde.traceback ERR; { false ;} 2>&1)
+    [[ $result == *"concorde_shpec.bash:804: in 'source'"* ]]
     assert equal 0 $?
     return "$_shpec_failures" ); (( _shpec_failures+=$? ))
   end
