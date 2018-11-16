@@ -1,7 +1,7 @@
 IFS=$'\n'
 set -o noglob
 
-export ${TMPDIR:-$HOME/tmp}
+export TMPDIR=${TMPDIR:-$HOME/tmp}
 mkdir -p $TMPDIR
 
 set --
