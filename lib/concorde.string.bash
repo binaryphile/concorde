@@ -5,6 +5,20 @@ module.already_loaded && return
 shopt -s expand_aliases
 alias kwargs='(( $# )) && declare'
 
+* () {
+  local -n ref_=$3
+  local i_
+
+  ref_=''
+  for (( i_ = 0; i_ < $2; i_++ )); do
+    ref_+=$1
+  done
+}
+
+blank? () {
+  [[ -z ${1:-} ]]
+}
+
 compare () {
   local -n ref_=$3
 
@@ -97,6 +111,10 @@ partition () {
   ref_=( ${1%%$2*} $2 ${1#*$2} )
 }
 
+present? () {
+  [[ -n ${1:-} ]]
+}
+
 replace () {
   local -n ref_=$4
 
@@ -160,10 +178,10 @@ split () {
 }
 
 strip () {
-  local -n ref_=$2
-  local IFS=' '
+  local tmp
 
-  ref_=$1
+  lstrip $1 tmp
+  rstrip $tmp $2
 }
 
 substr () {

@@ -5,6 +5,30 @@ Dir=$(dirname $(readlink -f $BASH_SOURCE))/../lib
 source $Dir/shpec-helper.bash
 source $Dir/module s=$Dir/concorde.string.bash
 
+describe *
+  it "generates copies"
+    s.* sample 2 result
+    assert equal samplesample $result
+  ti
+end_describe
+
+describe blank?
+  it "is true if no argument"
+    s.blank?
+    assert equal 0 $?
+  ti
+
+  it "is true if the argument is empty"
+    s.blank? ''
+    assert equal 0 $?
+  ti
+
+  it "is false if the argument is non-empty"
+    ! s.blank? a
+    assert equal 0 $?
+  ti
+end_describe
+
 describe compare
   it "returns -1 if the string is less than another"
     s.compare a b result
@@ -183,6 +207,23 @@ describe partition
     s.partition "Spam eggs spam spam and ham" spam results
     expecteds=( "Spam eggs " spam " spam and ham" )
     assert equal "${expecteds[*]}" "${results[*]}"
+  ti
+end_describe
+
+describe present?
+  it "is false if no argument"
+    ! s.present?
+    assert equal 0 $?
+  ti
+
+  it "is false if the argument is empty"
+    ! s.present? ''
+    assert equal 0 $?
+  ti
+
+  it "is true if the argument is non-empty"
+    s.present? a
+    assert equal 0 $?
   ti
 end_describe
 
