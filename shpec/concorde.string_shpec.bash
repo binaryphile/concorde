@@ -3,12 +3,18 @@ set -o noglob
 
 shpec_Dir=$(dirname $(readlink -f $BASH_SOURCE))/..
 source $shpec_Dir/shpec/shpec-helper.bash
-source $shpec_Dir/lib/module s=$shpec_Dir/lib/concorde.string.bash
+source $shpec_Dir/lib/as module s=$shpec_Dir/lib/concorde.string.bash
 
-describe *
-  it "generates copies"
-    s.* sample 2 result
-    assert equal samplesample $result
+describe ascii_only?
+  it "is true if only ascii characters"
+    s.ascii_only? abc
+    assert equal 0 $?
+  ti
+
+  it "is false if there are non-ascii characters"
+    printf -v sample '\xE2\x98\xA0'
+    ! s.ascii_only? $sample
+    assert equal 0 $?
   ti
 end_describe
 
@@ -26,6 +32,30 @@ describe blank?
   it "is false if the argument is non-empty"
     ! s.blank? a
     assert equal 0 $?
+  ti
+end_describe
+
+describe capitalize
+  it "capitalizes a word"
+    s.capitalize HELLO result
+    assert equal Hello $result
+  ti
+end_describe
+
+describe center
+  it "doesn't extend a too short width"
+    s.center hello 4 result
+    assert equal hello $result
+  ti
+
+  it "centers in a wider area"
+    s.center hello 20 result
+    assert equal '       hello        ' $result
+  ti
+
+  it "centers with a padstr"
+    s.center hello 20 result 123
+    assert equal '1231231hello12312312' $result
   ti
 end_describe
 
@@ -311,6 +341,13 @@ describe substr
   it "returns a string based on start and end position"
     s.substr hello 2 4 result
     assert equal ll $result
+  ti
+end_describe
+
+describe times
+  it "generates copies"
+    s.times sample 2 result
+    assert equal samplesample $result
   ti
 end_describe
 

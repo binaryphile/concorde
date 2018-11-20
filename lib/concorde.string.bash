@@ -4,18 +4,39 @@ module.already_loaded && return
 
 source $concorde_string_Dir/concorde.core.bash
 
-* () {
-  local -n ref_=$3
-  local i_
-
-  ref_=''
-  for (( i_ = 0; i_ < $2; i_++ )); do
-    ref_+=$1
-  done
+ascii_only?  () {
+  [[ ${1:-} != *[^[:ascii:]]* ]]
 }
 
 blank? () {
   [[ -z ${1:-} ]]
+}
+
+capitalize () {
+  local -n ref_=$2
+
+  ref_=${1,,}
+  ref_=${ref_^}
+}
+
+center () {
+  local length_=${#1}
+  local width_=$2
+  local -n ref_=$3
+  local padstr_=${4:- }
+  local -i num_
+  local pad_
+
+  num_="(width_ - length_)/(2*${#padstr_})"
+  times $padstr_ $num_ pad_
+  num_="num_ % ${#padstr_}"
+  pad_+=${padstr_:0:num_-1}
+  ref_=$pad_$1
+  num_="(width_ - (${#pad_} + length_))/${#padstr_}"
+  times $padstr_ $num_ pad_
+  num_="num_ % ${#padstr_}"
+  pad_+=${padstr_:0:num_}
+  ref_+=$pad_
 }
 
 compare () {
@@ -187,6 +208,16 @@ substr () {
   local -n ref_=$4
 
   ref_=${1:$2:$3-$2}
+}
+
+times () {
+  local -n ref_=$3
+  local i_
+
+  ref_=''
+  for (( i_ = 0; i_ < $2; i_++ )); do
+    ref_+=$1
+  done
 }
 
 upcase () {
