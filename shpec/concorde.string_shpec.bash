@@ -1,9 +1,9 @@
 IFS=$'\n'
 set -o noglob
 
-Dir=$(dirname $(readlink -f $BASH_SOURCE))/../lib
-source $Dir/shpec-helper.bash
-source $Dir/module s=$Dir/concorde.string.bash
+shpec_Dir=$(dirname $(readlink -f $BASH_SOURCE))/..
+source $shpec_Dir/shpec/shpec-helper.bash
+source $shpec_Dir/lib/module s=$shpec_Dir/lib/concorde.string.bash
 
 describe *
   it "generates copies"

@@ -1,6 +1,5 @@
 concorde_Dir=$(dirname $(readlink -f $BASH_SOURCE))
-source $concorde_Dir/module
-module.already_loaded? && return
 
-source module cor=$concorde_Dir/concorde.core.bash
-source module str=$concorde_Dir/concorde.string.bash
+source $concorde_Dir/as module            \
+  str=$concorde_Dir/concorde.string.bash  \
+  ary=$concorde_Dir/concorde.array.bash

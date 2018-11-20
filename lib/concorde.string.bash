@@ -1,9 +1,8 @@
 concorde_string_Dir=$(dirname $(readlink -f $BASH_SOURCE))
-source $concorde_string_Dir/module
+source $concorde_string_Dir/as module
 module.already_loaded && return
 
-shopt -s expand_aliases
-alias kwargs='(( $# )) && declare'
+source $concorde_string_Dir/concorde.core.bash
 
 * () {
   local -n ref_=$3

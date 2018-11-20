@@ -4,6 +4,5 @@ set -o noglob
 export TMPDIR=${TMPDIR:-$HOME/tmp}
 mkdir -p $TMPDIR
 
-set --
-Dir=$(dirname $(readlink -f $BASH_SOURCE))/..
-source $Dir/lib/shpec-helper.bash
+shpec_Dir=$(dirname $(readlink -f $BASH_SOURCE))/..
+source $shpec_Dir/shpec/shpec-helper.bash
