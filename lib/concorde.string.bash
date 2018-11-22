@@ -39,6 +39,21 @@ center () {
   ref_+=$pad_
 }
 
+chars () {
+  local -n ref_=$2
+  local i_
+
+  for (( i_ = 0; i_ < ${#1}; i_++ )); do
+    ref_+=( ${1:i_:1} )
+  done
+}
+
+chomp () {
+  local -n ref_=$2
+
+  ref_=${1%%*[^]}
+}
+
 compare () {
   local -n ref_=$3
 

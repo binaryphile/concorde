@@ -59,6 +59,31 @@ describe center
   ti
 end_describe
 
+describe chars
+  it "converts a string to an array of characters"
+    s.chars abc results
+    expecteds=( a b c )
+    assert equal "${expecteds[*]}" "${results[*]}"
+  ti
+end_describe
+
+describe chomp
+  it "doesn't chomp nothing"
+    s.chomp hello result
+    assert equal hello $result
+  ti
+
+  it "chomps newline"
+    s.chomp $'hello\n' result
+    assert equal hello $result
+  ti
+
+  it "chomps carriage-return newline"
+    s.chomp $'hello\r\n' result
+    assert equal hello $result
+  ti
+end_describe
+
 describe compare
   it "returns -1 if the string is less than another"
     s.compare a b result

@@ -34,4 +34,3 @@ describe join
     assert equal a--b--c $result
   ti
 end_describe
-
