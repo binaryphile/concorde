@@ -70,17 +70,75 @@ end_describe
 describe chomp
   it "doesn't chomp nothing"
     s.chomp hello result
-    assert equal hello $result
+    assert equal hello "$result"
   ti
 
   it "chomps newline"
     s.chomp $'hello\n' result
-    assert equal hello $result
+    assert equal hello "$result"
   ti
 
   it "chomps carriage-return newline"
     s.chomp $'hello\r\n' result
-    assert equal hello $result
+    assert equal hello "$result"
+  ti
+
+  it "only chomps one qualifying trailer"
+    s.chomp $'hello\n\r' result
+    assert equal $'hello\n' "$result"
+  ti
+
+  it "chomps a carriage-return"
+    s.chomp $'hello\r' result
+    assert equal hello "$result"
+  ti
+
+  it "doesn't chomp a non-terminal newline"
+    s.chomp $'hello \n there' result
+    assert equal $'hello \n there' "$result"
+  ti
+
+  it "chomps a specified trailer"
+    s.chomp hello llo result
+    assert equal he "$result"
+  ti
+
+  it "removes trailing carriage-return newlines if given an empty string"
+    s.chomp $'hello\r\n\r\n' '' result
+    assert equal hello "$result"
+  ti
+
+  it "doesn't remove trailing newlines if given an empty string"
+    s.chomp $'hello\r\n\r\r\n' '' result
+    assert equal $'hello\r\n\r' "$result"
+  ti
+end_describe
+
+describe chop
+  it "chops carriage-return newline"
+    s.chop $'string\r\n' result
+    assert equal string "$result"
+  ti
+
+  it "chops carriage-return"
+    s.chop $'string\n\r' result
+    assert equal $'string\n' "$result"
+  ti
+
+  it "chops newline"
+    s.chop $'string\n' result
+    assert equal string "$result"
+  ti
+
+  it "chops the last letter"
+    s.chop string result
+    assert equal strin "$result"
+  ti
+
+  it "chops an empty string"
+    s.chop x result
+    s.chop "$result" result
+    assert equal '' "$result"
   ti
 end_describe
 

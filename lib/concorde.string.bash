@@ -49,9 +49,39 @@ chars () {
 }
 
 chomp () {
+  case $# in
+    2 )
+      local -n ref_=$2
+
+      case $1 in
+        *$'\r\n'      ) ref_=${1%$'\r\n'} ;;
+        *$'\r'|*$'\n' ) ref_=${1%?}       ;;
+        *             ) ref_=$1           ;;
+      esac
+      ;;
+    3 )
+      local -n ref_=$3
+
+      ref_=$1
+      case $2 in
+        '' )
+          while [[ $ref_ == *$'\r\n' ]]; do
+            ref_=${ref_%$'\r\n'}
+          done;:
+          ;;
+        * ) ref_=${1%$2}
+      esac
+      ;;
+  esac
+}
+
+chop () {
   local -n ref_=$2
 
-  ref_=${1%%*[^]}
+  case $1 in
+    *$'\r\n'  ) ref_=${1%$'\r\n'} ;;
+    *         ) ref_=${1%?}       ;;
+  esac
 }
 
 compare () {
