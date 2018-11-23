@@ -142,6 +142,13 @@ describe chop
   ti
 end_describe
 
+describe chr
+  it "returns one character from the beginning of a string"
+    s.chr abc result
+    assert equal a $result
+  ti
+end_describe
+
 describe codepoints
   it "returns an array of the integers for the characters"
     s.codepoints $'hello\u0639' result

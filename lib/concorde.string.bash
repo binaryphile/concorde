@@ -84,6 +84,12 @@ chop () {
   esac
 }
 
+chr () {
+  local -n ref_=$2
+
+  ref_=${1:0:1}
+}
+
 codepoints () {
   local -n ref_=$2
   local i_
