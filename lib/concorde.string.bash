@@ -84,6 +84,15 @@ chop () {
   esac
 }
 
+codepoints () {
+  local -n ref_=$2
+  local i_
+
+  for (( i_ = 0; i_ < ${#1}; i_++ )); do
+    ref_+=( $(printf %d "'${1:i_:1}") )
+  done
+}
+
 compare () {
   local -n ref_=$3
 

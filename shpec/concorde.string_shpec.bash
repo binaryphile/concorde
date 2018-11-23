@@ -142,6 +142,14 @@ describe chop
   ti
 end_describe
 
+describe codepoints
+  it "returns an array of the integers for the characters"
+    s.codepoints $'hello\u0639' result
+    expecteds=( 104 101 108 108 111 1593 )
+    assert equal "${expecteds[*]}" "${result[*]}"
+  ti
+end_describe
+
 describe compare
   it "returns -1 if the string is less than another"
     s.compare a b result
