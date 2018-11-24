@@ -467,6 +467,20 @@ describe length
   ti
 end_describe
 
+describe lines
+  it "returns an array from the lines"
+    s.lines $'hello\nthere' results
+    expecteds=( hello there )
+    assert equal "${expecteds[*]}" "${results[*]}"
+  ti
+
+  it "returns an array using a different separator"
+    s.lines $'hello\tthere' $'\t' results
+    expecteds=( hello there )
+    assert equal "${expecteds[*]}" "${results[*]}"
+  ti
+end_describe
+
 describe lower
   it "lowers the case of all letters in the string"
     s.lower hEllO result
