@@ -163,6 +163,16 @@ empty? () {
   [[ -z ${1:-} ]]
 }
 
+end_with? () {
+  local target=$1; shift
+  local item
+
+  for item; do
+    [[ $target == *"$item" ]] && return
+  done
+  return 1
+}
+
 eq? () {
   [[ $1 == "$2" ]]
 }

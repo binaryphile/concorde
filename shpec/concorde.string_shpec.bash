@@ -264,6 +264,23 @@ describe empty?
   ti
 end_describe
 
+describe end_with?
+  it "returns true if the string ends with the argument"
+    s.end_with? hello ello
+    assert equal 0 $?
+  ti
+
+  it "returns true if the string ends with one of the arguments"
+    s.end_with? hello heaven ello
+    assert equal 0 $?
+  ti
+
+  it "returns false if the string doesn't end with one of the arguments"
+    ! s.end_with? hello heaven paradise
+    assert equal 0 $?
+  ti
+end_describe
+
 describe eq?
   it "returns true for equal strings"
     ! s.eq? sample sample
