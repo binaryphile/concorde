@@ -198,6 +198,18 @@ include? () {
   [[ $1 == *"$2"* ]]
 }
 
+hex () {
+  [[ $1 == *[^+\-[:digit:]a-fx]* ]] && {
+    printf -v $2 %s 0
+    return
+  }
+  case $1 in
+    0x*|0X* ) printf -v $2 %d $1        ;;
+    -*      ) printf -v $2 %d -0x${1#-} ;;
+    *       ) printf -v $2 %d 0x$1      ;;
+  esac
+}
+
 index () {
   local target_=$1; shift
   local search_=$1; shift

@@ -341,6 +341,28 @@ describe gt?
   ti
 end_describe
 
+describe hex
+  it "returns a hex value"
+    s.hex 0x0a result
+    assert equal 10 $result
+  ti
+
+  it "parses a sign"
+    s.hex -1234 result
+    assert equal -4660 $result
+  ti
+
+  it "parses 0"
+    s.hex 0 result
+    assert equal 0 $result
+  ti
+
+  it "returns 0 on error"
+    s.hex wombat result
+    assert equal 0 $result
+  ti
+end_describe
+
 describe include?
   it "returns true if one string includes the other"
     s.include? sample ampl
