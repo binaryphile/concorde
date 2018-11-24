@@ -310,6 +310,13 @@ describe ge?
   ti
 end_describe
 
+describe getbyte
+  it "returns a byte from the indexed string"
+    s.getbyte hello 2 result
+    assert equal 108 $result
+  ti
+end_describe
+
 describe gsub
   it "substitutes all occurrences of a pattern"
     s.gsub hello [aeiou] * result
