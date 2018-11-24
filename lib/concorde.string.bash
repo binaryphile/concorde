@@ -107,6 +107,23 @@ compare () {
   [[ $1 > $2    ]] && ref_=1;:
 }
 
+count () {
+  local -n ref_=${!#}
+  local target_=$1
+  set -- ${*:2:$#-2}
+  local spec_
+  local result_
+
+  for spec_; do
+    for (( i_ = 0; i_ < ${#target_}; i_++ )); do
+      [[ ${target_:i_:1} == [$spec_] ]] && result_+=${target_:i_:1}
+    done
+    target_=$result_
+    result_=''
+  done
+  ref_=${#target_}
+}
+
 downcase () {
   local -n ref_=$2
 

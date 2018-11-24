@@ -174,6 +174,38 @@ describe compare
   ti
 end_describe
 
+describe count
+  it "counts ls and os"
+    s.count "hello world" lo result
+    assert equal 5 $result
+  ti
+
+  it "counts the intersection of two strings"
+    s.count "hello world" lo o result
+    assert equal 2 $result
+  ti
+
+  it "counts negated"
+    s.count "hello world" hello ^l result
+    assert equal 4 $result
+  ti
+
+  it "counts a range"
+    s.count "hello world" ej-m result
+    assert equal 4 $result
+  ti
+
+  it "escapes ^"
+    s.count "hello^world" '\^aeiou' result
+    assert equal 4 $result
+  ti
+
+  it "escapes -"
+    s.count "hello-world" 'a\-eo' result
+    assert equal 4 $result
+  ti
+end_describe
+
 describe downcase
   it "lowers the case of all letters in the string"
     s.downcase hEllO result
