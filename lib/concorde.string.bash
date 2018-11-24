@@ -9,7 +9,9 @@ ascii_only?  () {
 }
 
 blank? () {
-  [[ -z ${1:-} ]]
+  local item=${1:-}
+
+  [[ -z ${item//[[:space:]]} ]]
 }
 
 capitalize () {
@@ -236,7 +238,9 @@ partition () {
 }
 
 present? () {
-  [[ -n ${1:-} ]]
+  local item=${1:-}
+
+  [[ -n ${item//[[:space:]]} ]]
 }
 
 replace () {

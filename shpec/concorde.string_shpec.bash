@@ -29,6 +29,11 @@ describe blank?
     assert equal 0 $?
   ti
 
+  it "is true if the argument is whitespace"
+    s.blank? $' \t\n'
+    assert equal 0 $?
+  ti
+
   it "is false if the argument is non-empty"
     ! s.blank? a
     assert equal 0 $?
@@ -407,6 +412,11 @@ describe present?
 
   it "is false if the argument is empty"
     ! s.present? ''
+    assert equal 0 $?
+  ti
+
+  it "is false if the argument is whitespace"
+    ! s.present? $' \t\n'
     assert equal 0 $?
   ti
 
