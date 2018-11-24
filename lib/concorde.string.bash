@@ -272,12 +272,6 @@ present? () {
   [[ -n ${item//[[:space:]]} ]]
 }
 
-replace () {
-  local -n ref_=$4
-
-  ref_=${1//$2/$3}
-}
-
 reverse () {
   local -n ref_=$2
   local i_

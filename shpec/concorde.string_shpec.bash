@@ -489,13 +489,6 @@ describe present?
   ti
 end_describe
 
-describe replace
-  it "substitutes all occurrences of a pattern"
-    s.replace hello [aeiou] * result
-    assert equal h*ll* $result
-  ti
-end_describe
-
 describe reverse
   it "reverses a string"
     s.reverse stressed result
