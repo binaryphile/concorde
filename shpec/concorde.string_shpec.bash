@@ -397,6 +397,33 @@ describe index
   ti
 end_describe
 
+describe insert
+  it "inserts before an index"
+    s.insert abcd 0 X result
+    assert equal Xabcd $result
+  ti
+
+  it "inserts before another index"
+    s.insert abcd 3 X result
+    assert equal abcXd $result
+  ti
+
+  it "inserts before yet another index"
+    s.insert abcd 4 X result
+    assert equal abcdX $result
+  ti
+
+  it "inserts before a negative index"
+    s.insert abcd -3 X result
+    assert equal abXcd $result
+  ti
+
+  it "inserts before another negative index"
+    s.insert abcd -1 X result
+    assert equal abcdX $result
+  ti
+end_describe
+
 describe le?
   it "returns true for a lesser string comparison"
     s.le? a b
