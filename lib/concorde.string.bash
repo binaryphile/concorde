@@ -124,6 +124,29 @@ count () {
   ref_=${#target_}
 }
 
+delete () {
+  local -n ref_=${!#}
+  local target_=$1
+  local copy_=$1
+  set -- ${*:2:$#-2}
+  local result_
+  local spec_
+
+  for spec_; do
+    for (( i_ = 0; i_ < ${#target_}; i_++ )); do
+      [[ ${target_:i_:1} == [$spec_] ]] && result_+=${target_:i_:1}
+    done
+    target_=$result_
+    result_=''
+  done
+
+  target_=${target_//^/\^}
+  target_=${target_//-/\-}
+  for (( i_ = 0; i_ < ${#copy_}; i_++ )); do
+    [[ ${copy_:i_:1} != [$target_] ]] && ref_+=${copy_:i_:1};:
+  done
+}
+
 downcase () {
   local -n ref_=$2
 

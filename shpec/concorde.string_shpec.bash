@@ -206,6 +206,28 @@ describe count
   ti
 end_describe
 
+describe delete
+  it "deletes a couple strings"
+    s.delete hello l lo result
+    assert equal heo $result
+  ti
+
+  it "deletes a string"
+    s.delete hello lo result
+    assert equal he $result
+  ti
+
+  it "deletes a negation"
+    s.delete ^hello aeiou ^e result
+    assert equal ^hell $result
+  ti
+
+  it "deletes a range"
+    s.delete he-llo ej-m result
+    assert equal h-o $result
+  ti
+end_describe
+
 describe downcase
   it "lowers the case of all letters in the string"
     s.downcase hEllO result
