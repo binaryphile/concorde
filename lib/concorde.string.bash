@@ -263,21 +263,15 @@ lines () {
 
 ljust () {
   local -n ref_=${!#}
+  set -- ${*:1:$#-1}
   local -i num_
   local -i mod_
-  local pad_
+  local padstr_=${3:- }
 
-  num_=$2-${#1}
-  mod_=$num_
-  (( $# == 3 )) && {
-    times ' ' $num_ pad_
-    ref_=$1$pad_
-    return
-  }
-  num_=num_/${#3}
-  mod_=mod_%${#3}
-  times $3 $num_ pad_
-  ref_=$1$pad_${3:0:mod_}
+  num_=($2-${#1})/${#padstr_}
+  mod_=mod_%${#padstr_}
+  times $padstr_ $num_ pad_
+  ref_=$1$pad_${padstr_:0:mod_-1}
 }
 
 lower () {
