@@ -424,6 +424,18 @@ describe insert
   ti
 end_describe
 
+describe inspect
+  it "returns a quoted string"
+    s.inspect $'hel\bo' result
+    assert equal "$'hel\bo'" $result
+  ti
+
+  it "returns a quoted string"
+    s.inspect hello result
+    assert equal '"hello"' $result
+  ti
+end_describe
+
 describe le?
   it "returns true for a lesser string comparison"
     s.le? a b

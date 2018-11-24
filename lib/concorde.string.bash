@@ -235,6 +235,12 @@ insert () {
   esac
 }
 
+inspect () {
+  printf -v $2 %q $1
+  [[ ${!2} == \$\'*\' ]] && return
+  printf -v $2 '"%s"' ${!2}
+}
+
 le? () {
   [[ $1 < $2 || $1 == "$2" ]]
 }
