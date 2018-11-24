@@ -247,6 +247,23 @@ describe dump
   ti
 end_describe
 
+describe empty?
+  it "returns true for no argument"
+    s.empty?
+    assert equal 0 $?
+  ti
+
+  it "returns true for an empty string"
+    s.empty? ''
+    assert equal 0 $?
+  ti
+
+  it "returns false for a non-empty string"
+    ! s.empty? a
+    assert equal 0 $?
+  ti
+end_describe
+
 describe eq?
   it "returns true for equal strings"
     ! s.eq? sample sample
