@@ -481,6 +481,23 @@ describe lines
   ti
 end_describe
 
+describe ljust
+  it "returns the string if the pad is shorter"
+    s.ljust hello 4 result
+    assert equal hello $result
+  ti
+
+  it "returns a padded string"
+    s.ljust hello 20 result
+    assert equal 'hello               ' $result
+  ti
+
+  it "returns a given pad"
+    s.ljust hello 20 1234 result
+    assert equal 'hello123412341234123' $result
+  ti
+end_describe
+
 describe lower
   it "lowers the case of all letters in the string"
     s.lower hEllO result

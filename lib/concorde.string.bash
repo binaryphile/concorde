@@ -261,6 +261,25 @@ lines () {
   ref_=( $1 )
 }
 
+ljust () {
+  local -n ref_=${!#}
+  local -i num_
+  local -i mod_
+  local pad_
+
+  num_=$2-${#1}
+  mod_=$num_
+  (( $# == 3 )) && {
+    times ' ' $num_ pad_
+    ref_=$1$pad_
+    return
+  }
+  num_=num_/${#3}
+  mod_=mod_%${#3}
+  times $3 $num_ pad_
+  ref_=$1$pad_${3:0:mod_}
+}
+
 lower () {
   printf -v $2 %s ${1,,}
 }
