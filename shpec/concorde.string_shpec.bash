@@ -235,6 +235,13 @@ describe downcase
   ti
 end_describe
 
+describe dump
+  it "dumps an escaped representation"
+    s.dump $'hello \n \'\'' result
+    assert equal "$'hello \n \'\''" $result
+  ti
+end_describe
+
 describe eq?
   it "returns true for equal strings"
     ! s.eq? sample sample
