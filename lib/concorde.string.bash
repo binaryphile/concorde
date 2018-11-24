@@ -246,21 +246,23 @@ le? () {
 }
 
 left () {
-  local -n ref_=$3
-
-  ref_=${1:0:$2}
+  printf -v $3 %s ${1:0:$2}
 }
 
 length () {
-  local -n ref_=$2
+  printf -v $2 %s ${#1}
+}
 
-  ref_=${#1}
+lines () {
+  local -n ref_=${!#}
+  local IFS=$IFS
+
+  (( $# == 3 )) && IFS=$2
+  ref_=( $1 )
 }
 
 lower () {
-  local -n ref_=$2
-
-  ref_=${1,,}
+  printf -v $2 %s ${1,,}
 }
 
 lstrip () {
