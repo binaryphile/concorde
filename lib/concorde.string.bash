@@ -322,6 +322,10 @@ next () {
   ref_=${results_[*]}
 }
 
+ord () {
+  printf -v $2 %d \'$1
+}
+
 partition () {
   local -n ref_=$3
 

@@ -556,6 +556,13 @@ describe next
   ti
 end_describe
 
+describe ord
+  it "returns the ordinal of a one-character string"
+    s.ord a result
+    assert equal 97 $result
+  ti
+end_describe
+
 describe partition
   it "partitions a string into an array"
     s.partition "Spam eggs spam spam and ham" spam results
