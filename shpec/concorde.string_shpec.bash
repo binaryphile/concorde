@@ -494,7 +494,7 @@ describe ljust
 
   it "returns a given pad"
     s.ljust hello 20 1234 result
-    assert equal 'hello123412341234123' $result
+    assert equal hello123412341234123 $result
   ti
 end_describe
 
@@ -621,6 +621,23 @@ describe rindex
   it "doesn't return the index of 'a' in 'hello'"
     s.rindex hello a index
     assert equal '' "$index"
+  ti
+end_describe
+
+describe rjust
+  it "returns the string if the pad is shorter"
+    s.rjust hello 4 result
+    assert equal hello $result
+  ti
+
+  it "returns a padded string"
+    s.rjust hello 20 result
+    assert equal '               hello' $result
+  ti
+
+  it "returns a given pad"
+    s.rjust hello 20 1234 result
+    assert equal 123412341234123hello $result
   ti
 end_describe
 

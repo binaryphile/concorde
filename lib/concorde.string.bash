@@ -269,9 +269,9 @@ ljust () {
   local -i num_
 
   num_=($2-${#1})/${#padstr_}
-  mod_=mod_%${#padstr_}
+  mod_=($2-${#1})%${#padstr_}
   times $padstr_ $num_ pad_
-  ref_=$1$pad_${padstr_:0:mod_-1}
+  ref_=$1$pad_${padstr_:0:mod_}
 }
 
 lower () {
@@ -368,6 +368,20 @@ rindex () {
       return
     };:
   done
+}
+
+rjust () {
+  local -n ref_=${!#}
+  set -- ${*:1:$#-1}
+  local padstr_=${3:- }
+  local -i mod_
+  local -i num_
+
+  num_=($2-${#1})/${#padstr_}
+  mod_=($2-${#1})%${#padstr_}
+  declare -p mod_
+  times $padstr_ $num_ pad_
+  ref_=$pad_${padstr_:0:mod_}$1
 }
 
 rpartition () {
