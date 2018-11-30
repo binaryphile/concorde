@@ -529,6 +529,33 @@ describe lt?
   ti
 end_describe
 
+describe next
+  it "increments a letter"
+    s.next abcd result
+    assert equal abce $result
+  ti
+
+  it "increments a number"
+    s.next THX1138 result
+    assert equal THX1139 $result
+  ti
+
+  it "skips non-alnums"
+    s.next '<<koala>>' result
+    assert equal '<<koalb>>' $result
+  ti
+
+  it "carries on lowercase letters and numbers"
+    s.next 1999zzz result
+    assert equal 2000aaa $result
+  ti
+
+  it "carries on uppercase letters and numbers"
+    s.next ZZZ9999 result
+    assert equal AAAA0000 $result
+  ti
+end_describe
+
 describe partition
   it "partitions a string into an array"
     s.partition "Spam eggs spam spam and ham" spam results

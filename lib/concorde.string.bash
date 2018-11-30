@@ -264,9 +264,9 @@ lines () {
 ljust () {
   local -n ref_=${!#}
   set -- ${*:1:$#-1}
-  local -i num_
-  local -i mod_
   local padstr_=${3:- }
+  local -i mod_
+  local -i num_
 
   num_=($2-${#1})/${#padstr_}
   mod_=mod_%${#padstr_}
@@ -287,6 +287,39 @@ lstrip () {
 
 lt? () {
   [[ $1 < $2 ]]
+}
+
+next () {
+  local -n ref_=$2
+  local -i ord_
+  local IFS=$IFS
+  local chr_
+  local i_
+  local results_=()
+
+  carry_=1
+  for (( i_ = ${#1}; i_ > 0; i_-- )); do
+    chr_=${1:i_-1:1}
+    ! (( carry_ )) && {
+      results_[i_]=$chr_
+      continue
+    }
+    printf -v ord_ %d \'$chr_
+    ord_+=1
+    printf -v ord_ %02o $ord_
+    case $chr_ in
+      [a-y]|[A-Y]|[0-8] ) printf -v results_[i_] %b \\$ord_; carry_=0   ;;
+      z|Z               ) printf -v results_[i_] %b \\$(( ord_ - 32 ))  ;;
+      9                 ) results_[i_]=0                                ;;
+      *                 ) results_[i_]=$chr_                            ;;
+    esac
+  done
+  (( carry_ )) && case $chr_ in
+    z|Z ) printf -v results_[0] %b \\$(( ord_ - 32 )) ;;
+    9   ) results_[0]=1                               ;;
+  esac
+  IFS=''
+  ref_=${results_[*]}
 }
 
 partition () {
