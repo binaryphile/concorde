@@ -656,6 +656,20 @@ describe rstrip
   ti
 end_describe
 
+describe scan
+  it "scans by word"
+    s.scan "cruel world" /[[:alnum:]_]+/ results
+    expecteds=( cruel world )
+    assert equal "${expecteds[*]}" "${results[*]}"
+  ti
+
+  it "scans letters"
+    s.scan "cruel world" /.../ results
+    expecteds=( cru 'el ' wor )
+    assert equal "${expecteds[*]}" "${results[*]}"
+  ti
+end_describe
+
 describe split
   it "splits a string into an array"
     s.split " now's  the time" '' results

@@ -379,7 +379,6 @@ rjust () {
 
   num_=($2-${#1})/${#padstr_}
   mod_=($2-${#1})%${#padstr_}
-  declare -p mod_
   times $padstr_ $num_ pad_
   ref_=$pad_${padstr_:0:mod_}$1
 }
@@ -395,6 +394,19 @@ rstrip () {
 
   ref_=${1##*[^[:space:]]}
   ref_=${1%$ref_}
+}
+
+scan () {
+  local target_=$1
+  local pattern_=${2#/}
+  local -n ref_=$3
+
+  pattern_=${pattern_%/}
+  ref_=()
+  while [[ $target_ =~ $pattern_ ]]; do
+    ref_+=( $BASH_REMATCH )
+    target_=${target_#*$BASH_REMATCH}
+  done
 }
 
 split () {
