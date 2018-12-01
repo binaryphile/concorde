@@ -409,6 +409,10 @@ scan () {
   done
 }
 
+size () {
+  printf -v $2 ${#1}
+}
+
 split () {
   local -n ref_=$3
   local delim_=${2:-[[:space:]]}

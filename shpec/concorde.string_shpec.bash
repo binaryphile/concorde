@@ -670,6 +670,13 @@ describe scan
   ti
 end_describe
 
+describe size
+  it "returns the length of the string"
+    s.size hello result
+    assert equal 5 $result
+  ti
+end_describe
+
 describe split
   it "splits a string into an array"
     s.split " now's  the time" '' results
