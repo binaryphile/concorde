@@ -677,6 +677,18 @@ describe size
   ti
 end_describe
 
+describe slice
+  it "returns an indexed character"
+    s.slice "hello there" 1 result
+    assert equal e $result
+  ti
+
+  it "returns an index and length"
+    s.slice "hello there" 2 3 result
+    assert equal "llo" "$result"
+  ti
+end_describe
+
 describe split
   it "splits a string into an array"
     s.split " now's  the time" '' results

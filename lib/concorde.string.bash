@@ -410,7 +410,15 @@ scan () {
 }
 
 size () {
-  printf -v $2 ${#1}
+  printf -v $2 %s ${#1}
+}
+
+slice () {
+  local length_=1
+  (( $# == 4 )) && length_=$3
+  local -n ref_=${!#}
+
+  ref_=${1:$2:length_}
 }
 
 split () {
