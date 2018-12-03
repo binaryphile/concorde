@@ -1,5 +1,5 @@
 concorde_Dir=$(dirname $(readlink -f $BASH_SOURCE))
 
-source $concorde_Dir/as module          \
-  s=$concorde_Dir/concorde.string.bash  \
-  a=$concorde_Dir/concorde.array.bash
+source $concorde_Dir/as module            \
+  str=$concorde_Dir/concorde.string.bash  \
+  ary=$concorde_Dir/concorde.array.bash
