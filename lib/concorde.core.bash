@@ -1,18 +1,17 @@
 shopt -s expand_aliases
 alias kwargs='(( $# )) && declare'
 
-var () {
+alias_var () {
   local item
 
   for item; do
-    eval "alias $item=\"declare $item; _var_helper_ $item\""
+    eval "alias $item='_var_helper_ $item'"
   done
 }
 
 _var_helper_ () {
   case $(type -t $3) in
-    builtin   ) printf -v $1 %s $(${*:3}) ;;
-    function  ) ${*:3} $1                 ;;
-    *         ) printf -v $1 %s $3        ;;
+    builtin|file  ) printf -v $1 %s $(${*:3}) ;;
+    function      ) ${*:3} $1                 ;;
   esac
 }
