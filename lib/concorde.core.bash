@@ -10,14 +10,12 @@ alias_var () {
 }
 
 _var_helper_ () {
-  case $3 in
-    printf|echo )
-      printf -v $1 ${*:3}
-      return
-      ;;
-  esac
+  [[ $3 == printf ]] && {
+    printf -v $1 ${*:3}
+    return
+  }
   case $(type -t $3) in
-    builtin|file  ) printf -v $1 %s $(${*:3}) ;;
-    function      ) ${*:3} $1                 ;;
+    function  ) ${*:3} $1                 ;;
+    *         ) printf -v $1 %s $(${*:3}) ;;
   esac
 }
