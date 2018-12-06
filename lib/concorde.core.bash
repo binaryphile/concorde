@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 shopt -s expand_aliases
 alias kwargs='(( $# )) && declare'
 
@@ -19,3 +20,5 @@ _var_helper_ () {
     *         ) printf -v $1 %s $(${*:3}) ;;
   esac
 }
+=======
+>>>>>>> Stashed changes

@@ -15,25 +15,25 @@ blank? () {
 }
 
 capitalize () {
-  local -n ref_=$2
+  local -n ref_=$1
 
-  ref_=${1,,}
+  ref_=${2,,}
   ref_=${ref_^}
 }
 
 center () {
-  local length_=${#1}
-  local width_=$2
-  local -n ref_=$3
+  local -n ref_=$1
+  local length_=${#2}
+  local width_=$3
   local padstr_=${4:- }
   local -i num_
   local pad_
 
-  num_="(width_ - length_)/(2*${#padstr_})"
+  num_="(width_-length_)/(2*${#padstr_})"
   times $padstr_ $num_ pad_
-  num_="num_ % ${#padstr_}"
+  num_=num_%${#padstr_}
   pad_+=${padstr_:0:num_-1}
-  ref_=$pad_$1
+  ref_=$pad_$2
   num_="(width_ - (${#pad_} + length_))/${#padstr_}"
   times $padstr_ $num_ pad_
   num_="num_ % ${#padstr_}"
@@ -42,80 +42,75 @@ center () {
 }
 
 chars () {
-  local -n ref_=$2
+  local -n ref_=$1
   local i_
 
-  for (( i_ = 0; i_ < ${#1}; i_++ )); do
-    ref_+=( ${1:i_:1} )
+  for (( i_ = 0; i_ < ${#2}; i_++ )); do
+    ref_+=( ${2:i_:1} )
   done
 }
 
 chomp () {
   case $# in
     2 )
-      local -n ref_=$2
+      local -n ref_=$1
 
-      case $1 in
-        *$'\r\n'      ) ref_=${1%$'\r\n'} ;;
-        *$'\r'|*$'\n' ) ref_=${1%?}       ;;
-        *             ) ref_=$1           ;;
+      case $2 in
+        *$'\r\n'      ) ref_=${2%$'\r\n'} ;;
+        *$'\r'|*$'\n' ) ref_=${2%?}       ;;
+        *             ) ref_=$2           ;;
       esac
       ;;
     3 )
-      local -n ref_=$3
+      local -n ref_=$1
 
-      ref_=$1
-      case $2 in
+      ref_=$2
+      case $3 in
         '' )
           while [[ $ref_ == *$'\r\n' ]]; do
             ref_=${ref_%$'\r\n'}
           done;:
           ;;
-        * ) ref_=${1%$2}
+        * ) ref_=${2%$3}
       esac
       ;;
   esac
 }
 
 chop () {
-  local -n ref_=$2
-
-  case $1 in
-    *$'\r\n'  ) ref_=${1%$'\r\n'} ;;
-    *         ) ref_=${1%?}       ;;
+  case $2 in
+    *$'\r\n'  ) printf -v $1 %s "${2%$'\r\n'}";;
+    *         ) printf -v $1 %s "${2%?}"      ;;
   esac
 }
 
 chr () {
-  local -n ref_=$2
-
-  ref_=${1:0:1}
+  printf -v $1 %s ${2:0:1}
 }
 
 codepoints () {
   local i_
 
   for (( i_ = 0; i_ < ${#1}; i_++ )); do
-    printf -v $2[i_] %d "'${1:i_:1}"
+    printf -v $1[i_] %d "'${2:i_:1}"
   done
 }
 
 compare () {
-  local -n ref_=$3
+  local -n ref_=$1
 
-  [[ $1 < $2    ]] && ref_=-1
-  [[ $1 == "$2" ]] && ref_=0
-  [[ $1 > $2    ]] && ref_=1;:
+  [[ $2 < $3    ]] && ref_=-1
+  [[ $2 == "$3" ]] && ref_=0
+  [[ $2 > $3    ]] && ref_=1;:
 }
 
 count () {
-  local -n ref_=${!#}
-  local target_=$1
-  set -- ${*:2:$#-2}
+  local -n ref_=$1
+  local target_=$2
   local spec_
   local result_
 
-  for spec_; do
+  for spec_ in ${*:3:$#-2}; do
     for (( i_ = 0; i_ < ${#target_}; i_++ )); do
       [[ ${target_:i_:1} == [$spec_] ]] && result_+=${target_:i_:1}
     done
@@ -126,14 +121,13 @@ count () {
 }
 
 delete () {
-  local -n ref_=${!#}
-  local target_=$1
-  local copy_=$1
-  set -- ${*:2:$#-2}
+  local -n ref_=$1
+  local target_=$2
+  local copy_=$2
   local result_
   local spec_
 
-  for spec_; do
+  for spec_ in ${*:3:$#-2}; do
     for (( i_ = 0; i_ < ${#target_}; i_++ )); do
       [[ ${target_:i_:1} == [$spec_] ]] && result_+=${target_:i_:1}
     done
