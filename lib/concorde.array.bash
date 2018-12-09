@@ -2,8 +2,6 @@ concorde_array_Dir=$(dirname $(readlink -f $BASH_SOURCE))
 source $concorde_array_Dir/as module
 module.already_loaded && return
 
-source $concorde_array_Dir/concorde.core.bash
-
 all () {
   local item
 
