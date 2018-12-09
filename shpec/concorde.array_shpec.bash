@@ -21,6 +21,22 @@ describe all
   ti
 end_describe
 
+describe any
+  it "returns true if one of the elements returns true"
+    source $shpec_Dir/lib/as module s=$shpec_Dir/lib/concorde.bash
+    samples=( zero one '' )
+    a.any samples s.blank?
+    assert equal 0 $?
+  ti
+
+  it "returns false if all of the elements return false"
+    source $shpec_Dir/lib/as module s=$shpec_Dir/lib/concorde.bash
+    samples=( zero one two )
+    ! a.any samples s.blank?
+    assert equal 0 $?
+  ti
+end_describe
+
 describe join
   it "joins strings with no delimiter"
     samples=( a b c )

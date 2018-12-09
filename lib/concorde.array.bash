@@ -11,6 +11,15 @@ all () {
   done
 }
 
+any () {
+  local -n ary_=$1
+  local item_
+
+  for item_ in "${ary_[@]}"; do
+    $2 $item_ && return
+  done
+}
+
 join () {
   local -n ref_=$1
   local -n ary_=$2
