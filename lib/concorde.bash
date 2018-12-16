@@ -15,6 +15,19 @@ alias_var () {
   done
 }
 
+array () {
+  local item_
+  local result_
+  local results_=()
+
+  for item_; do
+    result_=$(declare -p ${item_#*=})
+    result_=${result_#*=\'}
+    results_+=( ${item_%=*}=${result_%\'} )
+  done
+  echo "${results_[*]}"
+}
+
 ascii_only?  () {
   [[ ${1:-} != *[^[:ascii:]]* ]]
 }

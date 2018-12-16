@@ -37,6 +37,25 @@ describe alias_var
   ti
 end_describe
 
+describe array
+  it "creates an array declaration"
+    samples=( zero one two )
+    result=$(array results=samples)
+    assert equal 'results=([0]="zero" [1]="one" [2]="two")' $result
+  ti
+
+  it "creates two array declarations"
+    samples=( zero one two )
+    more=( three four five )
+    result=$(array results=samples other=more)
+    expecteds=(
+      'results=([0]="zero" [1]="one" [2]="two")'
+      'other=([0]="three" [1]="four" [2]="five")'
+    )
+    assert equal "${expecteds[*]}" "$result"
+  ti
+end_describe
+
 describe ascii_only?
   it "is true if only ascii characters"
     ascii_only? abc
