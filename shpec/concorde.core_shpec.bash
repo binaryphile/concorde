@@ -3,7 +3,7 @@ set -o noglob
 
 shpec_Dir=$(dirname $(readlink -f $BASH_SOURCE))/..
 source $shpec_Dir/shpec/shpec-helper.bash
-source $shpec_Dir/lib/concorde.bash
+source $shpec_Dir/lib/concorde.core.bash
 
 export TMPDIR=${TMPDIR:-$HOME/tmp}
 mkdir -p $TMPDIR

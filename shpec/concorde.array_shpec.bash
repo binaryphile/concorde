@@ -3,7 +3,8 @@ set -o noglob
 
 shpec_Dir=$(dirname $(readlink -f $BASH_SOURCE))/..
 source $shpec_Dir/shpec/shpec-helper.bash
-source $shpec_Dir/lib/concorde.bash
+source $shpec_Dir/lib/as module a=$shpec_Dir/lib/concorde.array.bash
+source $shpec_Dir/lib/concorde.core.bash
 
 describe all
   it "returns true if none of the elements return false"
