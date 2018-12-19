@@ -13,15 +13,19 @@ alias_var () {
 
 array () {
   local item_
+  local name_
+  local ref_
   local result_
   local results_=()
 
   for item_; do
-    result_=$(declare -p ${item_#*=})
-    result_=${result_#*=\'}
-    results_+=( ${item_%=*}=${result_%\'} )
+    name_=${item_%=*}
+    ref_=${item_#*=}
+    result_=$(declare -p $ref_)
+    result_=${result_/$ref_/$name_}
+    results_+=( $result_ )
   done
-  echo "${results_[*]}"
+  emit <<<"${results_[*]}"
 }
 
 blank? () {
@@ -43,6 +47,13 @@ downcase () {
 
 dump () {
   printf -v $1 %q "$2"
+}
+
+emit () {
+  local code_
+
+  IFS='' read -rd '' code_
+  printf ${1:+-v$IFS$1} eval%seval%s%q "$IFS" "$IFS" "$code_"
 }
 
 empty? () {

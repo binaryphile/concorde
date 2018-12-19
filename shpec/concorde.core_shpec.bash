@@ -40,19 +40,25 @@ end_describe
 describe array
   it "creates an array declaration"
     samples=( zero one two )
-    result=$(array results=samples)
-    assert equal 'results=([0]="zero" [1]="one" [2]="two")' $result
+    $(array results=samples)
+    assert equal "${samples[*]}" "${results[*]}"
+  ti
+
+  it "creates a hash declaration"
+    samples=( zero one two )
+    $(array results=samples)
+    assert equal "${samples[*]}" "${results[*]}"
   ti
 
   it "creates two array declarations"
     samples=( zero one two )
     more=( three four five )
-    result=$(array results=samples other=more)
+    $(array results=samples other=more)
     expecteds=(
       'results=([0]="zero" [1]="one" [2]="two")'
       'other=([0]="three" [1]="four" [2]="five")'
     )
-    assert equal "${expecteds[*]}" "$result"
+    assert equal "${samples[*]}${more[*]}" "${results[*]}${other[*]}"
   ti
 end_describe
 
@@ -96,6 +102,13 @@ describe dump
   it "dumps an escaped representation"
     dump result $'hello \n \'\''
     assert equal "$'hello \n \'\''" $result
+  ti
+end_describe
+
+describe emit
+  it "runs a command"
+    result=$($(emit <<<$'echo hello\necho there'))
+    assert equal $'hello\nthere' "$result"
   ti
 end_describe
 
