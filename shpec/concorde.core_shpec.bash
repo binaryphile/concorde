@@ -8,6 +8,24 @@ source $shpec_Dir/lib/concorde.core.bash
 export TMPDIR=${TMPDIR:-$HOME/tmp}
 mkdir -p $TMPDIR
 
+describe alias_retvar
+  alias_retvar result
+
+  it "returns a named variable"
+    samplef () {
+      local result=$1
+      local sample
+
+      sample=value
+      result = sample && return
+    }
+    samplef result
+    assert equal value $result
+  ti
+
+  unalias result
+end_describe
+
 describe alias_var
   alias_var sample
 
@@ -35,6 +53,8 @@ describe alias_var
     result=$(samplef)
     assert equal text $result
   ti
+
+  unalias sample
 end_describe
 
 describe array

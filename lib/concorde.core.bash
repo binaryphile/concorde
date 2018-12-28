@@ -3,11 +3,19 @@ concorde_core_Dir=$(dirname $(readlink -f $BASH_SOURCE))
 shopt -s expand_aliases
 alias kwargs='(( $# )) && declare'
 
+alias_retvar () {
+  alias "$1=local \$$1 && retvar_ $1"
+}
+
+retvar_ () {
+  return_ $1 $3
+}
+
 alias_var () {
   local item
 
   for item; do
-    eval "alias $item='var_ $item'"
+    alias "$item=var_ $item"
   done
 }
 
