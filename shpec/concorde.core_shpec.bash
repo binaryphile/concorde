@@ -2,11 +2,32 @@ IFS=$'\n'
 set -o noglob
 
 shpec_Dir=$(dirname $(readlink -f $BASH_SOURCE))/..
+shpec_Core=$shpec_Dir/lib/concorde.core.bash
+
 source $shpec_Dir/shpec/shpec-helper.bash
-source $shpec_Dir/lib/concorde.core.bash
 
 export TMPDIR=${TMPDIR:-$HOME/tmp}
 mkdir -p $TMPDIR
+
+describe sourced?
+  alias setup='dir=$(mktemp -d) || return'
+  alias teardown='rm -rf $dir'
+
+  it "returns true when in a file being sourced"
+    printf 'source %s\nsourced?' $shpec_Core >$dir/example
+    (source $dir/example)
+    assert equal 0 $?
+  ti
+
+  it "returns false when that file is run"
+    printf 'source %s\nsourced?' $shpec_Core >$dir/example
+    chmod 775 $dir/example
+    ! $dir/example
+    assert equal 0 $?
+  ti
+end_describe
+
+source $shpec_Core
 
 describe alias_retvar
   alias_retvar result

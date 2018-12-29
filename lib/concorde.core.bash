@@ -153,6 +153,10 @@ slice () {
   printf -v $1 %s ${2:$3:${4:-1}}
 }
 
+sourced? () {
+  [[ ${FUNCNAME[1]} == source ]]
+}
+
 substr () {
   printf -v $1 %s ${2:$3:$4-$3}
 }
