@@ -78,6 +78,20 @@ end_with? () {
   return 1
 }
 
+get () {
+  local -n heredoc_=$1
+  local indent_
+
+  get_heredoc heredoc_
+  indent_=${heredoc_%%[^[:space:]]*}
+  heredoc_=${heredoc_#$indent_}
+  heredoc_=${heredoc_//$'\n'$indent_/$'\n'}
+}
+
+get_heredoc () {
+  ! IFS=$'\n' read -rd '' $1
+}
+
 gsub () {
   printf -v $1 %s ${2//$3/$4}
 }

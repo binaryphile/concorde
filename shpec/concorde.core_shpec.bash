@@ -173,6 +173,25 @@ describe gsub
   ti
 end_describe
 
+describe get
+  it "stores a heredoc in a named variable"
+    get sample <<'    END'
+      sample text
+      line 2
+    END
+    assert equal $'sample text\nline 2' "$sample"
+  ti
+end_describe
+
+describe get_heredoc
+  it "stores a heredoc in a named variable"
+    get_heredoc sample <<'    END'
+      sample text
+    END
+    assert equal "      sample text" "$sample"
+  ti
+end_describe
+
 describe kwargs
   it "instantiates keyword arguments"
     samplef () {
