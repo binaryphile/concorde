@@ -78,6 +78,10 @@ end_with? () {
   return 1
 }
 
+file? () {
+  [[ -f $1 ]]
+}
+
 get () {
   local -n heredoc_=$1
   local indent_

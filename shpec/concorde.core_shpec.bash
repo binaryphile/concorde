@@ -166,6 +166,35 @@ describe end_with?
   ti
 end_describe
 
+describe file?
+  alias setup='dir=$(mktemp -d) || return'
+  alias teardown='rm -rf $dir'
+
+  it "identifies a file"
+    touch $dir/file
+    file? $dir/file
+    assert equal 0 $?
+  ti
+
+  it "identifies a symlink to a file"
+    touch $dir/file
+    ln -s file $dir/filelink
+    file? $dir/filelink
+    assert equal 0 $?
+  ti
+
+  it "doesn't identify a symlink to a directory"
+    ln -s . $dir/dirlink
+    ! file? $dir/dirlink
+    assert equal 0 $?
+  ti
+
+  it "doesn't identify a directory"
+    ! file? $dir
+    assert equal 0 $?
+  ti
+end_describe
+
 describe gsub
   it "substitutes all occurrences of a pattern"
     gsub result hello [aeiou] *
