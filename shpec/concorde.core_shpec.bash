@@ -374,6 +374,36 @@ describe slice
   ti
 end_describe
 
+describe strict_mode
+  it "sets errexit"
+    set +o errexit
+    strict_mode on
+    [[ $- == *e* ]]
+    assert equal 0 $?
+  ti
+
+  it "unsets errexit"
+    set -o errexit
+    strict_mode off
+    [[ $- != *e* ]]
+    assert equal 0 $?
+  ti
+
+  it "sets nounset"
+    set +o nounset
+    strict_mode on
+    [[ $- == *u* ]]
+    assert equal 0 $?
+  ti
+
+  it "sets pipefail"
+    set +o errexit
+    strict_mode on
+    [[ :$SHELLOPTS: == *:pipefail:* ]]
+    assert equal 0 $?
+  ti
+end_describe
+
 describe substr
   it "returns a string based on start and end position"
     substr result hello 2 4
