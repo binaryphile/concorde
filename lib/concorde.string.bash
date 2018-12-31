@@ -1,7 +1,3 @@
-concorde_string_Dir=$(dirname $(readlink -f $BASH_SOURCE))
-source $concorde_string_Dir/as module
-module.already_loaded && return
-
 ascii_only?  () {
   [[ ${1:-} != *[^[:ascii:]]* ]]
 }

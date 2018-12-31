@@ -1,5 +1,3 @@
-concorde_core_Dir=$(dirname $(readlink -f $BASH_SOURCE))
-
 shopt -s expand_aliases
 alias kwargs='(( $# )) && declare'
 
