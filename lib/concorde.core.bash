@@ -29,6 +29,10 @@ array () {
   for item_; do
     name_=${item_%=*}
     ref_=${item_#*=}
+    [[ -z $ref_ ]] && {
+      results_+=( "$name_=()" )
+      continue
+    }
     result_=$(declare -p $ref_)
     result_=${result_/$ref_/$name_}
     results_+=( $result_ )

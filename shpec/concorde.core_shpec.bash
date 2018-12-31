@@ -95,11 +95,12 @@ describe array
     samples=( zero one two )
     more=( three four five )
     $(array results=samples other=more)
-    expecteds=(
-      'results=([0]="zero" [1]="one" [2]="two")'
-      'other=([0]="three" [1]="four" [2]="five")'
-    )
     assert equal "${samples[*]}${more[*]}" "${results[*]}${other[*]}"
+  ti
+
+  it "creates an empty array when no source is supplied"
+    $(array results=)
+    assert equal 0 ${#results[*]}
   ti
 end_describe
 
