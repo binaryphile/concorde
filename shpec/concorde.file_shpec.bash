@@ -1,62 +1,24 @@
-IFS=$'\n'
-set -o noglob
-
-shpec_Dir=$(dirname $(readlink -f $BASH_SOURCE))/..
-source $shpec_Dir/shpec/shpec-helper.bash
-source $shpec_Dir/lib/as module f=$shpec_Dir/lib/concorde.file.bash
-
-describe all
-  it "returns true if none of the elements return false"
-    set -- one two three
-    a.all "$*" present?
+describe executable_file?
+  it "identifies an executable file"; ( _shpec_failures=0
+    dir=$($mktempd)
+    directory? "$dir" || return
+    touch "$dir"/file
+    chmod 755 "$dir"/file
+    executable_file? "$dir"/file
     assert equal 0 $?
-  ti
+    $rmtree "$dir"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
 
-  it "returns false if any of the elements return false"
-    set -- one two three
-    ! a.all "$*" blank?
-    assert equal 0 $?
-  ti
-end_describe
+  it "doesn't identify an executable directory"; ( _shpec_failures=0
+    dir=$($mktempd)
+    directory? "$dir" || return
+    mkdir "$dir"/dir
+    chmod 755 "$dir"/dir
+    executable_file? "$dir"/dir
+    assert unequal 0 $?
+    $rmtree "$dir"
+    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
+  end
+end
 
-describe any
-  it "returns true if one of the elements returns true"
-    set -- one two ' '
-    a.any "$*" blank?
-    assert equal 0 $?
-  ti
-
-  it "returns false if all of the elements return false"
-    set -- one two
-    ! a.any "$*" blank?
-    assert equal 0 $?
-  ti
-end_describe
-
-describe include?
-  it "detects an element of an array"
-    set -- one two three
-    a.include? "$*" two
-    assert equal 0 $?
-  ti
-
-  it "doesn't detect a nonelement of an array"
-    set -- one two three
-    ! a.include? "$*" four
-    assert equal 0 $?
-  ti
-end_describe
-
-describe join
-  it "joins strings with no delimiter"
-    set -- a b c
-    a.join result "$*" ''
-    assert equal abc $result
-  ti
-
-  it "joins strings with a multicharacter delimiter"
-    set -- a b c
-    a.join result "$*" --
-    assert equal a--b--c $result
-  ti
-end_describe
