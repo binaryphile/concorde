@@ -1,24 +1,23 @@
+IFS=$'\n'
+set -o noglob
+
+shpec_Dir=$(dirname $(readlink -f $BASH_SOURCE))/..
+source $shpec_Dir/shpec/shpec-helper.bash
+source $shpec_Dir/lib/concorde.file.bash
+
 describe executable_file?
-  it "identifies an executable file"; ( _shpec_failures=0
-    dir=$($mktempd)
-    directory? "$dir" || return
-    touch "$dir"/file
-    chmod 755 "$dir"/file
-    executable_file? "$dir"/file
+  alias setup='dir=$(mktemp -d) || return'
+  alias teardown='rm -rf $dir'
+
+  it "identifies an executable file"
+    touch $dir/file
+    chmod 755 $dir/file
+    executable? $dir/file
     assert equal 0 $?
-    $rmtree "$dir"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
+  ti
 
-  it "doesn't identify an executable directory"; ( _shpec_failures=0
-    dir=$($mktempd)
-    directory? "$dir" || return
-    mkdir "$dir"/dir
-    chmod 755 "$dir"/dir
-    executable_file? "$dir"/dir
-    assert unequal 0 $?
-    $rmtree "$dir"
-    return "$_shpec_failures" ); : $(( _shpec_failures += $? ))
-  end
-end
-
+  it "doesn't identify an executable directory"
+    ! executable? $dir
+    assert equal 0 $?
+  ti
+end_describe
