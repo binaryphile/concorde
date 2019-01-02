@@ -1,7 +1,7 @@
 IFS=$'\n'
 set -o noglob
 
-shpec_Dir=$(dirname $(readlink -f $BASH_SOURCE))/..
+shpec_Dir=$(readlink -f $(dirname $BASH_SOURCE)/..)
 source $shpec_Dir/shpec/shpec-helper.bash
 source $shpec_Dir/lib/concorde.path.bash
 
