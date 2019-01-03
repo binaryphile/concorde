@@ -188,6 +188,65 @@ describe end_with?
   ti
 end_describe
 
+describe executable?
+  alias setup='dir=$(mktemp -d) || return'
+  alias teardown='rm -rf $dir'
+
+  it "identifies an executable file"
+    touch $dir/file
+    chmod 755 $dir/file
+    executable? $dir/file
+    assert equal 0 $?
+  ti
+
+  it "identifies an executable directory"
+    executable? $dir
+    assert equal 0 $?
+  ti
+
+  it "doesn't identify an non-executable file"
+    touch $dir/file
+    ! executable? $dir/file
+    assert equal 0 $?
+  ti
+
+  it "doesn't identify a non-executable directory"
+    mkdir $dir/dir
+    chmod 664 $dir/dir
+    ! executable? $dir/dir
+    assert equal 0 $?
+  ti
+
+  it "identifies a link to an executable file"
+    touch $dir/file
+    chmod 755 $dir/file
+    ln -s file $dir/link
+    executable? $dir/link
+    assert equal 0 $?
+  ti
+
+  it "identifies a link to an executable directory"
+    ln -s $dir $dir/link
+    executable? $dir/link
+    assert equal 0 $?
+  ti
+
+  it "doesn't identify a link to a non-executable file"
+    touch $dir/file
+    ln -s file $dir/link
+    ! executable? $dir/link
+    assert equal 0 $?
+  ti
+
+  it "doesn't identify a link to a non-executable directory"
+    mkdir $dir/dir
+    chmod 664 $dir/dir
+    ln -s dir $dir/link
+    ! executable? $dir/link
+    assert equal 0 $?
+  ti
+end_describe
+
 describe file?
   alias setup='dir=$(mktemp -d) || return'
   alias teardown='rm -rf $dir'

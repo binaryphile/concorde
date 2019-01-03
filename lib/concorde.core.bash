@@ -80,6 +80,10 @@ end_with? () {
   return 1
 }
 
+executable? () {
+  [[ -x $1 ]]
+}
+
 file? () {
   [[ -f $1 ]]
 }
