@@ -78,6 +78,20 @@ describe alias_var
   unalias sample
 end_describe
 
+describe args?
+  it "detects arguments"
+    set -- one
+    args?
+    assert equal 0 $?
+  ti
+
+  it "doesn't detect no arguments"
+    set --
+    ! args?
+    assert equal 0 $?
+  ti
+end_describe
+
 describe array
   it "creates an array declaration"
     samples=( zero one two )

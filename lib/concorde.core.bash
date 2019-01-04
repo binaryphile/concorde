@@ -1,4 +1,5 @@
 shopt -s expand_aliases
+alias args?='(( $# ))'
 alias kwargs='(( $# )) && declare'
 
 alias_retvar () {
