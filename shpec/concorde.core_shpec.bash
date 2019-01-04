@@ -133,6 +133,35 @@ describe capitalize
   ti
 end_describe
 
+describe directory?
+  alias setup='dir=$(mktemp -d) || return'
+  alias teardown='rm -rf $dir'
+
+  it "identifies a directory"
+    directory? $dir
+    assert equal 0 $?
+  ti
+
+  it "identifies a symlink to a directory"
+    ln -s . $dir/link
+    directory? $dir/link
+    assert equal 0 $?
+  ti
+
+  it "doesn't identify a symlink to a file"
+    touch $dir/file
+    ln -s file $dir/link
+    ! directory? $dir/link
+    assert equal 0 $?
+  ti
+
+  it "doesn't identify a file"
+    touch $dir/file
+    ! directory? $dir/file
+    assert equal 0 $?
+  ti
+end_describe
+
 describe downcase
   it "lowers the case of all letters in the string"
     downcase result hEllO

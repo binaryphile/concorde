@@ -51,6 +51,10 @@ capitalize () {
   ref_=${ref_^}
 }
 
+directory? () {
+  [[ -d $1 ]]
+}
+
 downcase () {
   printf -v $1 %s ${2,,}
 }
