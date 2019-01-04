@@ -3,7 +3,7 @@ alias args?='(( $# ))'
 alias kwargs='(( $# )) && declare'
 
 alias_retvar () {
-  alias "$1=local \$$1 && retvar_ $1"
+  alias "$1=declare \$$1 && retvar_ \$$1"
 }
 
 retvar_ () {

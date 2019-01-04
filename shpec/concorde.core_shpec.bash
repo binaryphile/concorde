@@ -32,7 +32,7 @@ source $shpec_Core
 describe alias_retvar
   alias_retvar result
 
-  it "returns a named variable"
+  it "returns a named variable of the same name"
     samplef () {
       local result=$1
       local sample
@@ -42,6 +42,18 @@ describe alias_retvar
     }
     samplef result
     assert equal value $result
+  ti
+
+  it "returns a named variable of different name"
+    samplef () {
+      local result=$1
+      local sample
+
+      sample=value
+      result = sample && return
+    }
+    samplef other
+    assert equal value $other
   ti
 
   unalias result
