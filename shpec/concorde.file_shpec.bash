@@ -21,3 +21,26 @@ describe executable_file?
     assert equal 0 $?
   ti
 end_describe
+
+describe nonexecutable?
+  alias setup='dir=$(mktemp -d) || return'
+  alias teardown='rm -rf $dir'
+
+  it "identifies a nonexecutable file"
+    touch $dir/file
+    nonexecutable? $dir/file
+    assert equal 0 $?
+  ti
+
+  it "doesn't identify an executable file"
+    touch $dir/file
+    chmod 755 $dir/file
+    ! nonexecutable? $dir/file
+    assert equal 0 $?
+  ti
+
+  it "doesn't identify a directory"
+    ! nonexecutable? $dir
+    assert equal 0 $?
+  ti
+end_describe
