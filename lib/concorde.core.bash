@@ -7,7 +7,7 @@ alias_retvar () {
 }
 
 retvar_ () {
-  return_ $1 $3
+  return_ $1 ${*:3}
 }
 
 alias_var () {
@@ -140,7 +140,14 @@ present? () {
 return_ () {
   local result_
 
-  result_=$(declare -p $2)
+  ! (( $# > 2 ))
+  case $? in
+    0 ) result_=$(declare -p $2);;
+    * )
+      $2 result_ ${*:3}
+      result_=$(declare -p result_)
+      ;;
+  esac
   result_=${result_#*=}
   result_=${result_#\'}
   unset -v $1

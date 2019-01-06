@@ -461,6 +461,17 @@ describe return_
     foo results
     assert equal "declare -A results='([one]=\"1\" [two]=\"2\" [three]=\"3\" )'" $(declare -p results)
   ti
+
+  it "returns a function"
+    foo () {
+      local $1 && return_ $1 assign sample
+    }
+    assign () {
+      printf -v $1 %s $2
+    }
+    foo result
+    assert equal sample $result
+  ti
 end_describe
 
 describe reverse
