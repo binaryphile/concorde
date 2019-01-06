@@ -38,7 +38,7 @@ describe alias_retvar
       local sample
 
       sample=value
-      result = sample && return
+      result = sample
     }
     samplef result
     assert equal value $result
@@ -50,7 +50,7 @@ describe alias_retvar
       local sample
 
       sample=value
-      result = sample && return
+      result = sample
     }
     samplef other
     assert equal value $other
