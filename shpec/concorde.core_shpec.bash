@@ -359,14 +359,14 @@ end_describe
 
 describe join
   it "joins strings with no delimiter"
-    set -- a b c
-    join result "$*" ''
+    samples=( a b c )
+    join result samples ''
     assert equal abc $result
   ti
 
   it "joins strings with a multicharacter delimiter"
-    set -- a b c
-    join result "$*" --
+    samples=( a b c )
+    join result samples --
     assert equal a--b--c $result
   ti
 end_describe

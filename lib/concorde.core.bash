@@ -117,9 +117,10 @@ include? () {
 
 join () {
   local -n ref_=$1
+  $(array items_=$2)
   local item_
 
-  for item_ in $2; do
+  for item_ in ${items_[*]}; do
     ref_+=$item_$3
   done
   ref_=${ref_%$3}
