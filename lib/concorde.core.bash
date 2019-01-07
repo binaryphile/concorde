@@ -115,6 +115,16 @@ include? () {
   [[ $1 == *"$2"* ]]
 }
 
+join () {
+  local -n ref_=$1
+  local item_
+
+  for item_ in $2; do
+    ref_+=$item_$3
+  done
+  ref_=${ref_%$3}
+}
+
 left () {
   printf -v $1 %s ${2:0:$3}
 }
