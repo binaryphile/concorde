@@ -52,6 +52,18 @@ capitalize () {
   ref_=${ref_^}
 }
 
+die () {
+  local rc=$?
+  local msg=${1:-}
+
+  [[ -z $msg ]] && exit $rc
+  case $rc in
+    0 ) echo $msg     ;;
+    * ) echo $msg >&2 ;;
+  esac
+  exit $rc
+}
+
 directory? () {
   [[ -d $1 ]]
 }

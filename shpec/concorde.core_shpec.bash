@@ -184,6 +184,23 @@ describe capitalize
   ti
 end_describe
 
+describe die
+  it "exits with a 0 return code if the last command was 0"
+    (die)
+    assert equal 0 $?
+  ti
+
+  it "exits with a non-zero return code if the last command was non-zero"
+    false || ! (die)
+    assert equal 0 $?
+  ti
+
+  it "outputs a message on stderr if the last command failed"
+    result=$(false || ! (die sample) 2>&1)
+    assert equal sample $result
+  ti
+end_describe
+
 describe directory?
   alias setup='dir=$(mktemp -d) || return'
   alias teardown='rm -rf $dir'
