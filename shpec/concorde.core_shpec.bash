@@ -87,6 +87,20 @@ describe alias_var
     assert equal text $result
   ti
 
+  it "passes empty arguments"
+    assign () {
+      printf -v $1 %s $2
+    }
+    samplef () {
+      local sample
+
+      sample = assign ''
+      echo $sample
+    }
+    result=$(samplef)
+    assert equal '' "$result"
+  ti
+
   unalias sample
 end_describe
 

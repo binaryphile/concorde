@@ -211,11 +211,11 @@ upcase () {
 
 var_ () {
   [[ $3 == printf ]] && {
-    printf -v $1 ${*:3}
+    printf -v $1 "${@:3}"
     return
   }
   case $(type -t $3) in
-    function  ) $3 $1 ${*:4}              ;;
-    *         ) printf -v $1 %s $(${*:3}) ;;
+    function  ) $3 $1 "${@:4}"              ;;
+    *         ) printf -v $1 %s $("${@:3}") ;;
   esac
 }
