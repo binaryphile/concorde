@@ -211,7 +211,7 @@ upcase () {
 
 var_ () {
   [[ $3 == printf ]] && {
-    printf -v $1 "${@:3}"
+    printf -v $1 "${@:4}"
     return
   }
   case $(type -t $3) in

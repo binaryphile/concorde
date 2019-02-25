@@ -73,6 +73,17 @@ describe alias_var
     assert equal text $result
   ti
 
+  it "treats printf specially"
+    samplef () {
+      local sample
+
+      sample = printf %s text
+      echo $sample
+    }
+    result=$(samplef)
+    assert equal text $result
+  ti
+
   it "feeds the variable as the first argument to a function"
     assign () {
       printf -v $1 %s $2
