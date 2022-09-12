@@ -1,14 +1,16 @@
 all () {
-  local item_
+  local item
 
-  for item_ in $1; do
-    $2 $item_ || return
+  for item in $1; do
+    $2 $item || return
   done
 }
 
 any () {
-  for item_ in $1; do
-    $2 $item_ && return
+  local item
+
+  for item in $1; do
+    $2 $item && return
   done
 }
 
